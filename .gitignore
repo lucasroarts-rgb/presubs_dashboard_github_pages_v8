@@ -9,3 +9,6 @@ data/*.log
 data/*-error.log
 *.xlsx
 *.xls
+.env
+exports/
+logs/

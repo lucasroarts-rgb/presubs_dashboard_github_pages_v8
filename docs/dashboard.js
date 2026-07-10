@@ -865,8 +865,8 @@ async function loadComparison(){
   if(!currentId || !previousId || currentId===previousId) return;
   let data;
   if(IS_STATIC){
-    data=STATIC_DATA.comparisons?.[`${currentId}:${previousId}`];
-    if(!data){alert("This comparison was not included in the published export.");return}
+    data=buildClientComparison(currentId,previousId);
+    if(!data){alert("The selected reporting periods are not available in this export.");return}
   }else{
     const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
     data=await response.json();
@@ -919,4 +919,347 @@ async function loadDashboard(weekId){
   "dailyAdSearch","dailyCampaignFilter","dailyAdsetFilter","dailyPageFilter","dailyHideZero"
 ].forEach(id=>document.getElementById(id)?.addEventListener("input",renderDaily));
 
-loadWeeks();
+
+/* Date-range and monthly analysis */
+let allDashboardsCache=null;
+let rangeAnalysisState=null;
+
+function isoDateObject(value){
+  const [year,month,day]=String(value||"").split("-").map(Number);
+  return new Date(Date.UTC(year,month-1,day));
+}
+function isoFromDate(value){return value.toISOString().slice(0,10)}
+function addDaysIso(value,days){const d=isoDateObject(value);d.setUTCDate(d.getUTCDate()+days);return isoFromDate(d)}
+function daysInclusive(start,end){return Math.floor((isoDateObject(end)-isoDateObject(start))/86400000)+1}
+function clampIso(value,min,max){return value<min?min:value>max?max:value}
+function monthStart(value){return `${String(value).slice(0,7)}-01`}
+function monthEnd(value){const d=isoDateObject(monthStart(value));d.setUTCMonth(d.getUTCMonth()+1);d.setUTCDate(0);return isoFromDate(d)}
+function shiftYearIso(value,years){const d=isoDateObject(value);d.setUTCFullYear(d.getUTCFullYear()+years);return isoFromDate(d)}
+function shiftMonthIso(value,months){
+  const original=isoDateObject(value), day=original.getUTCDate();
+  const d=new Date(Date.UTC(original.getUTCFullYear(),original.getUTCMonth()+months,1));
+  const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+  d.setUTCDate(Math.min(day,last));
+  return isoFromDate(d);
+}
+function fridayWeekStart(value){
+  const d=isoDateObject(value), day=d.getUTCDay(), distance=(day-5+7)%7;
+  d.setUTCDate(d.getUTCDate()-distance);
+  return isoFromDate(d);
+}
+function dateRangeLabel(start,end){return `${formatDate(start)} – ${formatDate(end)}`}
+function safeCsv(value){
+  const text=String(value??"");
+  return /[",\n]/.test(text)?`"${text.replaceAll('"','""')}"`:text;
+}
+
+async function loadAllDashboards(){
+  if(allDashboardsCache) return allDashboardsCache;
+  if(typeof IS_STATIC!=="undefined" && IS_STATIC){
+    allDashboardsCache=Object.values(STATIC_DATA.dashboards||{});
+  }else{
+    allDashboardsCache=await Promise.all((weeks||[]).map(w=>fetch(`/api/dashboard?week_id=${w.id}`).then(r=>r.json())));
+  }
+  return allDashboardsCache;
+}
+
+function flattenDailyHistory(dashboards){
+  const sorted=[...(dashboards||[])].sort((a,b)=>String(b.current_week?.week_end||"").localeCompare(String(a.current_week?.week_end||"")));
+  const seen=new Set(), rows=[];
+  sorted.forEach(data=>(data.daily_ads||[]).forEach(row=>{
+    const key=`${row.report_date}::${row.entity_key}`;
+    if(seen.has(key)) return;
+    seen.add(key);
+    rows.push({...row,source_week_id:data.current_week?.id});
+  }));
+  return rows.sort((a,b)=>a.report_date.localeCompare(b.report_date));
+}
+
+function rangeFilters(){
+  return {
+    campaign:document.getElementById("rangeCampaignFilter")?.value||"",
+    adset:document.getElementById("rangeAdsetFilter")?.value||"",
+    page:document.getElementById("rangePageFilter")?.value||"",
+    hideZero:document.getElementById("rangeHideZero")?.checked!==false
+  };
+}
+function filterRangeRows(rows,start,end,filters=rangeFilters()){
+  return (rows||[]).filter(row=>{
+    const inDate=row.report_date>=start && row.report_date<=end;
+    const hasDelivery=Number(row.spend)||Number(row.impressions)||Number(row.link_clicks)||Number(row.results);
+    return inDate && (!filters.campaign||row.campaign_key===filters.campaign) && (!filters.adset||row.adset_key===filters.adset) && (!filters.page||row.page_key===filters.page) && (!filters.hideZero||hasDelivery);
+  });
+}
+function rangeMetrics(rows){
+  const metrics=(rows||[]).reduce((acc,row)=>{
+    acc.spend+=Number(row.spend)||0;
+    acc.results+=Number(row.results)||0;
+    acc.impressions+=Number(row.impressions)||0;
+    acc.link_clicks+=Number(row.link_clicks)||0;
+    acc.landing_page_views+=Number(row.landing_page_views)||0;
+    acc.denominator+=Number(row.conversion_denominator)||0;
+    if(row.conversion_basis) acc.bases.add(row.conversion_basis);
+    return acc;
+  },{spend:0,results:0,impressions:0,link_clicks:0,landing_page_views:0,denominator:0,bases:new Set()});
+  metrics.cpl=metrics.results?metrics.spend/metrics.results:null;
+  metrics.cpc=metrics.link_clicks?metrics.spend/metrics.link_clicks:null;
+  metrics.ctr=metrics.impressions?metrics.link_clicks*100/metrics.impressions:null;
+  metrics.cost_per_lpv=metrics.landing_page_views?metrics.spend/metrics.landing_page_views:null;
+  metrics.conversion_rate=metrics.denominator?metrics.results*100/metrics.denominator:null;
+  metrics.drop_off_rate=metrics.conversion_rate==null?null:100-metrics.conversion_rate;
+  metrics.conversion_basis=metrics.bases.size===1?[...metrics.bases][0]:metrics.bases.size>1?"mixed":"unavailable";
+  return metrics;
+}
+function groupRangeRows(rows,keyFn,labelFn){
+  const groups=new Map();
+  (rows||[]).forEach(row=>{
+    const key=keyFn(row);
+    if(!groups.has(key)) groups.set(key,{key,label:labelFn(row),rows:[]});
+    groups.get(key).rows.push(row);
+  });
+  return [...groups.values()].map(group=>({...group,...rangeMetrics(group.rows)}));
+}
+function rangeEntityGroups(rows,type){
+  const config={
+    campaign:[r=>r.campaign_key||normalized(r.campaign_name),r=>r.campaign_name||"Unknown campaign"],
+    adset:[r=>r.adset_key||normalized(r.adset_name),r=>r.adset_name||"Unknown ad set"],
+    ad:[r=>r.entity_key,r=>r.entity_name||"Unknown ad"],
+    page:[r=>r.page_key||"main",r=>r.page_name||"Main page"]
+  }[type];
+  return groupRangeRows(rows,config[0],config[1]).map(group=>{
+    const first=group.rows[0]||{};
+    return {...group,
+      entity_key:group.key,entity_name:group.label,
+      campaign_name:first.campaign_name,adset_name:first.adset_name,
+      page_key:first.page_key||"main",page_code:first.page_code||"MAIN",page_name:first.page_name||"Main page",
+      is_default:Boolean(first.is_default),ad_count:new Set(group.rows.map(r=>r.entity_key)).size
+    };
+  });
+}
+function trendGroupKey(row,granularity){
+  if(granularity==="day") return row.report_date;
+  if(granularity==="week") return fridayWeekStart(row.report_date);
+  return row.report_date.slice(0,7);
+}
+function trendLabel(key,granularity){
+  if(granularity==="day") return formatDate(key);
+  if(granularity==="week") return `${formatDate(key)} – ${formatDate(addDaysIso(key,6))}`;
+  const [year,month]=key.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-GB",{month:"short",year:"numeric"}).format(new Date(Date.UTC(year,month-1,1)));
+}
+function resolveGranularity(start,end){
+  const selected=document.getElementById("rangeGranularity")?.value||"auto";
+  if(selected!=="auto") return selected;
+  const days=daysInclusive(start,end);
+  return days<=45?"day":days<=240?"week":"month";
+}
+function periodComparisonDates(start,end,mode){
+  if(mode==="none") return null;
+  if(mode==="custom") return {start:document.getElementById("compareRangeStart").value,end:document.getElementById("compareRangeEnd").value};
+  if(mode==="previousMonth") return {start:shiftMonthIso(start,-1),end:shiftMonthIso(end,-1)};
+  if(mode==="previousYear") return {start:shiftYearIso(start,-1),end:shiftYearIso(end,-1)};
+  const days=daysInclusive(start,end);
+  return {start:addDaysIso(start,-days),end:addDaysIso(start,-1)};
+}
+function rangePresetDates(preset,minDate,maxDate){
+  if(preset==="all") return {start:minDate,end:maxDate};
+  if(preset==="yearToDate") return {start:`${maxDate.slice(0,4)}-01-01`,end:maxDate};
+  if(preset==="currentMonth") return {start:monthStart(maxDate),end:maxDate};
+  if(preset==="previousMonth"){
+    const end=addDaysIso(monthStart(maxDate),-1);return {start:monthStart(end),end};
+  }
+  const days=preset==="latest7"?7:preset==="latest90"?90:30;
+  return {start:clampIso(addDaysIso(maxDate,-days+1),minDate,maxDate),end:maxDate};
+}
+function populateRangeFilters(rows){
+  const populate=(id,items,key,label,placeholder)=>{
+    const select=document.getElementById(id),current=select.value;
+    const unique=[...new Map(items.filter(x=>x[key]).map(x=>[x[key],x])).values()].sort((a,b)=>String(a[label]||"").localeCompare(String(b[label]||"")));
+    select.innerHTML=`<option value="">${placeholder}</option>`+unique.map(x=>`<option value="${x[key]}">${x[label]}</option>`).join("");
+    if([...select.options].some(o=>o.value===current)) select.value=current;
+  };
+  populate("rangeCampaignFilter",rows,"campaign_key","campaign_name","All campaigns");
+  populate("rangeAdsetFilter",rows,"adset_key","adset_name","All ad sets");
+  populate("rangePageFilter",rows,"page_key","page_name","All pages");
+}
+function setRangePreset(){
+  if(!rangeAnalysisState) return;
+  const preset=document.getElementById("rangePreset").value;
+  if(preset==="custom") return;
+  const dates=rangePresetDates(preset,rangeAnalysisState.minDate,rangeAnalysisState.maxDate);
+  document.getElementById("rangeStart").value=dates.start;
+  document.getElementById("rangeEnd").value=dates.end;
+}
+function renderRangeKpis(current,previous){
+  const items=[
+    ["Spend",money(current.spend),previous?`Comparison ${money(previous.spend)}`:"No comparison",previous?change(current.spend,previous.spend,true):null],
+    ["Registrations",number(current.results),previous?`Comparison ${number(previous.results)}`:"Meta complete registrations",previous?change(current.results,previous.results):null],
+    ["Cost / registration",money(current.cpl),previous?`Comparison ${money(previous.cpl)}`:"Recalculated CPL",previous?change(current.cpl,previous.cpl,true):null],
+    ["Link clicks",number(current.link_clicks),previous?`Comparison ${number(previous.link_clicks)}`:`${number(current.impressions)} impressions`,previous?change(current.link_clicks,previous.link_clicks):null],
+    ["CPC",money(current.cpc),previous?`Comparison ${money(previous.cpc)}`:`CTR ${percent(current.ctr)}`,previous?change(current.cpc,previous.cpc,true):null],
+    ["Conversion",percent(current.conversion_rate),previous?`Comparison ${percent(previous.conversion_rate)}`:current.conversion_basis==="landing_page_views"?"LPV → registration":current.conversion_basis==="mixed"?"Mixed LPV / click basis":"Click → registration proxy",previous?change(current.conversion_rate,previous.conversion_rate):null]
+  ];
+  document.getElementById("rangeKpis").innerHTML=items.map(x=>`<article class="card kpi"><div class="kpi-label">${x[0]}</div><div><div class="kpi-value">${x[1]}</div><div class="kpi-note">${x[2]}</div>${previous?deltaHtml(x[3]):""}</div></article>`).join("");
+}
+function renderRangeTrend(rows,start,end){
+  const granularity=resolveGranularity(start,end);
+  const grouped=groupRangeRows(rows,r=>trendGroupKey(r,granularity),r=>trendLabel(trendGroupKey(r,granularity),granularity)).sort((a,b)=>a.key.localeCompare(b.key));
+  const container=document.getElementById("rangeTrend");
+  document.getElementById("rangeTrendSubtitle").textContent=`Grouped by ${granularity}. Spend, registrations and recalculated CPL.`;
+  if(!grouped.length){container.innerHTML='<div class="empty">No detailed delivery exists for this range.</div>';return}
+  const maxSpend=Math.max(...grouped.map(x=>x.spend),1),maxResults=Math.max(...grouped.map(x=>x.results),1);
+  container.innerHTML=grouped.map(item=>`<div class="range-trend-row">
+    <div class="range-trend-date">${item.label}</div>
+    <div class="range-trend-series"><span>Spend</span><div class="daily-track"><div class="daily-fill spend" style="width:${Math.max(2,item.spend/maxSpend*100)}%"></div></div><strong>${money(item.spend)}</strong></div>
+    <div class="range-trend-series"><span>Registrations</span><div class="daily-track"><div class="daily-fill results" style="width:${item.results?Math.max(4,item.results/maxResults*100):0}%"></div></div><strong>${number(item.results)}</strong></div>
+    <div class="range-trend-cpl"><span>CPL</span><strong>${money(item.cpl)}</strong></div>
+  </div>`).join("");
+}
+function renderRangeComparisonCards(current,previous,currentDates,previousDates){
+  const container=document.getElementById("rangeComparisonCards");
+  if(!previous){container.innerHTML='<div class="empty">Comparison disabled.</div>';return}
+  document.getElementById("rangeComparisonSubtitle").textContent=`${dateRangeLabel(currentDates.start,currentDates.end)} versus ${dateRangeLabel(previousDates.start,previousDates.end)}.`;
+  const cards=[
+    ["Spend",current.spend,previous.spend,money,true],
+    ["Registrations",current.results,previous.results,number,false],
+    ["CPL",current.cpl,previous.cpl,money,true],
+    ["Conversion",current.conversion_rate,previous.conversion_rate,percent,false]
+  ];
+  container.innerHTML=cards.map(([label,c,p,formatter,invert])=>`<div class="range-comparison-card"><div class="kpi-label">${label}</div><div class="range-comparison-values"><span>Current <strong>${formatter(c)}</strong></span><span>Comparison <strong>${formatter(p)}</strong></span></div>${deltaHtml(change(c,p,invert))}</div>`).join("");
+}
+function rangeTableColumns(extra=[]){return [
+  ...extra,
+  {label:"Spend",numeric:true,render:r=>money(r.spend)},
+  {label:"Registrations",numeric:true,render:r=>number(r.results)},
+  {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+  {label:"Impressions",numeric:true,render:r=>number(r.impressions)},
+  {label:"Link clicks",numeric:true,render:r=>number(r.link_clicks)},
+  {label:"CPC",numeric:true,render:r=>money(r.cpc)},
+  {label:"CTR",numeric:true,render:r=>percent(r.ctr)},
+  {label:"LPV",numeric:true,render:r=>number(r.landing_page_views)},
+  {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
+]}
+function buildRangeComparison(currentGroups,previousGroups,type){
+  const previousMap=new Map(previousGroups.map(x=>[x.key,x]));
+  const currentMap=new Map(currentGroups.map(x=>[x.key,x]));
+  return [...new Set([...currentMap.keys(),...previousMap.keys()])].map(key=>{
+    const c=currentMap.get(key),p=previousMap.get(key),sample=c||p;
+    const current=c||rangeMetrics([]),previous=p||rangeMetrics([]);
+    return {
+      entity_key:key,entity_name:sample.label,relation_name:type==="adset"?sample.campaign_name:type==="ad"?sample.adset_name:null,
+      delivery_status:c&&p?"continued":c?"new":"not_in_current_week",current_status:c?"active":"inactive",previous_status:p?"active":"inactive",
+      current,previous,change:{spend:change(current.spend,previous.spend)?.value??null,results:change(current.results,previous.results)?.value??null,cpl:change(current.cpl,previous.cpl)?.value??null,link_clicks:change(current.link_clicks,previous.link_clicks)?.value??null,cpc:change(current.cpc,previous.cpc)?.value??null,ctr:change(current.ctr,previous.ctr)?.value??null},
+      page_key:sample.page_key,page_code:sample.page_code,page_name:sample.page_name,effective_start_date:null
+    };
+  }).sort((a,b)=>Number(b.current.spend)-Number(a.current.spend));
+}
+function renderMonthTable(rows){
+  const months=groupRangeRows(rows,r=>r.report_date.slice(0,7),r=>trendLabel(r.report_date.slice(0,7),"month")).sort((a,b)=>a.key.localeCompare(b.key));
+  months.forEach((item,index)=>{const prev=months[index-1];item.spend_change=prev?change(item.spend,prev.spend,true):null;item.results_change=prev?change(item.results,prev.results):null;item.cpl_change=prev?change(item.cpl,prev.cpl,true):null});
+  table("monthlyPerformanceTable",[
+    {label:"Month",name:true,render:r=>r.label},
+    {label:"Spend",numeric:true,render:r=>money(r.spend)},
+    {label:"Δ spend",render:r=>deltaHtml(r.spend_change)},
+    {label:"Registrations",numeric:true,render:r=>number(r.results)},
+    {label:"Δ registrations",render:r=>deltaHtml(r.results_change)},
+    {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+    {label:"Δ CPL",render:r=>deltaHtml(r.cpl_change)},
+    {label:"Clicks",numeric:true,render:r=>number(r.link_clicks)},
+    {label:"CTR",numeric:true,render:r=>percent(r.ctr)},
+    {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
+  ],months,"No monthly data is available for this range.");
+}
+function renderWeekdayTable(rows){
+  const formatter=new Intl.DateTimeFormat("en-GB",{weekday:"long"});
+  const groups=groupRangeRows(rows,r=>String(isoDateObject(r.report_date).getUTCDay()),r=>formatter.format(isoDateObject(r.report_date)));
+  const order=[1,2,3,4,5,6,0];groups.sort((a,b)=>order.indexOf(Number(a.key))-order.indexOf(Number(b.key)));
+  groups.forEach(g=>g.days=new Set(g.rows.map(r=>r.report_date)).size);
+  table("weekdayPerformanceTable",rangeTableColumns([
+    {label:"Weekday",name:true,render:r=>r.label},
+    {label:"Days",numeric:true,render:r=>number(r.days)}
+  ]),groups,"No weekday data is available.");
+}
+function renderRangeEntityTables(currentRows,previousRows){
+  const campaigns=rangeEntityGroups(currentRows,"campaign").sort((a,b)=>b.spend-a.spend);
+  const adsets=rangeEntityGroups(currentRows,"adset").sort((a,b)=>b.spend-a.spend);
+  const ads=rangeEntityGroups(currentRows,"ad").sort((a,b)=>b.spend-a.spend);
+  const pages=rangeEntityGroups(currentRows,"page").sort((a,b)=>b.spend-a.spend);
+  table("rangeCampaignTable",rangeTableColumns([{label:"Campaign",name:true,render:r=>r.label}]),campaigns,"No campaign delivery exists for this range.");
+  table("rangeAdsetTable",rangeTableColumns([{label:"Ad set",name:true,render:r=>`<span>${r.label}</span><span class="sub-cell">${r.campaign_name||""}</span>`}]),adsets,"No ad-set delivery exists for this range.");
+  table("rangePageTable",rangeTableColumns([{label:"Conversion page",name:true,render:r=>`<span>${r.page_name}</span><span class="sub-cell">${r.is_default?"Ads without a page tag":`[LP-${r.page_code}]`}</span>`},{label:"Ads",numeric:true,render:r=>number(r.ad_count)}]),pages,"No conversion-page delivery exists for this range.");
+  table("rangeAdTable",rangeTableColumns([{label:"Ad",name:true,render:r=>`<span>${r.label}</span><span class="sub-cell">${r.adset_name||""}</span><span class="sub-cell">${r.campaign_name||""}</span>`},{label:"Page",render:r=>r.page_name||"Main page"}]),ads.slice(0,150),"No ad delivery exists for this range.");
+  if(previousRows){
+    renderComparisonTable("rangeCampaignComparisonTable",buildRangeComparison(campaigns,rangeEntityGroups(previousRows,"campaign"),"campaign"));
+    const pageRows=buildRangeComparison(pages,rangeEntityGroups(previousRows,"page"),"page").map(r=>({...r,page_name:r.entity_name,page_code:r.page_code||"MAIN"}));
+    renderPageComparisonTable("rangePageComparisonTable",pageRows);
+  }else{
+    document.getElementById("rangeCampaignComparisonTable").innerHTML='<div class="empty">Comparison disabled.</div>';
+    document.getElementById("rangePageComparisonTable").innerHTML='<div class="empty">Comparison disabled.</div>';
+  }
+}
+function exportRangeCsv(rows,start,end){
+  const columns=["report_date","campaign_name","adset_name","entity_name","page_name","spend","results","impressions","link_clicks","cpc","ctr","landing_page_views","conversion_rate","calculated_cpl"];
+  const content=[columns.join(","),...rows.map(row=>columns.map(col=>safeCsv(row[col])).join(","))].join("\n");
+  const blob=new Blob(["\ufeff"+content],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=`presubs_${start}_${end}.csv`;link.click();URL.revokeObjectURL(url);
+}
+async function renderDateAnalysis(){
+  if(!rangeAnalysisState) return;
+  const start=document.getElementById("rangeStart").value,end=document.getElementById("rangeEnd").value;
+  if(!start||!end||end<start){alert("Choose a valid start and end date.");return}
+  const filters=rangeFilters(),currentRows=filterRangeRows(rangeAnalysisState.rows,start,end,filters);
+  const compareMode=document.getElementById("rangeCompareMode").value,comparisonDates=periodComparisonDates(start,end,compareMode);
+  const previousRows=comparisonDates&&comparisonDates.start&&comparisonDates.end?filterRangeRows(rangeAnalysisState.rows,comparisonDates.start,comparisonDates.end,filters):null;
+  const current=rangeMetrics(currentRows),previous=previousRows?rangeMetrics(previousRows):null;
+  const expected=daysInclusive(start,end),availableDates=new Set(rangeAnalysisState.rows.filter(r=>r.report_date>=start&&r.report_date<=end).map(r=>r.report_date));
+  const coverage=expected?availableDates.size*100/expected:0;
+  document.getElementById("rangeCoverageBadge").textContent=`${availableDates.size}/${expected} calendar days`;
+  document.getElementById("rangeNotice").innerHTML=`<strong>Selected period:</strong> ${dateRangeLabel(start,end)}. Detailed rows exist on ${availableDates.size} of ${expected} calendar days (${decimal(coverage)}%). Dates without rows can mean zero delivery or unavailable daily data. Spend, registrations, clicks, LPV, CPL, CPC, CTR and conversion are recalculated. Reach and frequency are intentionally excluded because daily reach cannot be summed safely.`;
+  renderRangeKpis(current,previous);renderRangeTrend(currentRows,start,end);renderRangeComparisonCards(current,previous,{start,end},comparisonDates);renderMonthTable(currentRows);renderWeekdayTable(currentRows);renderRangeEntityTables(currentRows,previousRows);
+  rangeAnalysisState.currentRows=currentRows;rangeAnalysisState.currentDates={start,end};
+}
+async function initializeDateAnalysis(){
+  const dashboards=await loadAllDashboards(),rows=flattenDailyHistory(dashboards);
+  if(!rows.length){document.getElementById("rangeNotice").innerHTML='<strong>No daily history yet.</strong> Finish the historical API import and publish again.';return}
+  const minDate=rows[0].report_date,maxDate=rows[rows.length-1].report_date;
+  rangeAnalysisState={dashboards,rows,minDate,maxDate};populateRangeFilters(rows);
+  ["rangeStart","rangeEnd","compareRangeStart","compareRangeEnd"].forEach(id=>{const el=document.getElementById(id);el.min=minDate;el.max=maxDate});
+  setRangePreset();
+  const customEls=document.querySelectorAll(".range-custom-comparison");
+  const toggleCustom=()=>customEls.forEach(el=>el.classList.toggle("hidden",document.getElementById("rangeCompareMode").value!=="custom"));
+  document.getElementById("rangePreset").addEventListener("change",()=>{setRangePreset();renderDateAnalysis()});
+  document.getElementById("rangeCompareMode").addEventListener("change",()=>{toggleCustom();if(document.getElementById("rangeCompareMode").value==="custom"){const dates=periodComparisonDates(document.getElementById("rangeStart").value,document.getElementById("rangeEnd").value,"previousPeriod");document.getElementById("compareRangeStart").value=dates.start;document.getElementById("compareRangeEnd").value=dates.end}renderDateAnalysis()});
+  document.getElementById("applyDateRange").addEventListener("click",()=>{document.getElementById("rangePreset").value="custom";renderDateAnalysis()});
+  document.getElementById("exportRangeCsv").addEventListener("click",()=>{if(rangeAnalysisState.currentRows) exportRangeCsv(rangeAnalysisState.currentRows,rangeAnalysisState.currentDates.start,rangeAnalysisState.currentDates.end)});
+  ["rangeCampaignFilter","rangeAdsetFilter","rangePageFilter","rangeHideZero","rangeGranularity"].forEach(id=>document.getElementById(id).addEventListener("change",renderDateAnalysis));
+  toggleCustom();await renderDateAnalysis();
+}
+
+function metricSnapshot(row){
+  const spend=Number(row?.spend)||0,results=Number(row?.results)||0,impressions=Number(row?.impressions)||0,link_clicks=Number(row?.link_clicks)||0;
+  return {spend,results,cpl:results?spend/results:null,impressions,link_clicks,cpc:link_clicks?spend/link_clicks:null,ctr:impressions?link_clicks*100/impressions:null,reach:Number(row?.reach)||0,frequency:Number(row?.frequency)||0};
+}
+function clientEntityComparison(currentRows,previousRows,relationField){
+  const cMap=new Map((currentRows||[]).map(r=>[r.entity_key,r])),pMap=new Map((previousRows||[]).map(r=>[r.entity_key,r]));
+  return [...new Set([...cMap.keys(),...pMap.keys()])].map(key=>{
+    const c=cMap.get(key),p=pMap.get(key),sample=c||p,current=metricSnapshot(c),previous=metricSnapshot(p);
+    return {entity_key:key,entity_name:sample?.entity_name||key,relation_name:sample?.[relationField]||null,delivery_status:c&&p?"continued":c?"new":"not_in_current_week",current_status:c?.status||null,previous_status:p?.status||null,current,previous,change:{spend:change(current.spend,previous.spend)?.value??null,results:change(current.results,previous.results)?.value??null,cpl:change(current.cpl,previous.cpl)?.value??null,link_clicks:change(current.link_clicks,previous.link_clicks)?.value??null,cpc:change(current.cpc,previous.cpc)?.value??null,ctr:change(current.ctr,previous.ctr)?.value??null}};
+  });
+}
+function clientPageComparison(currentRows,previousRows){
+  const cMap=new Map((currentRows||[]).map(r=>[r.page_key,r])),pMap=new Map((previousRows||[]).map(r=>[r.page_key,r]));
+  return [...new Set([...cMap.keys(),...pMap.keys()])].map(key=>{
+    const c=cMap.get(key),p=pMap.get(key),sample=c||p;
+    const shape=x=>({spend:Number(x?.spend)||0,results:Number(x?.results)||0,cpl:x?.cpl??null,conversion_rate:x?.conversion_rate??null,link_clicks:Number(x?.link_clicks)||0,landing_page_views:Number(x?.landing_page_views)||0,ad_count:Number(x?.ad_count)||0});
+    const current=shape(c),previous=shape(p);
+    return {page_key:key,page_name:sample?.page_name||"Main page",page_code:sample?.page_code||"MAIN",delivery_status:c&&p?"continued":c?"new":"not_in_current_week",effective_start_date:sample?.effective_start_date||null,current,previous,change:{spend:change(current.spend,previous.spend)?.value??null,results:change(current.results,previous.results)?.value??null,cpl:change(current.cpl,previous.cpl)?.value??null,conversion_rate:change(current.conversion_rate,previous.conversion_rate)?.value??null}};
+  });
+}
+function buildClientComparison(currentId,previousId){
+  const currentData=STATIC_DATA.dashboards?.[String(currentId)],previousData=STATIC_DATA.dashboards?.[String(previousId)];
+  if(!currentData||!previousData) return null;
+  return {current_week:currentData.current_week,previous_week:previousData.current_week,current_totals:currentData.totals,previous_totals:previousData.totals,campaigns:clientEntityComparison(currentData.campaigns,previousData.campaigns,"none"),adsets:clientEntityComparison(currentData.adsets,previousData.adsets,"campaign_name"),ads:clientEntityComparison(currentData.ads,previousData.ads,"adset_name"),pages:clientPageComparison(currentData.page_groups,previousData.page_groups)};
+}
+
+
+loadWeeks().then(initializeDateAnalysis);

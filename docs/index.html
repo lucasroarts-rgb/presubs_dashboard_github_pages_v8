@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=8.0.0" />
+  <link rel="stylesheet" href="styles.css?v=9.2.0" />
 </head>
 <body>
   <main class="shell" id="app">
@@ -42,6 +42,7 @@
       <button class="tab" data-view="adsets">Ad sets</button>
       <button class="tab" data-view="ads">Ads</button>
       <button class="tab" data-view="daily">Daily performance</button>
+      <button class="tab" data-view="dateAnalysis">Date analysis</button>
       <button class="tab" data-view="pages">Page conversion</button>
     </nav>
 
@@ -240,6 +241,118 @@
       </article>
     </section>
 
+
+    <section id="dateAnalysis" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div>
+          <h2>Date analysis</h2>
+          <p>Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.</p>
+        </div>
+        <span class="pill info" id="rangeCoverageBadge">Daily Meta data</span>
+      </div>
+
+      <article class="card panel range-control-card">
+        <div class="range-controls">
+          <label>Quick range
+            <select id="rangePreset">
+              <option value="latest7">Latest 7 days</option>
+              <option value="latest30" selected>Latest 30 days</option>
+              <option value="latest90">Latest 90 days</option>
+              <option value="currentMonth">Latest month to date</option>
+              <option value="previousMonth">Previous calendar month</option>
+              <option value="yearToDate">Year to date</option>
+              <option value="all">All available data</option>
+              <option value="custom">Custom dates</option>
+            </select>
+          </label>
+          <label>Start date<input type="date" id="rangeStart" /></label>
+          <label>End date<input type="date" id="rangeEnd" /></label>
+          <label>Compare with
+            <select id="rangeCompareMode">
+              <option value="previousPeriod" selected>Previous period, same length</option>
+              <option value="previousMonth">Same dates, previous month</option>
+              <option value="previousYear">Same dates, previous year</option>
+              <option value="custom">Custom comparison</option>
+              <option value="none">No comparison</option>
+            </select>
+          </label>
+          <label class="range-custom-comparison hidden">Comparison start<input type="date" id="compareRangeStart" /></label>
+          <label class="range-custom-comparison hidden">Comparison end<input type="date" id="compareRangeEnd" /></label>
+          <label>Trend grouping
+            <select id="rangeGranularity">
+              <option value="auto" selected>Automatic</option>
+              <option value="day">Day</option>
+              <option value="week">Friday–Thursday week</option>
+              <option value="month">Month</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" id="applyDateRange">Apply analysis</button>
+          <button class="btn" id="exportRangeCsv">Export selected data</button>
+        </div>
+
+        <div class="filterbar range-filterbar">
+          <select id="rangeCampaignFilter"><option value="">All campaigns</option></select>
+          <select id="rangeAdsetFilter"><option value="">All ad sets</option></select>
+          <select id="rangePageFilter"><option value="">All pages</option></select>
+          <label class="toggle-label"><input type="checkbox" id="rangeHideZero" checked /> Hide zero-delivery rows</label>
+        </div>
+      </article>
+
+      <div id="rangeNotice" class="source-notice"></div>
+      <div id="rangeKpis" class="kpi-grid"></div>
+
+      <div class="daily-chart-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Performance trend</h2><p id="rangeTrendSubtitle">Spend, registrations and CPL across the selected period.</p></div></div>
+          <div id="rangeTrend" class="daily-trend"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Period comparison</h2><p id="rangeComparisonSubtitle">Current range versus the selected comparison range.</p></div></div>
+          <div id="rangeComparisonCards" class="range-comparison-cards"></div>
+        </article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Month-over-month performance</h2><p>Monthly totals recalculated from the daily ad data.</p></div></div>
+        <div id="monthlyPerformanceTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Campaign performance for the range</h2><p>Aggregated from ad-level daily delivery.</p></div></div>
+        <div id="rangeCampaignTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Campaign comparison</h2><p>Current date range versus the selected comparison range.</p></div></div>
+        <div id="rangeCampaignComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Ad-set performance for the range</h2><p>Spend, registrations, efficiency and conversion by ad set.</p></div></div>
+        <div id="rangeAdsetTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Conversion-page performance for the range</h2><p>Main page and [LP-...] variants based on the ad name.</p></div></div>
+        <div id="rangePageTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Page comparison</h2><p>Conversion performance across the current and comparison periods.</p></div></div>
+        <div id="rangePageComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Performance by weekday</h2><p>Useful for identifying recurring high-cost or high-conversion days.</p></div></div>
+        <div id="weekdayPerformanceTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Top ads for the range</h2><p>Ad-level performance across every selected date.</p></div></div>
+        <div id="rangeAdTable"></div>
+      </article>
+    </section>
+
     <section id="pages" class="view">
       <div id="conversionNotice" class="source-notice"></div>
       <div id="conversionKpis" class="kpi-grid"></div>
@@ -290,7 +403,7 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="data.js?v=8.0.0"></script>
-  <script src="dashboard.js?v=8.0.0"></script>
+  <script src="data.js?v=9.2.0"></script>
+  <script src="dashboard.js?v=9.2.0"></script>
 </body>
 </html>

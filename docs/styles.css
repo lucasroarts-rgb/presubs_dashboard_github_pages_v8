@@ -357,3 +357,26 @@ code{
 @media print{
   #comparison,#campaigns,#adsets,#ads,#daily,#pages{page-break-before:always}
 }
+
+
+/* v9.2 date analysis */
+.range-control-card{margin-bottom:18px}
+.range-controls{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:12px;align-items:end}
+.range-controls label{font-size:12px;font-weight:850;color:var(--muted)}
+.range-controls input,.range-controls select{display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--line);background:#fafafe;border-radius:10px;color:var(--ink);outline:none}
+.range-filterbar{margin:16px 0 0;background:#fafafe}
+.range-filterbar select{min-width:210px;flex:1}
+.range-comparison-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.range-comparison-card{border:1px solid var(--line);border-radius:15px;padding:16px;background:#fbfbfe}
+.range-comparison-values{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.range-comparison-values span{display:block;color:var(--muted);font-size:11px}
+.range-comparison-values strong{display:block;color:var(--ink);font-size:17px;margin-top:4px}
+.range-trend-row{display:grid;grid-template-columns:minmax(125px,.55fr) 1fr 1fr 86px;gap:13px;align-items:center;padding:11px 0;border-bottom:1px solid #eff0f4}
+.range-trend-row:last-child{border-bottom:0}
+.range-trend-date{font-size:12px;font-weight:850}
+.range-trend-series{display:grid;grid-template-columns:76px 1fr 78px;gap:8px;align-items:center}
+.range-trend-series span,.range-trend-cpl span{color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:850}
+.range-trend-series strong,.range-trend-cpl strong{text-align:right;font-size:12px}
+.range-trend-cpl{display:flex;flex-direction:column;align-items:flex-end}
+@media(max-width:1180px){.range-controls{grid-template-columns:repeat(2,1fr)}.range-trend-row{grid-template-columns:1fr}.range-trend-series{grid-template-columns:80px 1fr 78px}.range-trend-cpl{align-items:flex-start}}
+@media(max-width:760px){.range-controls{grid-template-columns:1fr}.range-filterbar select{min-width:100%}.range-comparison-cards{grid-template-columns:1fr}.range-trend-series{grid-template-columns:70px 1fr 70px}.range-comparison-values{grid-template-columns:1fr 1fr}}
