@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=9.2.0" />
+  <link rel="stylesheet" href="styles.css?v=10.0.0" />
 </head>
 <body>
   <main class="shell" id="app">
@@ -16,6 +16,7 @@
       </div>
       <div class="top-actions">
         
+        <button class="btn" id="presentationModeBtn" type="button">Presentation mode</button>
         <button class="btn btn-primary" onclick="window.print()">↗ Export / Print</button>
       </div>
     </div>
@@ -28,6 +29,7 @@
         <span><strong>Reporting period:</strong> <span id="heroPeriod">Loading…</span></span>
         <span><strong>Comparison:</strong> <span id="heroComparison">Previous imported week</span></span>
         <span><strong>Currency:</strong> EUR</span>
+        <span><strong>Scope:</strong> CompleteRegistration only · Quiz/Lead campaigns excluded</span>
         <label class="hero-select"><strong>Change period:</strong>
           <select id="weekSelect"></select>
         </label>
@@ -36,6 +38,8 @@
 
     <nav class="tabs" aria-label="Dashboard views">
       <button class="tab active" data-view="overview">Overview</button>
+      <button class="tab" data-view="strategy">Management</button>
+      <button class="tab" data-view="creatives">Creative health</button>
       <button class="tab" data-view="comparison">Weekly comparison</button>
       <button class="tab" data-view="hierarchy">Campaign structure</button>
       <button class="tab" data-view="campaigns">Campaigns</button>
@@ -44,6 +48,7 @@
       <button class="tab" data-view="daily">Daily performance</button>
       <button class="tab" data-view="dateAnalysis">Date analysis</button>
       <button class="tab" data-view="pages">Page conversion</button>
+      <button class="tab" data-view="quality">Data quality</button>
     </nav>
 
     <section id="overview" class="view active">
@@ -51,6 +56,22 @@
         No reporting period has been published yet.
       </div>
       <div class="kpi-grid" id="kpis"></div>
+
+      <div class="overview-intelligence-grid">
+        <article class="card panel executive-card">
+          <div class="section-head"><div><h2>Executive summary</h2><p>Automatic interpretation of the selected period.</p></div><span class="pill info">Auto-generated</span></div>
+          <div id="executiveSummary" class="executive-summary"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Priority alerts</h2><p>Items that deserve a traffic-management decision.</p></div><span class="pill warn" id="overviewAlertCount">0 alerts</span></div>
+          <div id="overviewAlerts" class="alert-list"></div>
+        </article>
+      </div>
+
+      <article class="card panel goal-overview-card">
+        <div class="section-head"><div><h2>Launch pacing</h2><p>Budget, registrations and projected outcome against the configured goals.</p></div></div>
+        <div id="overviewGoalProgress" class="goal-progress-grid"></div>
+      </article>
 
       <div style="margin-bottom:18px">
         <article class="card panel">
@@ -299,6 +320,10 @@
       </article>
 
       <div id="rangeNotice" class="source-notice"></div>
+      <article class="card panel timeline-card">
+        <div class="section-head"><div><h2>Timeline annotations</h2><p>Budget, creative, page, email and launch changes inside the selected dates.</p></div></div>
+        <div id="rangeAnnotations" class="timeline-list"></div>
+      </article>
       <div id="rangeKpis" class="kpi-grid"></div>
 
       <div class="daily-chart-grid">
@@ -359,6 +384,13 @@
 
       <article class="card panel">
         <div class="section-head">
+          <div><h2>Page funnel</h2><p>Clicks → landing-page views → complete registrations for each page.</p></div>
+        </div>
+        <div id="pageFunnels" class="page-funnel-grid"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
           <div>
             <h2>Conversion pages</h2>
             <p id="conversionBasisText"></p>
@@ -401,9 +433,48 @@
       </article>
     </section>
 
+    <section id="strategy" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Management cockpit</h2><p>Goals, projections, alerts and actions for traffic management.</p></div></div>
+      <div id="strategyGoalKpis" class="kpi-grid"></div>
+      <div class="management-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Budget and registration projection</h2><p>Projection through the configured launch end date.</p></div></div>
+          <div id="projectionCards" class="projection-grid"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Automatic alerts</h2><p>Rules are controlled in the local admin.</p></div><span class="pill warn" id="strategyAlertCount">0 alerts</span></div>
+          <div id="strategyAlerts" class="alert-list"></div>
+        </article>
+      </div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Management timeline</h2><p>Events that can explain performance movements.</p></div></div>
+        <div id="managementTimeline" class="timeline-list"></div>
+      </article>
+    </section>
+
+    <section id="creatives" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Creative health</h2><p>Scale, keep, monitor, refresh and pause-candidate signals based on recent delivery.</p></div></div>
+      <div id="creativeHealthKpis" class="kpi-grid"></div>
+      <div class="filterbar">
+        <input id="creativeSearch" placeholder="Search an ad…" />
+        <select id="creativeActionFilter"><option value="">All recommendations</option><option value="Scale">Scale</option><option value="Keep">Keep</option><option value="Monitor">Monitor</option><option value="Refresh">Refresh</option><option value="Pause candidate">Pause candidate</option></select>
+        <select id="creativePageFilter"><option value="">All pages</option></select>
+      </div>
+      <div id="creativeHealthTable"></div>
+    </section>
+
+    <section id="quality" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Data quality</h2><p>Checks for missing days, total mismatches, relations, page tags and automation scope.</p></div></div>
+      <div id="qualityKpis" class="kpi-grid"></div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Quality-control checks</h2><p>Resolve critical items before making budget decisions.</p></div></div>
+        <div id="qualityChecks" class="quality-check-list"></div>
+      </article>
+    </section>
+
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="data.js?v=9.2.0"></script>
-  <script src="dashboard.js?v=9.2.0"></script>
+  <script src="data.js?v=10.0.0"></script>
+  <script src="dashboard.js?v=10.0.0"></script>
 </body>
 </html>

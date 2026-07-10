@@ -1,11 +1,14 @@
 {
-  "generated_at": "2026-07-10T22:13:53.718113+00:00",
+  "generated_at": "2026-07-10T23:13:03.812123+00:00",
   "weeks": 27,
-  "campaigns_latest": 3,
-  "adsets_latest": 5,
-  "ads_latest": 14,
+  "campaigns_latest": 2,
+  "adsets_latest": 4,
+  "ads_latest": 13,
   "page_groups_latest": 1,
-  "daily_ad_rows_latest": 87,
-  "daily_ad_rows_published": 4857,
-  "daily_days_published": 189
+  "daily_ad_rows_latest": 86,
+  "daily_ad_rows_published": 4531,
+  "daily_days_published": 189,
+  "config_updated_at": null,
+  "annotations": 0,
+  "scope": "CompleteRegistration only; Quiz/Lead campaigns excluded"
 }
