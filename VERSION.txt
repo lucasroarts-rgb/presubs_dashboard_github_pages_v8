@@ -1,0 +1,1 @@
+8.0 - GitHub Pages dashboard with optional ad-by-day import and Daily performance analysis.

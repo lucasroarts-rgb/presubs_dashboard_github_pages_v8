@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PreSubs Weekly Import</title>
+  <link rel="stylesheet" href="/static/styles.css?v=8.0.0">
+</head>
+<body>
+  <main class="shell narrow">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">P</span><div>Peasy Anglais <span>/ Weekly import</span></div></div>
+      <a class="btn" href="/">Back to dashboard</a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Dashboard administration</span>
+        <h1>Import weekly and daily results.</h1>
+        <p>Use three weekly exports plus one optional ad export with the Day breakdown. Reimporting the same period updates the existing data.</p>
+      </div>
+    </section>
+
+    <div style="height:18px"></div>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Meta Ads exports</h2><p>The first three files must have no breakdown. Only the fourth ad file should use Breakdown → Time → Day.</p></div></div>
+      <form id="importForm" class="form-grid">
+        <label>Week start, optional<input type="date" name="week_start"></label>
+        <label>Week end, optional<input type="date" name="week_end"></label>
+        <label class="full">Campaign export<input required type="file" accept=".xlsx,.xls" name="campaigns_file"></label>
+        <label class="full">Ad-set export<input required type="file" accept=".xlsx,.xls" name="adsets_file"></label>
+        <label class="full">Ad export, weekly total<input required type="file" accept=".xlsx,.xls" name="ads_file"></label>
+        <label class="full">Ad export with Day breakdown, recommended<input type="file" accept=".xlsx,.xls" name="ads_daily_file"><span class="sub-cell">This optional fourth file powers the Daily performance tab. Do not apply Day to the campaign, ad-set or weekly ad exports.</span></label>
+        <button class="btn btn-primary full" type="submit">Import reporting period</button>
+      </form>
+      <div id="importMessage" class="message"></div>
+    </article>
+
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Ad naming rule</h2><p>The dashboard identifies the conversion page directly from the ad name.</p></div></div>
+      <div class="source-notice" style="margin-bottom:0">
+        <strong>Examples:</strong> <code>[LP-A] ad1630</code> becomes <strong>Page A</strong>; <code>[LP-B] ad1629</code> becomes <strong>Page B</strong>. Any ad without an <code>[LP-...]</code> tag is assigned to <strong>Main page</strong>. Duplicate an ad when changing its page so the historical attribution remains correct.
+      </div>
+    </article>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Optional page settings</h2><p>Register the URL and metadata for a code already used in the ad name. The performance calculation itself is automatic.</p></div></div>
+      <form id="pageForm" class="form-grid">
+        <label>Page name<input required name="page_name" placeholder="PreSubs capture page"></label>
+        <label>Displayed variant<input required name="variant_name" placeholder="Page A"></label>
+        <label>Ad-name code<input required name="page_code" placeholder="A"></label>
+        <label>Start date<input name="start_date" type="date"></label>
+        <label>Status<select name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+        <label class="full">URL<input name="page_url" type="url" placeholder="https://..."></label>
+        <button class="btn btn-primary full" type="submit">Save page</button>
+      </form>
+      <div id="pageMessage" class="message"></div>
+    </article>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Optional external page metrics</h2><p>Use this only when you later want to add GA4, WordPress or database page views. Meta performance by page is already calculated automatically from ad names.</p></div></div>
+      <form id="metricsForm" class="form-grid">
+        <label>Week<select required name="week_id" id="metricsWeek"></select></label>
+        <label>Page variant<select required name="landing_page_id" id="metricsPage"></select></label>
+        <label>Sessions<input type="number" min="0" step="1" name="sessions" value="0"></label>
+        <label>Page views<input type="number" min="0" step="1" name="page_views" value="0"></label>
+        <label>Leads<input type="number" min="0" step="1" name="leads" value="0"></label>
+        <label>Attributed spend (€)<input type="number" min="0" step="0.01" name="spend" value="0"></label>
+        <button class="btn btn-primary full" type="submit">Save page metrics</button>
+      </form>
+      <div id="metricsMessage" class="message"></div>
+    </article>
+  </main>
+<script src="/static/admin.js?v=8.0.0"></script>
+</body>
+</html>

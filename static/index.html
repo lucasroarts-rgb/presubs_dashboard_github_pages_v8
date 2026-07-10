@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>PreSubs Performance Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css?v=8.0.0" />
+</head>
+<body>
+  <main class="shell" id="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">P</div>
+        <div>Peasy Anglais <span style="color:var(--muted);font-weight:650">/ Marketing Performance</span></div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="/admin">Weekly import</a>
+        <button class="btn btn-primary" onclick="window.print()">↗ Export / Print</button>
+      </div>
+    </div>
+
+    <section class="hero">
+      <span class="eyebrow">PreSubs acquisition review</span>
+      <h1>Campaign performance, from spend to creative.</h1>
+      <p>An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.</p>
+      <div class="hero-meta">
+        <span><strong>Reporting period:</strong> <span id="heroPeriod">Loading…</span></span>
+        <span><strong>Comparison:</strong> <span id="heroComparison">Previous imported week</span></span>
+        <span><strong>Currency:</strong> EUR</span>
+        <label class="hero-select"><strong>Change period:</strong>
+          <select id="weekSelect"></select>
+        </label>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Dashboard views">
+      <button class="tab active" data-view="overview">Overview</button>
+      <button class="tab" data-view="comparison">Weekly comparison</button>
+      <button class="tab" data-view="hierarchy">Campaign structure</button>
+      <button class="tab" data-view="campaigns">Campaigns</button>
+      <button class="tab" data-view="adsets">Ad sets</button>
+      <button class="tab" data-view="ads">Ads</button>
+      <button class="tab" data-view="daily">Daily performance</button>
+      <button class="tab" data-view="pages">Page conversion</button>
+    </nav>
+
+    <section id="overview" class="view active">
+      <div id="emptyState" class="card empty hidden">
+        No reporting period has been imported. Open <a href="/admin">Weekly import</a>.
+      </div>
+      <div class="kpi-grid" id="kpis"></div>
+
+      <div style="margin-bottom:18px">
+        <article class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Campaign comparison</h2>
+              <p>Current selected reporting period.</p>
+            </div>
+            <span class="pill info" id="campaignCount"></span>
+          </div>
+          <div class="campaign-compare" id="campaignCards"></div>
+        </article>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <article class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Cost per registration by ad set</h2>
+              <p>Lower is better. Current account average: <span id="accountCpl">—</span>.</p>
+            </div>
+          </div>
+          <div class="bar-list" id="adsetBars"></div>
+        </article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Top ads</h2>
+            <p>Ranked using both registration volume and cost efficiency.</p>
+          </div>
+          <span class="pill good">Strongest current signals</span>
+        </div>
+        <div class="top-ads" id="topAds"></div>
+      </article>
+    </section>
+
+    <section id="comparison" class="view">
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Weekly comparison</h2>
+            <p>Choose any two imported reporting periods.</p>
+          </div>
+        </div>
+        <div class="compare-controls">
+          <label>Previous week<select id="comparePrevious"></select></label>
+          <label>Current week<select id="compareCurrent"></select></label>
+          <label class="toggle-label"><input type="checkbox" id="hideZeroDelivery" checked /> Hide zero-delivery rows</label>
+          <button class="btn btn-primary" id="runComparison">Compare weeks</button>
+        </div>
+      </article>
+
+      <div id="comparisonKpis" class="kpi-grid"></div>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Campaign comparison</h2><p>Spend, registrations, clicks, CPL, CPC and CTR.</p></div></div>
+        <div id="campaignComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Ad-set comparison</h2><p>Matched by ID when available, otherwise by name.</p></div></div>
+        <div id="adsetComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Ad comparison</h2><p>Fallback key: ad-set name + ad name.</p></div></div>
+        <div id="adComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Conversion-page comparison</h2><p>Pages are identified from [LP-A], [LP-B], etc. Ads without a tag are grouped under Main page.</p></div></div>
+        <div id="pageComparisonTable"></div>
+      </article>
+    </section>
+
+    <section id="hierarchy" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div>
+          <h2>Campaign → Ad set → Ad</h2>
+          <p>Open each campaign to see the full structure, metrics and start dates.</p>
+        </div>
+      </div>
+      <div class="hierarchy" id="hierarchyTree"></div>
+    </section>
+
+    <section id="campaigns" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div><h2>Campaign performance</h2><p>Complete delivery, conversion and start-date metrics.</p></div>
+      </div>
+      <div class="filterbar">
+        <input id="campaignSearch" placeholder="Search a campaign…" />
+        <select id="campaignStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      </div>
+      <div id="campaignTable"></div>
+    </section>
+
+    <section id="adsets" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div><h2>Ad-set performance</h2><p>Budget, delivery, conversion volume, efficiency and start date.</p></div>
+      </div>
+      <div class="filterbar">
+        <input id="adsetSearch" placeholder="Search an ad set…" />
+        <select id="adsetCampaignFilter"><option value="">All campaigns</option></select>
+        <select id="adsetStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      </div>
+      <div id="adsetTable"></div>
+    </section>
+
+    <section id="ads" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div><h2>Ad-level performance</h2><p>All available metrics, conversion-page classification, start date and Meta preview link.</p></div>
+        <span class="pill info">Links are saved in the database</span>
+      </div>
+      <div class="filterbar">
+        <input id="adSearch" placeholder="Search an ad…" />
+        <select id="adCampaignFilter"><option value="">All campaigns</option></select>
+        <select id="adAdsetFilter"><option value="">All ad sets</option></select>
+        <select id="adPageFilter"><option value="">All pages</option></select>
+        <select id="adStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <select id="adResultFilter"><option value="">All results</option><option value="with">With registrations</option><option value="without">Without registrations</option></select>
+      </div>
+      <div id="adTable"></div>
+    </section>
+
+    <section id="daily" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div>
+          <h2>Daily performance</h2>
+          <p>Ad-level evolution inside the selected reporting week.</p>
+        </div>
+        <span class="pill info" id="dailyCoverageBadge">Ad-by-day export</span>
+      </div>
+
+      <div id="dailyNotice" class="source-notice"></div>
+
+      <div class="filterbar">
+        <input id="dailyAdSearch" placeholder="Search an ad…" />
+        <select id="dailyCampaignFilter"><option value="">All campaigns</option></select>
+        <select id="dailyAdsetFilter"><option value="">All ad sets</option></select>
+        <select id="dailyPageFilter"><option value="">All pages</option></select>
+        <label class="toggle-label"><input type="checkbox" id="dailyHideZero" checked /> Hide zero-delivery rows</label>
+      </div>
+
+      <div id="dailyKpis" class="kpi-grid"></div>
+
+      <div class="daily-chart-grid">
+        <article class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Spend and registrations by day</h2>
+              <p>Daily movement based on the detailed ad export.</p>
+            </div>
+          </div>
+          <div id="dailySpendResultsChart" class="daily-trend"></div>
+        </article>
+
+        <article class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Cost per registration by day</h2>
+              <p>Lower is better. Days without registrations are clearly marked.</p>
+            </div>
+          </div>
+          <div id="dailyCplChart" class="bar-list"></div>
+        </article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Daily overview</h2>
+            <p>Aggregated from every ad delivered on each day.</p>
+          </div>
+        </div>
+        <div id="dailySummaryTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Ad-by-day detail</h2>
+            <p>Campaign, ad set, page, spend, registrations and delivery metrics for each ad on each day.</p>
+          </div>
+        </div>
+        <div id="dailyAdTable"></div>
+      </article>
+    </section>
+
+    <section id="pages" class="view">
+      <div id="conversionNotice" class="source-notice"></div>
+      <div id="conversionKpis" class="kpi-grid"></div>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Conversion pages</h2>
+            <p id="conversionBasisText"></p>
+          </div>
+          <span class="pill info" id="pageCount"></span>
+        </div>
+        <div id="conversionPages" class="campaign-compare"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Conversion rate by page</h2>
+            <p>Higher is better. Pages are grouped by the code used in the ad name.</p>
+          </div>
+        </div>
+        <div id="pageConversionBars" class="bar-list"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div><h2>Week-over-week conversion</h2><p>Overall current period versus the previous imported week.</p></div>
+        </div>
+        <div id="conversionComparison" class="campaign-compare"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div><h2>Performance by conversion page</h2><p>Spend and results are aggregated from every ad linked to each page through its name.</p></div>
+          <a class="btn" href="/admin">Page settings</a>
+        </div>
+        <div id="pageGroupTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head">
+          <div><h2>Page comparison with previous week</h2><p>Performance of the same page code across the two latest imported periods.</p></div>
+        </div>
+        <div id="pageWeekComparisonTable"></div>
+      </article>
+    </section>
+
+    <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
+  </main>
+  <script src="/static/dashboard.js?v=8.0.0"></script>
+</body>
+</html>

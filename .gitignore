@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+data/presubs.db
+data/admin_credentials.txt
+data/*.pid
+data/*.log
+data/*-error.log
+*.xlsx
+*.xls
