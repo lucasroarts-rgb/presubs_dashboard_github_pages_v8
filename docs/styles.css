@@ -423,3 +423,57 @@ code{
 @media(max-width:1180px){.goal-chart-grid,.goal-history-chart-grid{grid-template-columns:1fr}.goal-chart-panel.full-chart{grid-column:auto}}
 @media(max-width:760px){.goal-chart-panel{padding:12px}.chart-title,.chart-title-inline{display:block}.chart-title span{display:block;text-align:left;margin-top:3px}.chart-title-inline .chart-legend{margin-top:8px}.svg-chart{min-height:230px}.goal-svg{min-width:620px}.compact-goal-charts .goal-svg{min-width:580px}}
 @media print{.chart-scroll{overflow:visible}.goal-svg{min-width:0}.goal-chart-panel{break-inside:avoid}}
+
+
+/* v10.3 sidebar navigation and daily briefing */
+body{padding-left:264px}
+.app-sidebar{
+  position:fixed;inset:0 auto 0 0;width:264px;z-index:60;
+  background:linear-gradient(180deg,#151b2d 0%,#20203f 58%,#4934ae 100%);
+  color:#fff;padding:18px 14px;display:flex;flex-direction:column;
+  box-shadow:12px 0 36px rgba(21,27,45,.16);overflow-y:auto
+}
+.sidebar-brand{display:grid;grid-template-columns:42px 1fr auto;gap:11px;align-items:center;padding:3px 5px 18px;border-bottom:1px solid rgba(255,255,255,.11)}
+.sidebar-brand strong,.sidebar-brand span{display:block}.sidebar-brand strong{font-size:14px}.sidebar-brand span{font-size:10px;color:#c7c6dc;margin-top:2px}
+.sidebar-close{display:none;border:0;background:transparent;color:#fff;font-size:28px;line-height:1;padding:2px}
+.sidebar-nav{display:flex;flex-direction:column;gap:4px;padding:16px 0}
+.sidebar-nav .tab{
+  display:grid;grid-template-columns:22px 1fr;gap:11px;align-items:center;
+  width:100%;text-align:left;color:#c9cad8;padding:10px 11px;border-radius:11px;
+  font-size:12px;font-weight:780;transition:.18s ease
+}
+.sidebar-nav .tab svg{width:20px;height:20px;fill:currentColor}
+.sidebar-nav .tab:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateX(2px)}
+.sidebar-nav .tab.active{background:#fff;color:#292043;box-shadow:0 9px 24px rgba(7,7,20,.18)}
+.sidebar-footer{margin-top:auto;border-top:1px solid rgba(255,255,255,.11);padding:15px 7px 3px}
+.sidebar-footer span,.sidebar-footer small{display:block}.sidebar-footer span{font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.sidebar-footer small{font-size:10px;color:#c7c6dc;margin-top:4px;line-height:1.35}
+.sidebar-overlay{display:none}
+.sidebar-toggle{display:none;border:1px solid var(--line);background:#fff;width:42px;height:42px;border-radius:12px;font-size:20px;color:var(--ink)}
+.shell{max-width:1500px}
+.daily-brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.daily-compare-values strong,.daily-compare-values span{display:block}.daily-compare-values strong{font-size:25px;margin-top:9px}.daily-compare-values>span{font-size:11px;color:var(--muted);margin-top:4px}
+.daily-brief-cpl{font-size:12px;font-weight:900;text-align:right;min-width:76px;color:var(--purple)}
+#dailyBriefTopAds table,#dailyBriefCampaignTable table,#dailyBriefPageTable table{min-width:850px}
+.presentation-mode .app-sidebar{display:none!important}.presentation-mode{padding-left:0}.presentation-mode .shell{margin:0 auto}
+
+@media(max-width:1180px){
+  body{padding-left:82px}
+  .app-sidebar{width:82px;padding:16px 10px}
+  .sidebar-brand{display:block;text-align:center}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span{display:none}
+  .sidebar-brand .brand-mark{margin:0 auto}.sidebar-nav .tab{display:grid;grid-template-columns:1fr;place-items:center;padding:11px}
+  .sidebar-nav .tab svg{width:22px;height:22px}
+  .daily-brief-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  body{padding-left:0}
+  .app-sidebar{width:min(310px,88vw);transform:translateX(-105%);transition:transform .22s ease;padding:18px 14px}
+  .sidebar-open .app-sidebar{transform:translateX(0)}
+  .sidebar-open .sidebar-overlay{display:block;position:fixed;inset:0;background:rgba(15,18,31,.55);z-index:55}
+  .sidebar-brand{display:grid;text-align:left}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span{display:block}
+  .sidebar-brand .brand-mark{margin:0}.sidebar-close{display:block}
+  .sidebar-nav .tab{display:grid;grid-template-columns:22px 1fr;place-items:initial}
+  .sidebar-toggle{display:inline-grid;place-items:center;flex:0 0 auto}
+  .topbar .brand{flex:1}.topbar{gap:10px}.top-actions{width:100%;justify-content:flex-end}
+  .daily-trend-row{min-width:800px}.daily-trend{overflow-x:auto}
+}
+@media print{body{padding-left:0}.app-sidebar,.sidebar-toggle,.sidebar-overlay{display:none!important}}

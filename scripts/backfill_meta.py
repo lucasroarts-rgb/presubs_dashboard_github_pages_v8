@@ -23,6 +23,7 @@ from scripts.automate_meta import (  # noqa: E402
     metadata_maps,
     publish_to_github,
     qa_report,
+    resilient_insights,
     save_exports,
     verify_github_pages,
 )
@@ -109,17 +110,17 @@ def download_import_period(
     start_text = start.isoformat()
     end_text = end.isoformat()
 
-    weekly_campaigns = client.insights(
-        level="campaign", start=start_text, end=end_text
+    weekly_campaigns = resilient_insights(
+        client, metadata, level="campaign", start=start_text, end=end_text
     )
-    weekly_adsets = client.insights(
-        level="adset", start=start_text, end=end_text
+    weekly_adsets = resilient_insights(
+        client, metadata, level="adset", start=start_text, end=end_text
     )
-    weekly_ads = client.insights(
-        level="ad", start=start_text, end=end_text
+    weekly_ads = resilient_insights(
+        client, metadata, level="ad", start=start_text, end=end_text
     )
-    daily_ads = client.insights(
-        level="ad", start=start_text, end=end_text, daily=True
+    daily_ads = resilient_insights(
+        client, metadata, level="ad", start=start_text, end=end_text, daily=True
     )
 
     raw_payload = {

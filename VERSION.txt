@@ -1,1 +1,1 @@
-10.2 - Responsive dashboard charts for monthly goals, pacing, history and date analysis.
+10.3 - Daily 06:00 sync, daily briefing, icon sidebar and resilient Meta Insights fallback.

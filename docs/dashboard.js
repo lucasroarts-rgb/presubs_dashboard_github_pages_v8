@@ -17,7 +17,20 @@ document.querySelectorAll(".tab").forEach(button=>{
     document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
     button.classList.add("active");
     document.getElementById(button.dataset.view).classList.add("active");
+    document.body.classList.remove("sidebar-open");
+    window.scrollTo({top:0,behavior:"smooth"});
   });
+});
+
+
+document.getElementById("sidebarToggle")?.addEventListener("click",()=>{
+  document.body.classList.toggle("sidebar-open");
+});
+document.getElementById("sidebarClose")?.addEventListener("click",()=>{
+  document.body.classList.remove("sidebar-open");
+});
+document.getElementById("sidebarOverlay")?.addEventListener("click",()=>{
+  document.body.classList.remove("sidebar-open");
 });
 
 function change(current,previous,invert=false){
@@ -649,6 +662,148 @@ function renderDaily(){
     {label:"LPV",numeric:true,render:r=>Number(r.landing_page_views)>0?number(r.landing_page_views):"—"},
     {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
   ],detail,"No ad-by-day rows match the selected filters.");
+}
+
+
+
+function dailyBriefDateRows(){
+  const rows=advancedState?.rows||[];
+  if(!rows.length) return {latestDate:null,latestRows:[],previousDate:null,previousRows:[]};
+  const dates=[...new Set(rows.map(row=>row.report_date).filter(Boolean))].sort();
+  const latestDate=dates.at(-1)||null;
+  const previousDate=dates.at(-2)||null;
+  return {
+    latestDate,
+    latestRows:rows.filter(row=>row.report_date===latestDate),
+    previousDate,
+    previousRows:rows.filter(row=>row.report_date===previousDate),
+    dates
+  };
+}
+
+function dailyBriefMetricCard(label,value,note,delta=null,invert=false){
+  const deltaInfo=delta==null?null:{value:delta,good:invert?delta<0:delta>0};
+  return `<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div>${deltaHtml(deltaInfo)}</div></article>`;
+}
+
+function dailyBriefTrendRows(){
+  const rows=advancedState?.rows||[];
+  const dates=[...new Set(rows.map(row=>row.report_date).filter(Boolean))].sort().slice(-14);
+  return dates.map(day=>{
+    const dayRows=rows.filter(row=>row.report_date===day);
+    return {report_date:day,...rangeMetrics(dayRows)};
+  });
+}
+
+function renderDailyBrief(){
+  const target=document.getElementById("dailyBriefKpis");
+  if(!target) return;
+  const info=dailyBriefDateRows();
+  if(!info.latestDate){
+    document.getElementById("dailyBriefFreshness").textContent="No daily history";
+    document.getElementById("dailyBriefNotice").innerHTML="<strong>No daily data yet.</strong> Finish the historical import or run the daily automation.";
+    target.innerHTML="";
+    return;
+  }
+
+  const current=rangeMetrics(info.latestRows);
+  const previous=rangeMetrics(info.previousRows);
+  const latestGoal=monthlyGoalForMonth(monthKey(info.latestDate));
+  const month=monthBounds(monthKey(info.latestDate));
+  const dailyBudget=safeNum(latestGoal?.total_budget)/month.days||null;
+  const dailyRegistrations=safeNum(latestGoal?.target_registrations)/month.days||null;
+  const targetCpl=safeNum(latestGoal?.target_cpl)||null;
+
+  document.getElementById("dailyBriefFreshness").textContent=`Data through ${formatDate(info.latestDate)}`;
+  document.getElementById("dailyBriefNotice").innerHTML=`<strong>Latest completed Meta day:</strong> ${formatDate(info.latestDate)}. The 06:00 Brazil automation publishes the previous completed day using the ad-account timezone.`;
+
+  const cards=[
+    dailyBriefMetricCard("Spend",money(current.spend),`Previous ${money(previous.spend)}`,metricChange(current.spend,previous.spend)),
+    dailyBriefMetricCard("Registrations",number(current.results),`Previous ${number(previous.results)}`,metricChange(current.results,previous.results)),
+    dailyBriefMetricCard("CPL",money(current.cpl),`Previous ${money(previous.cpl)}`,metricChange(current.cpl,previous.cpl),true),
+    dailyBriefMetricCard("Link clicks",number(current.link_clicks),`CTR ${percent(current.ctr)}`,metricChange(current.link_clicks,previous.link_clicks)),
+    dailyBriefMetricCard("Landing-page views",number(current.landing_page_views),`Cost / LPV ${money(current.cost_per_lpv)}`,metricChange(current.landing_page_views,previous.landing_page_views)),
+    dailyBriefMetricCard("Conversion",percent(current.conversion_rate),current.conversion_basis==="landing_page_views"?"LPV → registration":"Click → registration proxy",metricChange(current.conversion_rate,previous.conversion_rate))
+  ];
+  target.innerHTML=cards.join("");
+
+  const comparisonMetrics=[
+    ["Spend",current.spend,previous.spend,money,false],
+    ["Registrations",current.results,previous.results,number,false],
+    ["CPL",current.cpl,previous.cpl,money,true],
+    ["CTR",current.ctr,previous.ctr,percent,false],
+    ["Conversion",current.conversion_rate,previous.conversion_rate,percent,false],
+    ["CPC",current.cpc,previous.cpc,money,true]
+  ];
+  document.getElementById("dailyBriefComparison").innerHTML=comparisonMetrics.map(([label,now,before,formatter,invert])=>{
+    const delta=change(now,before,invert);
+    return `<div class="compare-card"><div class="kpi-label">${label}</div><div class="daily-compare-values"><strong>${formatter(now)}</strong><span>Previous ${formatter(before)}</span>${deltaHtml(delta)}</div></div>`;
+  }).join("");
+
+  const pacing=[
+    ["Daily spend",money(current.spend),dailyBudget?`Target ${money(dailyBudget)}`:"Monthly goal missing",dailyBudget?current.spend/dailyBudget*100:null,current.spend<=dailyBudget],
+    ["Daily registrations",number(current.results),dailyRegistrations?`Target ${decimal(dailyRegistrations)}`:"Monthly goal missing",dailyRegistrations?current.results/dailyRegistrations*100:null,current.results>=dailyRegistrations],
+    ["Daily CPL",money(current.cpl),targetCpl?`Target ${money(targetCpl)}`:"Monthly goal missing",targetCpl&&current.cpl?targetCpl/current.cpl*100:null,!targetCpl||!current.cpl||current.cpl<=targetCpl],
+    ["Month",monthLabelFromKey(monthKey(info.latestDate)),latestGoal?.note||"No note saved",null,true]
+  ];
+  document.getElementById("dailyBriefPacing").innerHTML=pacing.map(item=>`<div class="projection-card"><span>${item[0]}</span><strong>${item[1]}</strong><p>${item[2]}</p>${item[3]!=null?`<div class="goal-progress-track"><span class="${item[4]?"good":"warn"}" style="width:${clamp(item[3],0,100)}%"></span></div>`:""}</div>`).join("");
+
+  const trend=dailyBriefTrendRows();
+  const maxSpend=Math.max(1,...trend.map(x=>x.spend));
+  const maxResults=Math.max(1,...trend.map(x=>x.results));
+  document.getElementById("dailyBriefTrend").innerHTML=trend.map(day=>`
+    <div class="daily-trend-row">
+      <div class="daily-date">${formatDate(day.report_date)}</div>
+      <div class="daily-series"><span class="daily-series-label">Spend</span><div class="daily-track"><div class="daily-fill spend" style="width:${Math.max(2,day.spend/maxSpend*100)}%"></div></div></div>
+      <div class="daily-chart-value">${money(day.spend)}</div>
+      <div class="daily-series"><span class="daily-series-label">Registrations</span><div class="daily-track"><div class="daily-fill results" style="width:${day.results?Math.max(4,day.results/maxResults*100):0}%"></div></div></div>
+      <div class="daily-chart-value">${number(day.results)}</div>
+      <div class="daily-brief-cpl">${money(day.cpl)}</div>
+    </div>`).join("");
+
+  const adGroups=rangeEntityGroups(info.latestRows,"ad").sort((a,b)=>{
+    if(b.results!==a.results) return b.results-a.results;
+    return (a.cpl||999999)-(b.cpl||999999);
+  });
+  table("dailyBriefTopAds",[
+    {label:"Ad",name:true,render:r=>r.entity_name},
+    {label:"Page",render:r=>r.page_name||"Main page"},
+    {label:"Spend",numeric:true,render:r=>money(r.spend)},
+    {label:"Registrations",numeric:true,render:r=>number(r.results)},
+    {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+    {label:"CTR",numeric:true,render:r=>percent(r.ctr)}
+  ],adGroups.slice(0,8),"No delivered ads on the latest day.");
+
+  const alertRows=adGroups.filter(row=>
+    (row.spend>0&&row.results===0) ||
+    (targetCpl&&row.cpl&&row.cpl>targetCpl*1.2)
+  ).sort((a,b)=>b.spend-a.spend).slice(0,8);
+  document.getElementById("dailyBriefAlerts").innerHTML=alertRows.length?alertRows.map(row=>{
+    const noResult=row.results===0;
+    return `<div class="management-alert ${noResult?"critical":"warning"}"><div class="alert-icon">${noResult?"!":"△"}</div><div><div class="alert-heading"><strong>${row.entity_name}</strong><span>${row.page_name||"Main page"}</span></div><p>${noResult?`${money(row.spend)} spent without a registration.`:`CPL ${money(row.cpl)} versus target ${money(targetCpl)}.`}</p></div></div>`;
+  }).join(""):`<div class="management-alert good"><div class="alert-icon">✓</div><div><strong>No critical ad alert on the latest day.</strong><p>Review the full Creative health page before making changes.</p></div></div>`;
+
+  const campaigns=rangeEntityGroups(info.latestRows,"campaign").sort((a,b)=>b.spend-a.spend);
+  table("dailyBriefCampaignTable",[
+    {label:"Campaign",name:true,render:r=>r.entity_name},
+    {label:"Spend",numeric:true,render:r=>money(r.spend)},
+    {label:"Registrations",numeric:true,render:r=>number(r.results)},
+    {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+    {label:"Clicks",numeric:true,render:r=>number(r.link_clicks)},
+    {label:"CTR",numeric:true,render:r=>percent(r.ctr)},
+    {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
+  ],campaigns);
+
+  const pages=rangeEntityGroups(info.latestRows,"page").sort((a,b)=>b.results-a.results);
+  table("dailyBriefPageTable",[
+    {label:"Page",name:true,render:r=>r.page_name},
+    {label:"Spend",numeric:true,render:r=>money(r.spend)},
+    {label:"Clicks",numeric:true,render:r=>number(r.link_clicks)},
+    {label:"LPV",numeric:true,render:r=>number(r.landing_page_views)},
+    {label:"Registrations",numeric:true,render:r=>number(r.results)},
+    {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+    {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
+  ],pages);
 }
 
 
@@ -1608,7 +1763,7 @@ function renderPageFunnels(groups=(dashboard?.page_groups||[])){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();
+  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();renderDailyBrief();
 }
 
 async function initializeAdvancedFeatures(){

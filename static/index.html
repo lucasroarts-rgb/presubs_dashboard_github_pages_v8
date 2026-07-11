@@ -5,11 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css?v=10.2.0" />
+  <link rel="stylesheet" href="/static/styles.css?v=10.3.0" />
 </head>
 <body>
+
+  <aside class="app-sidebar" id="appSidebar" aria-label="Dashboard navigation">
+    <div class="sidebar-brand">
+      <div class="brand-mark">P</div>
+      <div><strong>Peasy Anglais</strong><span>Marketing Performance</span></div>
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation">×</button>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="tab active" data-view="overview" title="Overview"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg><span>Overview</span></button>
+<button class="tab" data-view="dailyBrief" title="Daily briefing"><svg viewBox="0 0 24 24"><path d="M7 3h10v2h3v16H4V5h3V3Zm2 2h6V4H9v1Zm-3 4v10h12V9H6Zm2 2h3v3H8v-3Zm5 0h3v2h-3v-2Zm0 4h3v2h-3v-2Z"/></svg><span>Daily briefing</span></button>
+<button class="tab" data-view="strategy" title="Management"><svg viewBox="0 0 24 24"><path d="M4 19V9h3v10H4Zm6 0V5h3v14h-3Zm6 0v-7h3v7h-3ZM3 21h18v-2H3v2Z"/></svg><span>Management</span></button>
+<button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
+<button class="tab" data-view="comparison" title="Weekly comparison"><svg viewBox="0 0 24 24"><path d="M7 3h2v14h3l-4 4-4-4h3V3Zm10 18h-2V7h-3l4-4 4 4h-3v14Z"/></svg><span>Weekly comparison</span></button>
+<button class="tab" data-view="dateAnalysis" title="Date analysis"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h3v3H8v-3Z"/></svg><span>Date analysis</span></button>
+<button class="tab" data-view="hierarchy" title="Campaign structure"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Campaign structure</span></button>
+<button class="tab" data-view="campaigns" title="Campaigns"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm2 2v10h14V7H5Zm2 7 3-3 2 2 4-4 2 2-6 6-2-2-1.5 1.5L7 14Z"/></svg><span>Campaigns</span></button>
+<button class="tab" data-view="adsets" title="Ad sets"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7ZM6 6v3h3V6H6Zm9 0v3h3V6h-3ZM6 15v3h3v-3H6Zm9 0v3h3v-3h-3Z"/></svg><span>Ad sets</span></button>
+<button class="tab" data-view="ads" title="Ads"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6Zm2 2v8h14V8H5Zm2 2h5v2H7v-2Zm0 3h8v2H7v-2Zm10-3h1v4h-1v-4Z"/></svg><span>Ads</span></button>
+<button class="tab" data-view="daily" title="Daily performance"><svg viewBox="0 0 24 24"><path d="M5 19V9h3v10H5Zm5 0V5h3v14h-3Zm5 0v-7h3v7h-3Z"/></svg><span>Daily performance</span></button>
+<button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
+<button class="tab" data-view="quality" title="Data quality"><svg viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.2L6 8v4c0 3.7 2.3 6.2 6 7.6 3.7-1.4 6-3.9 6-7.6V8l-6-2.8Zm-1 9.3-2.5-2.5 1.4-1.4 1.1 1.1 3.1-3.1 1.4 1.4-4.5 4.5Z"/></svg><span>Data quality</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <span>CompleteRegistration only</span>
+      <small>Quiz and Lead campaigns excluded</small>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <main class="shell" id="app">
     <div class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Open navigation">☰</button>
       <div class="brand">
         <div class="brand-mark">P</div>
         <div>Peasy Anglais <span style="color:var(--muted);font-weight:650">/ Marketing Performance</span></div>
@@ -36,20 +66,6 @@
       </div>
     </section>
 
-    <nav class="tabs" aria-label="Dashboard views">
-      <button class="tab active" data-view="overview">Overview</button>
-      <button class="tab" data-view="strategy">Management</button>
-      <button class="tab" data-view="creatives">Creative health</button>
-      <button class="tab" data-view="comparison">Weekly comparison</button>
-      <button class="tab" data-view="hierarchy">Campaign structure</button>
-      <button class="tab" data-view="campaigns">Campaigns</button>
-      <button class="tab" data-view="adsets">Ad sets</button>
-      <button class="tab" data-view="ads">Ads</button>
-      <button class="tab" data-view="daily">Daily performance</button>
-      <button class="tab" data-view="dateAnalysis">Date analysis</button>
-      <button class="tab" data-view="pages">Page conversion</button>
-      <button class="tab" data-view="quality">Data quality</button>
-    </nav>
 
     <section id="overview" class="view active">
       <div id="emptyState" class="card empty hidden">
@@ -111,6 +127,57 @@
           <span class="pill good">Strongest current signals</span>
         </div>
         <div class="top-ads" id="topAds"></div>
+      </article>
+    </section>
+
+
+    <section id="dailyBrief" class="view">
+      <div class="section-head" style="margin-top:6px">
+        <div>
+          <h2>Daily briefing</h2>
+          <p>The latest completed Meta day, compared with the previous day and recent pace.</p>
+        </div>
+        <span class="pill info" id="dailyBriefFreshness">Loading latest day…</span>
+      </div>
+
+      <div id="dailyBriefNotice" class="source-notice"></div>
+      <div id="dailyBriefKpis" class="kpi-grid"></div>
+
+      <div class="daily-brief-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Yesterday versus previous day</h2><p>Fast operational comparison for spend, registrations, CPL, CTR and conversion.</p></div></div>
+          <div id="dailyBriefComparison" class="range-comparison-cards"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Daily pacing</h2><p>Actual delivery against the monthly goal divided by calendar day.</p></div></div>
+          <div id="dailyBriefPacing" class="projection-grid"></div>
+        </article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Last 14 completed days</h2><p>Spend, registrations and CPL based on the daily ad history.</p></div></div>
+        <div id="dailyBriefTrend" class="daily-trend"></div>
+      </article>
+
+      <div class="daily-brief-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Best ads yesterday</h2><p>Registration volume and cost efficiency.</p></div></div>
+          <div id="dailyBriefTopAds"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Needs attention</h2><p>Spend without registrations and CPL above the monthly target.</p></div></div>
+          <div id="dailyBriefAlerts" class="alert-list"></div>
+        </article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Campaign snapshot</h2><p>Latest completed day by campaign.</p></div></div>
+        <div id="dailyBriefCampaignTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Page snapshot</h2><p>Click, LPV and CompleteRegistration performance on the latest day.</p></div></div>
+        <div id="dailyBriefPageTable"></div>
       </article>
     </section>
 
@@ -491,6 +558,6 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="/static/dashboard.js?v=10.2.0"></script>
+  <script src="/static/dashboard.js?v=10.3.0"></script>
 </body>
 </html>

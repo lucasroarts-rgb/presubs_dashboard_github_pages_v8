@@ -7,6 +7,7 @@ import json
 import math
 import os
 import re
+import random
 import subprocess
 import sys
 import time
@@ -237,32 +238,53 @@ class MetaClient:
         self.base_url = f"https://graph.facebook.com/{config.api_version}"
         self.session = requests.Session()
         self.session.headers.update(
-            {"User-Agent": "PreSubsDashboardAutomation/1.0"}
+            {
+                "User-Agent": "PreSubsDashboardAutomation/1.1",
+                "Connection": "close",
+            }
         )
+
+    def _new_session(self) -> requests.Session:
+        session = requests.Session()
+        session.headers.update(
+            {
+                "User-Agent": "PreSubsDashboardAutomation/1.1",
+                "Connection": "close",
+            }
+        )
+        return session
 
     def _request(
         self,
         url: str,
         *,
         params: dict[str, Any] | None = None,
-        retries: int = 5,
+        retries: int = 9,
     ) -> dict[str, Any]:
         request_params = dict(params or {})
         request_params.setdefault("access_token", self.config.token)
+        waits = [5, 15, 30, 60, 120, 180, 240, 300]
 
         for attempt in range(1, retries + 1):
             try:
                 response = self.session.get(
                     url,
                     params=request_params,
-                    timeout=90,
+                    timeout=120,
                 )
             except requests.RequestException as exc:
                 if attempt == retries:
                     raise AutomationError(
                         f"Could not connect to Meta after {retries} attempts: {exc}"
                     ) from exc
-                time.sleep(min(30, 2 ** attempt))
+                wait = waits[min(attempt - 1, len(waits) - 1)] + random.uniform(0, 3)
+                print(
+                    f"Meta connection failed. Retry {attempt}/{retries - 1} "
+                    f"in {int(wait)}s..."
+                )
+                time.sleep(wait)
+                self.session.close()
+                self.session = self._new_session()
                 continue
 
             try:
@@ -275,6 +297,8 @@ class MetaClient:
 
             error = payload.get("error") if isinstance(payload, dict) else None
             code = error.get("code") if isinstance(error, dict) else None
+            subcode = error.get("error_subcode") if isinstance(error, dict) else None
+            trace_id = error.get("fbtrace_id") if isinstance(error, dict) else None
             message = (
                 error.get("message")
                 if isinstance(error, dict)
@@ -290,14 +314,34 @@ class MetaClient:
                 613,
             }
             if retryable and attempt < retries:
-                wait = min(60, 2 ** attempt)
-                print(f"Meta temporarily unavailable. Retrying in {wait}s...")
+                retry_after = response.headers.get("Retry-After")
+                try:
+                    header_wait = float(retry_after) if retry_after else 0
+                except ValueError:
+                    header_wait = 0
+                wait = max(
+                    header_wait,
+                    waits[min(attempt - 1, len(waits) - 1)] + random.uniform(0, 5),
+                )
+                detail = f"code {code}"
+                if subcode is not None:
+                    detail += f", subcode {subcode}"
+                print(
+                    f"Meta temporarily unavailable ({detail}). "
+                    f"Retry {attempt}/{retries - 1} in {int(wait)}s..."
+                )
                 time.sleep(wait)
+                self.session.close()
+                self.session = self._new_session()
                 continue
 
-            raise AutomationError(
-                f"Meta API error ({response.status_code}, code {code}): {message}"
-            )
+            detail = f"Meta API error ({response.status_code}, code {code}"
+            if subcode is not None:
+                detail += f", subcode {subcode}"
+            detail += f"): {message}"
+            if trace_id:
+                detail += f" [trace {trace_id}]"
+            raise AutomationError(detail)
 
         raise AutomationError("Unexpected Meta API request failure.")
 
@@ -339,6 +383,7 @@ class MetaClient:
         start: str,
         end: str,
         daily: bool = False,
+        object_id: str | None = None,
     ) -> list[dict[str, Any]]:
         fields = [
             "date_start",
@@ -378,7 +423,74 @@ class MetaClient:
         if daily:
             params["time_increment"] = 1
 
-        return self.get_all(f"{self.config.account_id}/insights", params)
+        scope = object_id or self.config.account_id
+        return self.get_all(f"{scope}/insights", params)
+
+
+def resilient_insights(
+    client: "MetaClient",
+    metadata: dict[str, Any],
+    *,
+    level: str,
+    start: str,
+    end: str,
+    daily: bool = False,
+) -> list[dict[str, Any]]:
+    """
+    Use the account-level report first. If Meta repeatedly returns a temporary
+    server error, retry the same report campaign by campaign. This reduces the
+    report size while preserving the requested level and date range.
+    """
+    try:
+        return client.insights(
+            level=level,
+            start=start,
+            end=end,
+            daily=daily,
+        )
+    except AutomationError as exc:
+        message = str(exc).lower()
+        temporary = (
+            "code 1" in message
+            or "http 500" in message
+            or "unknown error" in message
+            or "temporarily" in message
+        )
+        if not temporary:
+            raise
+
+        campaigns = list((metadata.get("campaigns") or {}).keys())
+        if not campaigns:
+            raise
+
+        print(
+            "Account-level Insights remained unavailable. "
+            f"Retrying {level} report campaign by campaign..."
+        )
+        rows: list[dict[str, Any]] = []
+        failed: list[str] = []
+        for index, campaign_id in enumerate(campaigns, start=1):
+            try:
+                part = client.insights(
+                    level=level,
+                    start=start,
+                    end=end,
+                    daily=daily,
+                    object_id=campaign_id,
+                )
+                rows.extend(part)
+                print(
+                    f"  Campaign fallback {index}/{len(campaigns)}: "
+                    f"{len(part)} rows"
+                )
+            except AutomationError as campaign_exc:
+                failed.append(f"{campaign_id}: {campaign_exc}")
+
+        if failed:
+            raise AutomationError(
+                "Campaign-scoped fallback also failed:\n" + "\n".join(failed)
+            ) from exc
+        return rows
 
 
 def campaign_matches(
@@ -1050,20 +1162,20 @@ def sync(
     )
 
     print("Downloading weekly campaign insights...")
-    weekly_campaigns = client.insights(
-        level="campaign", start=start, end=end
+    weekly_campaigns = resilient_insights(
+        client, metadata, level="campaign", start=start, end=end
     )
     print("Downloading weekly ad-set insights...")
-    weekly_adsets = client.insights(
-        level="adset", start=start, end=end
+    weekly_adsets = resilient_insights(
+        client, metadata, level="adset", start=start, end=end
     )
     print("Downloading weekly ad insights...")
-    weekly_ads = client.insights(
-        level="ad", start=start, end=end
+    weekly_ads = resilient_insights(
+        client, metadata, level="ad", start=start, end=end
     )
     print("Downloading daily ad insights...")
-    daily_ads = client.insights(
-        level="ad", start=start, end=end, daily=True
+    daily_ads = resilient_insights(
+        client, metadata, level="ad", start=start, end=end, daily=True
     )
 
     raw_payload = {

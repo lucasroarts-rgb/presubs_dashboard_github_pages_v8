@@ -53,3 +53,29 @@ See `AUTOMACAO_META_GITHUB.md` for the complete workflow.
 ## v9.2 date analysis
 
 Run `MIGRAR_DO_V9_1.bat` after the historical import finishes. The new Date analysis tab supports custom dates, period comparison, month-over-month analysis, weekday performance and CSV export. See `DATE_ANALYSIS_V9_2.md`.
+
+## Conversion scope
+
+Only the exact Meta Pixel `CompleteRegistration` action is counted. Campaigns, ad sets and ads containing `QUIZ` in their names are excluded, even when the campaign name also contains `PRESUBS`.
+
+## v10 complete management optimization
+
+The v10 package combines the corrected CompleteRegistration-only scope with alerts, goals, projections, Creative health, page funnels, timeline annotations, quality checks, executive summary, presentation mode and Windows scheduling.
+
+Run `MIGRAR_DA_VERSAO_ATUAL.bat`, then reimport the 2026 history with `REIMPORTAR_HISTORICO_2026.bat` before publishing.
+
+See `V10_COMPLETE_OPTIMIZATION.md`.
+
+
+## Monthly goals
+
+Version 10.1 stores one goal per month and automatically derives daily and Friday-to-Thursday weekly targets. Historical goal-versus-actual performance remains available for every month. See `MONTHLY_GOALS_V10_1.md`.
+
+
+## v10.3 daily workflow
+
+Use `AUTOMATIZAR_DIARIO.bat` for a manual daily update and
+`AGENDAR_AUTOMACAO_DIARIA_0600.bat` to schedule it every day at 06:00.
+
+The public dashboard now uses a responsive icon sidebar and includes a separate
+Daily briefing page. See `DAILY_AUTOMATION_V10_3.md`.

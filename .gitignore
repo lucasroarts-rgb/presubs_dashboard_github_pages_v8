@@ -12,3 +12,6 @@ data/*-error.log
 .env
 exports/
 logs/
+
+data/dashboard_config.json
+backups/
