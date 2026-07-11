@@ -1,1 +1,1 @@
-8.0 - GitHub Pages dashboard with optional ad-by-day import and Daily performance analysis.
+10.2 - Responsive dashboard charts for monthly goals, pacing, history and date analysis.

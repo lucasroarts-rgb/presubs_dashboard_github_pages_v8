@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hmac
 import io
+import json
 import math
 import os
 import re
@@ -21,6 +22,68 @@ BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data" / "presubs.db")))
 STATIC_DIR = BASE_DIR / "static"
 CREDENTIALS_PATH = BASE_DIR / "data" / "admin_credentials.txt"
+DASHBOARD_CONFIG_PATH = BASE_DIR / "data" / "dashboard_config.json"
+
+DEFAULT_DASHBOARD_CONFIG: dict[str, Any] = {
+    "goals": {
+        "target_cpl": 45.0,
+        "total_budget": 70000.0,
+        "target_registrations": 1556.0,
+        "launch_start": "2026-01-01",
+        "launch_end": "2026-12-31",
+    },
+    "monthly_goals": [],
+    "thresholds": {
+        "spend_without_result_multiplier": 1.0,
+        "high_cpl_percent": 20.0,
+        "ctr_drop_percent": 25.0,
+        "page_click_to_lpv_min": 70.0,
+        "frequency_limit": 3.0,
+        "no_result_days": 3,
+    },
+    "annotations": [],
+    "updated_at": None,
+}
+
+
+def _merge_config(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    merged = json.loads(json.dumps(base))
+    for key, value in (override or {}).items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key].update(value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def read_dashboard_config() -> dict[str, Any]:
+    if not DASHBOARD_CONFIG_PATH.exists():
+        return _merge_config(DEFAULT_DASHBOARD_CONFIG, {})
+    try:
+        payload = json.loads(DASHBOARD_CONFIG_PATH.read_text(encoding="utf-8"))
+        return _merge_config(DEFAULT_DASHBOARD_CONFIG, payload)
+    except (OSError, json.JSONDecodeError):
+        return _merge_config(DEFAULT_DASHBOARD_CONFIG, {})
+
+
+def write_dashboard_config(payload: dict[str, Any]) -> dict[str, Any]:
+    current = read_dashboard_config()
+    clean_payload: dict[str, Any] = {}
+    if isinstance(payload.get("goals"), dict):
+        clean_payload["goals"] = payload["goals"]
+    if isinstance(payload.get("thresholds"), dict):
+        clean_payload["thresholds"] = payload["thresholds"]
+    if isinstance(payload.get("monthly_goals"), list):
+        clean_payload["monthly_goals"] = payload["monthly_goals"]
+    if isinstance(payload.get("annotations"), list):
+        clean_payload["annotations"] = payload["annotations"]
+    merged = _merge_config(current, clean_payload)
+    merged["updated_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    DASHBOARD_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = DASHBOARD_CONFIG_PATH.with_suffix(".tmp")
+    temp_path.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
+    temp_path.replace(DASHBOARD_CONFIG_PATH)
+    return merged
 
 
 def read_local_credentials() -> dict[str, str]:
@@ -521,6 +584,93 @@ def index():
 @app.get("/admin")
 def admin():
     return FileResponse(STATIC_DIR / "admin.html")
+
+
+@app.get("/api/dashboard-config")
+def get_dashboard_config():
+    return read_dashboard_config()
+
+
+@app.post("/api/dashboard-config")
+def save_dashboard_config(payload: dict[str, Any]):
+    return write_dashboard_config(payload)
+
+
+def _clean_month_goal(payload: dict[str, Any]) -> dict[str, Any]:
+    month = str(payload.get("month") or "").strip()
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+        raise HTTPException(400, "Month must use YYYY-MM.")
+
+    target_cpl = clean_number(payload.get("target_cpl"))
+    total_budget = clean_number(payload.get("total_budget"))
+    target_registrations = clean_number(payload.get("target_registrations"))
+    if target_cpl <= 0 or total_budget <= 0 or target_registrations <= 0:
+        raise HTTPException(400, "Target CPL, monthly budget and registrations must be greater than zero.")
+
+    return {
+        "month": month,
+        "target_cpl": round(target_cpl, 4),
+        "total_budget": round(total_budget, 2),
+        "target_registrations": round(target_registrations, 4),
+        "note": str(payload.get("note") or "").strip(),
+    }
+
+
+@app.post("/api/monthly-goals")
+def save_monthly_goal(payload: dict[str, Any]):
+    goal = _clean_month_goal(payload)
+    config = read_dashboard_config()
+    monthly_goals = [
+        item for item in (config.get("monthly_goals") or [])
+        if str(item.get("month")) != goal["month"]
+    ]
+    monthly_goals.append(goal)
+    monthly_goals.sort(key=lambda item: str(item.get("month") or ""))
+    return write_dashboard_config({"monthly_goals": monthly_goals})
+
+
+@app.delete("/api/monthly-goals/{month}")
+def delete_monthly_goal(month: str):
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+        raise HTTPException(400, "Month must use YYYY-MM.")
+    config = read_dashboard_config()
+    monthly_goals = [
+        item for item in (config.get("monthly_goals") or [])
+        if str(item.get("month")) != month
+    ]
+    return write_dashboard_config({"monthly_goals": monthly_goals})
+
+
+@app.post("/api/annotations")
+def save_annotation(payload: dict[str, Any]):
+    event_date = clean_date(payload.get("event_date"))
+    title = str(payload.get("title") or "").strip()
+    if not event_date or not title:
+        raise HTTPException(400, "Date and title are required.")
+    config = read_dashboard_config()
+    annotations = list(config.get("annotations") or [])
+    annotation_id = str(payload.get("id") or f"{event_date}-{int(datetime.utcnow().timestamp() * 1000)}")
+    annotation = {
+        "id": annotation_id,
+        "event_date": event_date,
+        "title": title,
+        "description": str(payload.get("description") or "").strip(),
+        "category": str(payload.get("category") or "change").strip(),
+    }
+    annotations = [item for item in annotations if str(item.get("id")) != annotation_id]
+    annotations.append(annotation)
+    annotations.sort(key=lambda item: (str(item.get("event_date") or ""), str(item.get("title") or "")))
+    return write_dashboard_config({"annotations": annotations})
+
+
+@app.delete("/api/annotations/{annotation_id}")
+def delete_annotation(annotation_id: str):
+    config = read_dashboard_config()
+    annotations = [
+        item for item in (config.get("annotations") or [])
+        if str(item.get("id")) != annotation_id
+    ]
+    return write_dashboard_config({"annotations": annotations})
 
 
 def clean_number(value: Any) -> float:

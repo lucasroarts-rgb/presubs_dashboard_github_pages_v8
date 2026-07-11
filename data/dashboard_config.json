@@ -1,0 +1,36 @@
+{
+  "goals": {
+    "target_cpl": 45.0,
+    "total_budget": 70000.0,
+    "target_registrations": 1556.0,
+    "launch_start": "2026-01-01",
+    "launch_end": "2026-12-31"
+  },
+  "monthly_goals": [
+    {
+      "month": "2026-07",
+      "target_cpl": 25.0,
+      "total_budget": 7500.0,
+      "target_registrations": 810.01,
+      "note": "Test"
+    }
+  ],
+  "thresholds": {
+    "spend_without_result_multiplier": 1.0,
+    "high_cpl_percent": 20.0,
+    "ctr_drop_percent": 25.0,
+    "page_click_to_lpv_min": 70.0,
+    "frequency_limit": 3.0,
+    "no_result_days": 3
+  },
+  "annotations": [
+    {
+      "id": "2026-07-10-1783746734018",
+      "event_date": "2026-07-10",
+      "title": "Test creative",
+      "description": "",
+      "category": "creative"
+    }
+  ],
+  "updated_at": "2026-07-11T02:12:14Z"
+}

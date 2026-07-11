@@ -9,6 +9,7 @@ MODULES = {
     "pandas": "pandas",
     "openpyxl": "openpyxl",
     "python-multipart": "multipart",
+    "requests": "requests",
 }
 
 missing = [

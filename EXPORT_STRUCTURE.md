@@ -1,30 +1,132 @@
-# Estrutura de exportação do Meta Ads
+# Recommended Meta Ads export structure
 
-## 1. Campanhas, sem detalhamento
+Create three saved export presets: Campaigns, Ad sets and Ads.
 
-Use o período semanal completo. Não aplique `Dia`.
+## 1. Campaign export
 
-## 2. Conjuntos de anúncios, sem detalhamento
+Required identity and hierarchy:
 
-Use o mesmo período semanal. Não aplique `Dia`.
+- Campaign ID
+- Campaign name
 
-## 3. Anúncios, sem detalhamento
+Required period and delivery:
 
-Use o mesmo período semanal. Este arquivo mantém status, rankings, alcance e frequência semanais.
+- Reporting starts
+- Reporting ends
+- Delivery
+- Created date
+- Last edited date
 
-## 4. Anúncios, com detalhamento por dia
+Required performance:
 
-Duplique o relatório de anúncios e aplique:
+- Results
+- Result indicator
+- Cost per result
+- Amount spent
+- Impressions
+- Reach
+- Frequency
+- CPM
+- Link clicks
+- Link CTR
+- CPC
+- Landing page views
+- Cost per landing page view
+- Attribution setting
 
-`Detalhamento > Tempo > Dia`
+## 2. Ad-set export
 
-Este arquivo alimenta:
+Required identity and hierarchy:
 
-- Investimento por dia
-- Registros por dia
-- CPL por dia
-- CPC e CTR por dia
-- Análise por campanha, conjunto, anúncio e página
-- Page conversion diária usando LPV quando disponível
+- Campaign ID
+- Campaign name
+- Ad set ID
+- Ad set name
 
-Apenas o quarto arquivo deve usar o detalhamento por dia.
+Required period and delivery:
+
+- Reporting starts
+- Reporting ends
+- Delivery
+- Start
+- End
+- Created date
+- Last edited date
+
+Required budget and performance:
+
+- Ad set budget
+- Budget type
+- Results
+- Result indicator
+- Cost per result
+- Amount spent
+- Impressions
+- Reach
+- Frequency
+- CPM
+- Link clicks
+- Link CTR
+- CPC
+- Landing page views
+- Cost per landing page view
+- Attribution setting
+
+## 3. Ad export
+
+Required identity and hierarchy:
+
+- Campaign ID
+- Campaign name
+- Ad set ID
+- Ad set name
+- Ad ID
+- Ad name
+
+Required period and delivery:
+
+- Reporting starts
+- Reporting ends
+- Delivery
+- Created date
+- Last significant edit
+
+Required performance:
+
+- Results
+- Result indicator
+- Cost per result
+- Amount spent
+- Impressions
+- Reach
+- Frequency
+- CPM
+- Link clicks
+- Link CTR
+- CPC
+- Landing page views
+- Cost per landing page view
+- Quality ranking
+- Engagement-rate ranking
+- Conversion-rate ranking
+- Attribution setting
+
+## What is already correct in the supplied files
+
+- Reporting start and end dates are present.
+- Campaign, ad-set and ad names are present.
+- The ad export now includes the ad-set name.
+- Spend, results, cost per result, impressions, reach, frequency, clicks, CTR and CPC are present.
+
+## What still needs to be added
+
+Highest priority:
+
+1. Campaign ID in all three exports.
+2. Campaign name in the ad-set and ad exports.
+3. Ad set ID in the ad-set and ad exports.
+4. Ad ID in the ad export.
+5. Landing page views and cost per landing page view.
+6. Created date in the ad export.
+
+The IDs are more important than names. Names can be edited; IDs remain stable.

@@ -922,6 +922,65 @@ async function loadDashboard(weekId){
 ].forEach(id=>document.getElementById(id)?.addEventListener("input",renderDaily));
 
 
+
+/* Responsive SVG charts for goals and historical comparisons */
+function chartNumber(value,formatter){return value==null||!Number.isFinite(Number(value))?"—":formatter(Number(value))}
+function shortMonthLabel(key){if(!/^\d{4}-\d{2}$/.test(String(key||"")))return String(key||"");return new Intl.DateTimeFormat("en-GB",{month:"short",year:"2-digit",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
+function chartEmpty(id,message="No chart data is available."){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="chart-empty">${message}</div>`}
+function svgPolyline(points){return points.map(point=>`${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ")}
+function renderCumulativePacingChart(containerId,{month,totalDays,cutoff,rows,targetTotal,metricKey,formatter,actualLabel="Actual",targetLabel="Target"}){
+  const container=document.getElementById(containerId);if(!container)return;
+  if(!targetTotal||!month){chartEmpty(containerId,"Add a monthly goal to display the pacing curve.");return}
+  const width=780,height=300,left=58,right=22,top=24,bottom=50,plotW=width-left-right,plotH=height-top-bottom;
+  const values=new Map();(rows||[]).forEach(row=>values.set(row.key,safeNum(row[metricKey])));
+  let cumulative=0;const actual=[];for(let day=1;day<=totalDays;day++){
+    const dateKey=`${month}-${String(day).padStart(2,"0")}`;if(dateKey>cutoff)break;cumulative+=safeNum(values.get(dateKey));actual.push({day,value:cumulative});
+  }
+  const target=Array.from({length:totalDays},(_,i)=>({day:i+1,value:targetTotal*(i+1)/totalDays}));
+  const projected=actual.length?actual.at(-1).value/actual.length*totalDays:0;
+  const max=Math.max(1,targetTotal,projected,...actual.map(x=>x.value));
+  const x=day=>left+(day-1)/Math.max(1,totalDays-1)*plotW,y=value=>top+plotH-(value/max)*plotH;
+  const actualPts=actual.map(item=>({x:x(item.day),y:y(item.value)}));const targetPts=target.map(item=>({x:x(item.day),y:y(item.value)}));
+  const ticks=[0,.25,.5,.75,1];
+  const grid=ticks.map(t=>{const yy=top+plotH-(t*plotH);return `<line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" class="chart-grid-line"/><text x="${left-9}" y="${yy+4}" class="chart-axis-text" text-anchor="end">${formatter(max*t)}</text>`}).join("");
+  const dayTicks=[1,Math.ceil(totalDays/4),Math.ceil(totalDays/2),Math.ceil(totalDays*3/4),totalDays].filter((v,i,a)=>a.indexOf(v)===i).map(day=>`<text x="${x(day)}" y="${height-20}" class="chart-axis-text" text-anchor="middle">${day}</text>`).join("");
+  const points=actualPts.map((point,index)=>`<circle cx="${point.x}" cy="${point.y}" r="3.2" class="chart-point actual"><title>${actualLabel}, day ${actual[index].day}: ${formatter(actual[index].value)}</title></circle>`).join("");
+  container.innerHTML=`<div class="chart-legend"><span><i class="legend-line actual"></i>${actualLabel}: <strong>${formatter(actual.at(-1)?.value||0)}</strong></span><span><i class="legend-line target"></i>${targetLabel}: <strong>${formatter(targetTotal)}</strong></span><span>Projection: <strong>${formatter(projected)}</strong></span></div><div class="chart-scroll"><svg class="goal-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${actualLabel} versus ${targetLabel}">${grid}<line x1="${left}" y1="${top+plotH}" x2="${width-right}" y2="${top+plotH}" class="chart-axis-line"/>${dayTicks}<polyline points="${svgPolyline(targetPts)}" class="chart-line target"/><polyline points="${svgPolyline(actualPts)}" class="chart-line actual"/>${points}</svg></div>`;
+}
+function renderGroupedGoalChart(containerId,{rows,actualValue,goalValue,formatter,title,actualLabel="Actual",goalLabel="Goal",lowerIsBetter=false}){
+  const container=document.getElementById(containerId);if(!container)return;
+  const data=(rows||[]).filter(row=>safeNum(actualValue(row))>0||safeNum(goalValue(row))>0).slice(-18);
+  if(!data.length){chartEmpty(containerId);return}
+  const groupW=92,width=Math.max(680,70+data.length*groupW),height=310,left=56,right=18,top=26,bottom=66,plotH=height-top-bottom;
+  const values=data.flatMap(row=>[safeNum(actualValue(row)),safeNum(goalValue(row))]);const max=Math.max(1,...values)*1.12;
+  const y=value=>top+plotH-(safeNum(value)/max)*plotH;const barW=24;const ticks=[0,.25,.5,.75,1];
+  const grid=ticks.map(t=>{const yy=top+plotH-t*plotH;return `<line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" class="chart-grid-line"/><text x="${left-8}" y="${yy+4}" class="chart-axis-text" text-anchor="end">${formatter(max*t)}</text>`}).join("");
+  const bars=data.map((row,index)=>{const center=left+groupW*index+groupW/2,actual=safeNum(actualValue(row)),goal=safeNum(goalValue(row)),actualY=y(actual),goalY=y(goal);return `<g><rect x="${center-barW-3}" y="${actualY}" width="${barW}" height="${Math.max(0,top+plotH-actualY)}" rx="5" class="chart-bar actual"><title>${row.label} · ${actualLabel}: ${formatter(actual)}</title></rect><rect x="${center+3}" y="${goalY}" width="${barW}" height="${Math.max(0,top+plotH-goalY)}" rx="5" class="chart-bar goal"><title>${row.label} · ${goalLabel}: ${formatter(goal)}</title></rect><text x="${center}" y="${height-34}" class="chart-axis-text chart-x-label" text-anchor="middle">${shortMonthLabel(row.key)}</text></g>`}).join("");
+  container.innerHTML=`<div class="chart-title-inline"><strong>${title}</strong><div class="chart-legend"><span><i class="legend-box actual"></i>${actualLabel}</span><span><i class="legend-box goal"></i>${goalLabel}</span></div></div><div class="chart-scroll"><svg class="goal-svg grouped" viewBox="0 0 ${width} ${height}" style="min-width:${width}px" role="img" aria-label="${title}">${grid}<line x1="${left}" y1="${top+plotH}" x2="${width-right}" y2="${top+plotH}" class="chart-axis-line"/>${bars}</svg></div>`;
+}
+function currentMonthDailyGroups(p){return groupRangeRows((advancedState.rows||[]).filter(row=>row.report_date>=p.start&&row.report_date<=p.cutoff),row=>row.report_date,row=>formatDate(row.report_date)).sort((a,b)=>a.key.localeCompare(b.key))}
+function renderMonthlyPacingCharts(p=buildGoalProjection()){
+  const rows=currentMonthDailyGroups(p);
+  ["overviewSpendPacingChart","strategySpendPacingChart"].forEach(id=>renderCumulativePacingChart(id,{month:p.month,totalDays:p.totalDays,cutoff:p.cutoff,rows,targetTotal:p.targetBudget,metricKey:"spend",formatter:value=>money(value),actualLabel:"Actual spend",targetLabel:"Budget pace"}));
+  ["overviewRegistrationPacingChart","strategyRegistrationPacingChart"].forEach(id=>renderCumulativePacingChart(id,{month:p.month,totalDays:p.totalDays,cutoff:p.cutoff,rows,targetTotal:p.targetRegistrations,metricKey:"results",formatter:value=>decimal(value),actualLabel:"Registrations",targetLabel:"Registration pace"}));
+}
+function renderGoalHistoryCharts(rows){
+  const target=document.getElementById("monthlyGoalHistoryCharts");if(!target)return;
+  const chronological=[...(rows||[])].sort((a,b)=>a.key.localeCompare(b.key));
+  target.innerHTML=`<div class="goal-chart-panel"><div id="goalBudgetHistoryChart" class="svg-chart"></div></div><div class="goal-chart-panel"><div id="goalRegistrationHistoryChart" class="svg-chart"></div></div><div class="goal-chart-panel full-chart"><div id="goalCplHistoryChart" class="svg-chart"></div></div>`;
+  renderGroupedGoalChart("goalBudgetHistoryChart",{rows:chronological,actualValue:r=>r.actual.spend,goalValue:r=>r.goal?.total_budget,formatter:value=>money(value),title:"Monthly budget: actual versus goal",actualLabel:"Spend",goalLabel:"Budget"});
+  renderGroupedGoalChart("goalRegistrationHistoryChart",{rows:chronological,actualValue:r=>r.actual.results,goalValue:r=>r.goal?.target_registrations,formatter:value=>decimal(value),title:"Monthly registrations: actual versus goal",actualLabel:"Registrations",goalLabel:"Target"});
+  renderGroupedGoalChart("goalCplHistoryChart",{rows:chronological,actualValue:r=>r.actual.cpl,goalValue:r=>r.goal?.target_cpl,formatter:value=>money(value),title:"Monthly CPL: actual versus target",actualLabel:"Actual CPL",goalLabel:"Target CPL",lowerIsBetter:true});
+}
+function renderRangeMonthlyCharts(months){
+  const target=document.getElementById("monthlyPerformanceCharts");if(!target)return;
+  const chronological=[...(months||[])].sort((a,b)=>a.key.localeCompare(b.key));
+  target.innerHTML=`<div class="goal-chart-panel"><div id="rangeSpendMonthChart" class="svg-chart"></div></div><div class="goal-chart-panel"><div id="rangeRegistrationMonthChart" class="svg-chart"></div></div><div class="goal-chart-panel full-chart"><div id="rangeCplMonthChart" class="svg-chart"></div></div>`;
+  renderGroupedGoalChart("rangeSpendMonthChart",{rows:chronological,actualValue:r=>r.spend,goalValue:r=>r.goal?.total_budget,formatter:value=>money(value),title:"Spend by month",actualLabel:"Spend",goalLabel:"Budget"});
+  renderGroupedGoalChart("rangeRegistrationMonthChart",{rows:chronological,actualValue:r=>r.results,goalValue:r=>r.goal?.target_registrations,formatter:value=>decimal(value),title:"Registrations by month",actualLabel:"Registrations",goalLabel:"Target"});
+  renderGroupedGoalChart("rangeCplMonthChart",{rows:chronological,actualValue:r=>r.cpl,goalValue:r=>r.goal?.target_cpl,formatter:value=>money(value),title:"CPL by month",actualLabel:"Actual CPL",goalLabel:"Target CPL",lowerIsBetter:true});
+}
+
 /* Date-range and monthly analysis */
 let allDashboardsCache=null;
 let rangeAnalysisState=null;
@@ -1156,17 +1215,22 @@ function buildRangeComparison(currentGroups,previousGroups,type){
   }).sort((a,b)=>Number(b.current.spend)-Number(a.current.spend));
 }
 function renderMonthTable(rows){
-  const months=groupRangeRows(rows,r=>r.report_date.slice(0,7),r=>trendLabel(r.report_date.slice(0,7),"month")).sort((a,b)=>a.key.localeCompare(b.key));
+  const data=groupRangeRows(rows,r=>r.report_date.slice(0,7),r=>monthLabelFromKey(r.report_date.slice(0,7))).sort((a,b)=>a.key.localeCompare(b.key));
+  const dataMap=new Map(data.map(item=>[item.key,item])),goalMap=new Map((advancedConfig.monthly_goals||[]).map(item=>[item.month,item]));
+  const months=[...new Set([...dataMap.keys(),...goalMap.keys()])].sort().map(key=>{const actual=dataMap.get(key)||rangeMetrics([]),goal=goalMap.get(key)||null;return {key,label:monthLabelFromKey(key),...actual,goal,budget_variance:goal?actual.spend-safeNum(goal.total_budget):null,result_variance:goal?actual.results-safeNum(goal.target_registrations):null}});
   months.forEach((item,index)=>{const prev=months[index-1];item.spend_change=prev?change(item.spend,prev.spend,true):null;item.results_change=prev?change(item.results,prev.results):null;item.cpl_change=prev?change(item.cpl,prev.cpl,true):null});
+  renderRangeMonthlyCharts(months);
   table("monthlyPerformanceTable",[
-    {label:"Month",name:true,render:r=>r.label},
+    {label:"Month",name:true,render:r=>`<span>${r.label}</span>${r.goal?.note?`<span class="sub-cell">${r.goal.note}</span>`:""}`},
+    {label:"Goal budget",numeric:true,render:r=>r.goal?money(r.goal.total_budget):"—"},
     {label:"Spend",numeric:true,render:r=>money(r.spend)},
-    {label:"Δ spend",render:r=>deltaHtml(r.spend_change)},
+    {label:"Budget variance",numeric:true,render:r=>r.goal?`${r.budget_variance>=0?"+":""}${money(r.budget_variance)}`:"—"},
+    {label:"Goal registrations",numeric:true,render:r=>r.goal?number(r.goal.target_registrations):"—"},
     {label:"Registrations",numeric:true,render:r=>number(r.results)},
-    {label:"Δ registrations",render:r=>deltaHtml(r.results_change)},
-    {label:"CPL",numeric:true,render:r=>money(r.cpl)},
+    {label:"Registration variance",numeric:true,render:r=>r.goal?`${r.result_variance>=0?"+":""}${decimal(r.result_variance)}`:"—"},
+    {label:"Target CPL",numeric:true,render:r=>r.goal?money(r.goal.target_cpl):"—"},
+    {label:"Actual CPL",numeric:true,render:r=>money(r.cpl)},
     {label:"Δ CPL",render:r=>deltaHtml(r.cpl_change)},
-    {label:"Clicks",numeric:true,render:r=>number(r.link_clicks)},
     {label:"CTR",numeric:true,render:r=>percent(r.ctr)},
     {label:"Conversion",numeric:true,render:r=>percent(r.conversion_rate)}
   ],months,"No monthly data is available for this range.");
@@ -1267,6 +1331,7 @@ function buildClientComparison(currentId,previousId){
 /* v10 management intelligence, creative health and data quality */
 let advancedConfig={
   goals:{target_cpl:45,total_budget:70000,target_registrations:1556,launch_start:"2026-01-01",launch_end:"2026-12-31"},
+  monthly_goals:[],
   thresholds:{spend_without_result_multiplier:1,high_cpl_percent:20,ctr_drop_percent:25,page_click_to_lpv_min:70,frequency_limit:3,no_result_days:3},
   annotations:[]
 };
@@ -1285,42 +1350,34 @@ function ratioPercent(numerator,denominator){return denominator?safeNum(numerato
 function metricChange(current,previous){return previous?safeNum(current)*100/safeNum(previous)-100:null}
 function dateDiffDays(start,end){return Math.max(0,Math.floor((isoDateObject(end)-isoDateObject(start))/86400000))}
 function clamp(value,min,max){return Math.min(max,Math.max(min,value))}
-function configGoal(key,fallback=0){return safeNum(advancedConfig?.goals?.[key]??fallback)}
+function monthKey(dateValue){return String(dateValue||"").slice(0,7)}
+function monthLabelFromKey(key){if(!/^\d{4}-\d{2}$/.test(key||""))return key||"";return new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
+function monthBounds(key){const [year,month]=String(key).split("-").map(Number),last=new Date(Date.UTC(year,month,0)).getUTCDate();return {start:`${key}-01`,end:`${key}-${String(last).padStart(2,"0")}`,days:last}}
+function goalReferenceDate(){return dashboard?.current_week?.week_end||advancedState.rows.at(-1)?.report_date||new Date().toISOString().slice(0,10)}
+function monthlyGoalForMonth(key){return (advancedConfig?.monthly_goals||[]).find(item=>item.month===key)||null}
+function activeMonthlyGoal(){return monthlyGoalForMonth(monthKey(goalReferenceDate()))}
+function configGoal(key,fallback=0){const monthly=activeMonthlyGoal();if(monthly&&monthly[key]!=null)return safeNum(monthly[key]);return safeNum(fallback)}
 function configThreshold(key,fallback=0){return safeNum(advancedConfig?.thresholds?.[key]??fallback)}
-function severityOrder(value){return ({critical:0,warning:1,info:2,good:3})[value]??9}
-function severityLabel(value){return ({critical:"Critical",warning:"Warning",info:"Info",good:"Good"})[value]||value}
-
-function allHistoryMetrics(){
-  const goals=advancedConfig.goals||{};
-  const start=goals.launch_start||advancedState.rows[0]?.report_date;
-  const end=goals.launch_end||advancedState.rows.at(-1)?.report_date;
-  const rows=advancedState.rows.filter(row=>(!start||row.report_date>=start)&&(!end||row.report_date<=end));
-  return {rows,metrics:rangeMetrics(rows),start,end};
-}
-
+function overlapDays(startA,endA,startB,endB){const start=startA>startB?startA:startB,end=endA<endB?endA:endB;return end<start?0:daysInclusive(start,end)}
+function metricsForDates(start,end){return rangeMetrics((advancedState.rows||[]).filter(row=>row.report_date>=start&&row.report_date<=end))}
 function buildGoalProjection(){
-  const {rows,metrics,start,end}=allHistoryMetrics();
-  const cutoff=rows.length?rows.at(-1).report_date:(dashboard?.current_week?.week_end||start);
-  const effectiveCutoff=end&&cutoff>end?end:cutoff;
-  const totalDays=start&&end?daysInclusive(start,end):0;
-  const elapsedDays=start&&effectiveCutoff?clamp(daysInclusive(start,effectiveCutoff),1,totalDays||1):0;
-  const remainingDays=Math.max(0,totalDays-elapsedDays);
-  const targetBudget=configGoal("total_budget");
-  const targetRegistrations=configGoal("target_registrations");
-  const targetCpl=configGoal("target_cpl")||null;
-  const projectedSpend=elapsedDays?metrics.spend/elapsedDays*totalDays:null;
-  const projectedResults=elapsedDays?metrics.results/elapsedDays*totalDays:null;
-  return {
-    ...metrics,start,end,cutoff,totalDays,elapsedDays,remainingDays,targetBudget,targetRegistrations,targetCpl,
-    budgetProgress:targetBudget?metrics.spend*100/targetBudget:null,
-    registrationProgress:targetRegistrations?metrics.results*100/targetRegistrations:null,
-    projectedSpend,projectedResults,
-    projectedCpl:projectedResults?projectedSpend/projectedResults:null,
-    requiredDailySpend:remainingDays?Math.max(0,targetBudget-metrics.spend)/remainingDays:null,
-    requiredDailyResults:remainingDays?Math.max(0,targetRegistrations-metrics.results)/remainingDays:null,
-    budgetVariance:projectedSpend!=null&&targetBudget?projectedSpend-targetBudget:null,
-    resultVariance:projectedResults!=null&&targetRegistrations?projectedResults-targetRegistrations:null
-  };
+  const reference=goalReferenceDate(),month=monthKey(reference),goal=monthlyGoalForMonth(month),bounds=monthBounds(month);
+  const availableEnd=advancedState.rows.at(-1)?.report_date||reference;
+  const cutoff=[reference,availableEnd,bounds.end].sort()[0];
+  const metrics=metricsForDates(bounds.start,cutoff);
+  const elapsedDays=Math.max(1,overlapDays(bounds.start,cutoff,bounds.start,bounds.end)),remainingDays=Math.max(0,bounds.days-elapsedDays);
+  const targetBudget=safeNum(goal?.total_budget),targetRegistrations=safeNum(goal?.target_registrations),targetCpl=safeNum(goal?.target_cpl)||null;
+  const projectedSpend=elapsedDays?metrics.spend/elapsedDays*bounds.days:null,projectedResults=elapsedDays?metrics.results/elapsedDays*bounds.days:null;
+  const weekStart=dashboard?.current_week?.week_start||cutoff,weekEnd=dashboard?.current_week?.week_end||cutoff;
+  const weekDays=overlapDays(weekStart,weekEnd,bounds.start,bounds.end);
+  const weekActual=metricsForDates(weekStart>bounds.start?weekStart:bounds.start,weekEnd<bounds.end?weekEnd:bounds.end);
+  const dailyBudget=targetBudget?targetBudget/bounds.days:null,dailyRegistrations=targetRegistrations?targetRegistrations/bounds.days:null;
+  const weeklyBudget=dailyBudget!=null?dailyBudget*weekDays:null,weeklyRegistrations=dailyRegistrations!=null?dailyRegistrations*weekDays:null;
+  return {...metrics,month,monthLabel:monthLabelFromKey(month),goalConfigured:Boolean(goal),goalNote:goal?.note||"",start:bounds.start,end:bounds.end,cutoff,totalDays:bounds.days,elapsedDays,remainingDays,targetBudget,targetRegistrations,targetCpl,
+    budgetProgress:targetBudget?metrics.spend*100/targetBudget:null,registrationProgress:targetRegistrations?metrics.results*100/targetRegistrations:null,
+    projectedSpend,projectedResults,projectedCpl:projectedResults?projectedSpend/projectedResults:null,requiredDailySpend:remainingDays?Math.max(0,targetBudget-metrics.spend)/remainingDays:null,requiredDailyResults:remainingDays?Math.max(0,targetRegistrations-metrics.results)/remainingDays:null,
+    budgetVariance:projectedSpend!=null&&targetBudget?projectedSpend-targetBudget:null,resultVariance:projectedResults!=null&&targetRegistrations?projectedResults-targetRegistrations:null,
+    dailyBudget,dailyRegistrations,weekDays,weeklyBudget,weeklyRegistrations,weekActual,weekStart,weekEnd};
 }
 
 function progressCard(label,value,goal,percentValue,note,good=true){
@@ -1330,23 +1387,54 @@ function progressCard(label,value,goal,percentValue,note,good=true){
 
 function renderGoalProgress(){
   const p=buildGoalProjection();
-  const targetCpl=p.targetCpl;
-  const cplGood=!targetCpl||!p.cpl||p.cpl<=targetCpl;
-  const cards=[
-    progressCard("Budget used",money(p.spend),money(p.targetBudget),p.budgetProgress,`${number(p.remainingDays)} days remaining`,p.budgetProgress<=100),
-    progressCard("Registrations",number(p.results),number(p.targetRegistrations),p.registrationProgress,`Projected ${number(p.projectedResults)}`,p.projectedResults>=p.targetRegistrations),
-    progressCard("Current CPL",money(p.cpl),money(targetCpl),targetCpl&&p.cpl?targetCpl*100/p.cpl:0,`Projected CPL ${money(p.projectedCpl)}`,cplGood)
-  ];
+  const targetCpl=p.targetCpl,cplGood=!targetCpl||!p.cpl||p.cpl<=targetCpl;
+  const cards=p.goalConfigured?[
+    progressCard(`${p.monthLabel} budget`,money(p.spend),money(p.targetBudget),p.budgetProgress,`${number(p.remainingDays)} calendar days remaining`,p.budgetProgress<=100),
+    progressCard(`${p.monthLabel} registrations`,number(p.results),number(p.targetRegistrations),p.registrationProgress,`Projected ${number(p.projectedResults)}`,p.projectedResults>=p.targetRegistrations),
+    progressCard("Monthly CPL",money(p.cpl),money(targetCpl),targetCpl&&p.cpl?targetCpl*100/p.cpl:0,`Projected CPL ${money(p.projectedCpl)}`,cplGood)
+  ]:[`<div class="goal-progress-card"><div class="goal-progress-head"><span>${p.monthLabel}</span><strong>Goal missing</strong></div><p>Add the monthly budget, registration target and CPL target in the local admin.</p></div>`];
   ["overviewGoalProgress","strategyGoalKpis"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=cards.join("")});
-
-  const projection=[
-    ["Projected spend",money(p.projectedSpend),p.budgetVariance==null?"No projection":`${p.budgetVariance>=0?"Over":"Under"} budget by ${money(Math.abs(p.budgetVariance))}`],
-    ["Projected registrations",number(p.projectedResults),p.resultVariance==null?"No projection":`${p.resultVariance>=0?"Above":"Below"} target by ${number(Math.abs(p.resultVariance))}`],
-    ["Required daily spend",money(p.requiredDailySpend),`${number(p.remainingDays)} days remaining`],
+  const projection=p.goalConfigured?[
+    ["Monthly target",`${money(p.targetBudget)} · ${number(p.targetRegistrations)} registrations`,p.goalNote||`${money(p.dailyBudget)} and ${decimal(p.dailyRegistrations)} registrations per calendar day`],
+    ["Selected week target",`${money(p.weeklyBudget)} · ${decimal(p.weeklyRegistrations)} registrations`,`${number(p.weekDays)} days of ${p.monthLabel} inside ${dateRangeLabel(p.weekStart,p.weekEnd)}`],
+    ["Selected week actual",`${money(p.weekActual.spend)} · ${number(p.weekActual.results)} registrations`,`CPL ${money(p.weekActual.cpl)}`],
+    ["Projected month end",`${money(p.projectedSpend)} · ${number(p.projectedResults)} registrations`,p.budgetVariance==null?"No projection":`${p.budgetVariance>=0?"Over":"Under"} budget by ${money(Math.abs(p.budgetVariance))}`],
+    ["Required daily spend",money(p.requiredDailySpend),`For the remaining ${number(p.remainingDays)} days`],
     ["Required daily registrations",decimal(p.requiredDailyResults),`To reach ${number(p.targetRegistrations)}`]
-  ];
+  ]:[["Monthly goal missing","—",`Configure ${p.monthLabel} in the local admin.`]];
   const target=document.getElementById("projectionCards");
   if(target)target.innerHTML=projection.map(item=>`<div class="projection-card"><span>${item[0]}</span><strong>${item[1]}</strong><p>${item[2]}</p></div>`).join("");
+  renderMonthlyPacingCharts(p);
+}
+
+function monthlyGoalHistoryRows(){
+  const dataMonths=groupRangeRows(advancedState.rows||[],r=>r.report_date.slice(0,7),r=>monthLabelFromKey(r.report_date.slice(0,7)));
+  const dataMap=new Map(dataMonths.map(item=>[item.key,item]));
+  const goalMap=new Map((advancedConfig.monthly_goals||[]).map(item=>[item.month,item]));
+  return [...new Set([...dataMap.keys(),...goalMap.keys()])].sort().reverse().map(key=>{
+    const actual=dataMap.get(key)||rangeMetrics([]),goal=goalMap.get(key)||null;
+    const budgetVariance=goal?safeNum(actual.spend)-safeNum(goal.total_budget):null,resultVariance=goal?safeNum(actual.results)-safeNum(goal.target_registrations):null;
+    let status="Not configured";if(goal){if(actual.results>=safeNum(goal.target_registrations)&&actual.cpl<=safeNum(goal.target_cpl))status="Goal achieved";else if(actual.results>=safeNum(goal.target_registrations))status="Volume achieved";else if(actual.cpl&&actual.cpl<=safeNum(goal.target_cpl))status="CPL achieved";else status="Below goal"}
+    return {key,label:monthLabelFromKey(key),actual,goal,budgetVariance,resultVariance,status};
+  });
+}
+function goalStatusPill(status){const cls=status==="Goal achieved"?"good":status==="CPL achieved"||status==="Volume achieved"?"info":status==="Not configured"?"inactive":"warn";return `<span class="pill ${cls}">${status}</span>`}
+function renderMonthlyGoalHistory(){
+  const target=document.getElementById("monthlyGoalHistoryTable");if(!target)return;
+  const historyRows=monthlyGoalHistoryRows();
+  renderGoalHistoryCharts(historyRows);
+  table("monthlyGoalHistoryTable",[
+    {label:"Month",name:true,render:r=>`<span>${r.label}</span>${r.goal?.note?`<span class="sub-cell">${r.goal.note}</span>`:""}`},
+    {label:"Goal budget",numeric:true,render:r=>r.goal?money(r.goal.total_budget):"—"},
+    {label:"Actual spend",numeric:true,render:r=>money(r.actual.spend)},
+    {label:"Budget variance",numeric:true,render:r=>r.goal?`${r.budgetVariance>=0?"+":""}${money(r.budgetVariance)}`:"—"},
+    {label:"Goal registrations",numeric:true,render:r=>r.goal?number(r.goal.target_registrations):"—"},
+    {label:"Actual registrations",numeric:true,render:r=>number(r.actual.results)},
+    {label:"Registration variance",numeric:true,render:r=>r.goal?`${r.resultVariance>=0?"+":""}${decimal(r.resultVariance)}`:"—"},
+    {label:"Target CPL",numeric:true,render:r=>r.goal?money(r.goal.target_cpl):"—"},
+    {label:"Actual CPL",numeric:true,render:r=>money(r.actual.cpl)},
+    {label:"Result",render:r=>goalStatusPill(r.status)}
+  ],historyRows,"No monthly data or goals are available.");
 }
 
 function comparisonPreviousDashboard(){
@@ -1392,6 +1480,7 @@ function buildAlerts(){
   }
 
   const p=buildGoalProjection();
+  if(!p.goalConfigured) alerts.push({severity:"warning",type:"Goal",title:`Monthly goal missing for ${p.monthLabel}`,detail:"Add the monthly budget, registration target and CPL target in the local admin.",entity:"Monthly goal"});
   if(p.projectedSpend&&p.targetBudget&&p.projectedSpend>p.targetBudget*1.05) alerts.push({severity:"warning",type:"Budget",title:"Projected spend is above the launch budget",detail:`Projection ${money(p.projectedSpend)} versus budget ${money(p.targetBudget)}.`,entity:"Budget"});
   if(p.projectedResults!=null&&p.targetRegistrations&&p.projectedResults<p.targetRegistrations*.95) alerts.push({severity:"critical",type:"Goal",title:"Projected registrations are below target",detail:`Projection ${number(p.projectedResults)} versus target ${number(p.targetRegistrations)}.`,entity:"Registrations"});
   if(!alerts.length) alerts.push({severity:"good",type:"Account",title:"No critical management alerts for this period",detail:"The configured thresholds were not breached.",entity:"Account"});
@@ -1414,6 +1503,9 @@ function renderExecutiveSummary(){
   const bestCampaign=bestEntity(dashboard?.campaigns),bestPage=[...(dashboard?.page_groups||[])].filter(row=>safeNum(row.results)>0).sort((a,b)=>safeNum(b.conversion_rate)-safeNum(a.conversion_rate))[0];
   const actionable=advancedState.alerts.filter(item=>item.severity!=="good");
   const sentences=[];
+  const monthly=buildGoalProjection();
+  if(monthly.goalConfigured) sentences.push(`${monthly.monthLabel} is at ${decimal(monthly.budgetProgress)}% of budget and ${decimal(monthly.registrationProgress)}% of the registration target.`);
+  else sentences.push(`No monthly goal is configured for ${monthly.monthLabel}.`);
   if(spendDelta!=null)sentences.push(`Spend ${spendDelta>=0?"increased":"decreased"} ${decimal(Math.abs(spendDelta))}% versus the previous imported week.`);
   if(resultDelta!=null)sentences.push(`Registrations ${resultDelta>=0?"increased":"decreased"} ${decimal(Math.abs(resultDelta))}%.`);
   if(cplDelta!=null)sentences.push(`CPL ${cplDelta<=0?"improved":"worsened"} ${decimal(Math.abs(cplDelta))}% to ${money(current.cpl)}.`);
@@ -1516,7 +1608,7 @@ function renderPageFunnels(groups=(dashboard?.page_groups||[])){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();
+  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();
 }
 
 async function initializeAdvancedFeatures(){

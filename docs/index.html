@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=10.0.0" />
+  <link rel="stylesheet" href="styles.css?v=10.2.0" />
 </head>
 <body>
   <main class="shell" id="app">
@@ -69,8 +69,12 @@
       </div>
 
       <article class="card panel goal-overview-card">
-        <div class="section-head"><div><h2>Launch pacing</h2><p>Budget, registrations and projected outcome against the configured goals.</p></div></div>
+        <div class="section-head"><div><h2>Monthly pacing</h2><p>Budget, registrations and projected outcome against the goal saved for the selected month.</p></div></div>
         <div id="overviewGoalProgress" class="goal-progress-grid"></div>
+        <div class="goal-chart-grid compact-goal-charts">
+          <div class="goal-chart-panel"><div class="chart-title"><strong>Cumulative spend</strong><span>Actual versus monthly target</span></div><div id="overviewSpendPacingChart" class="svg-chart"></div></div>
+          <div class="goal-chart-panel"><div class="chart-title"><strong>Cumulative registrations</strong><span>Actual versus monthly target</span></div><div id="overviewRegistrationPacingChart" class="svg-chart"></div></div>
+        </div>
       </article>
 
       <div style="margin-bottom:18px">
@@ -339,6 +343,7 @@
 
       <article class="card panel">
         <div class="section-head"><div><h2>Month-over-month performance</h2><p>Monthly totals recalculated from the daily ad data.</p></div></div>
+        <div id="monthlyPerformanceCharts" class="goal-history-chart-grid"></div>
         <div id="monthlyPerformanceTable"></div>
       </article>
 
@@ -438,7 +443,7 @@
       <div id="strategyGoalKpis" class="kpi-grid"></div>
       <div class="management-grid">
         <article class="card panel">
-          <div class="section-head"><div><h2>Budget and registration projection</h2><p>Projection through the configured launch end date.</p></div></div>
+          <div class="section-head"><div><h2>Monthly budget and registration projection</h2><p>Monthly target split into daily and Friday-to-Thursday weekly goals.</p></div></div>
           <div id="projectionCards" class="projection-grid"></div>
         </article>
         <article class="card panel">
@@ -446,6 +451,18 @@
           <div id="strategyAlerts" class="alert-list"></div>
         </article>
       </div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Monthly pacing curves</h2><p>Cumulative actual delivery against the target pace for every calendar day.</p></div><span class="pill info">Daily cumulative</span></div>
+        <div class="goal-chart-grid">
+          <div class="goal-chart-panel"><div class="chart-title"><strong>Budget pacing</strong><span>Spend accumulated through the month</span></div><div id="strategySpendPacingChart" class="svg-chart"></div></div>
+          <div class="goal-chart-panel"><div class="chart-title"><strong>Registration pacing</strong><span>Complete registrations accumulated through the month</span></div><div id="strategyRegistrationPacingChart" class="svg-chart"></div></div>
+        </div>
+      </article>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Monthly goal history</h2><p>What the target was in each month and what was actually delivered.</p></div></div>
+        <div id="monthlyGoalHistoryCharts" class="goal-history-chart-grid"></div>
+        <div id="monthlyGoalHistoryTable"></div>
+      </article>
       <article class="card panel">
         <div class="section-head"><div><h2>Management timeline</h2><p>Events that can explain performance movements.</p></div></div>
         <div id="managementTimeline" class="timeline-list"></div>
@@ -474,7 +491,7 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="data.js?v=10.0.0"></script>
-  <script src="dashboard.js?v=10.0.0"></script>
+  <script src="data.js?v=10.2.0"></script>
+  <script src="dashboard.js?v=10.2.0"></script>
 </body>
 </html>

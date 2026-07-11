@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PreSubs Weekly Import</title>
-  <link rel="stylesheet" href="/static/styles.css?v=8.0.0">
+  <link rel="stylesheet" href="/static/styles.css?v=10.0.0">
 </head>
 <body>
   <main class="shell narrow">
@@ -72,7 +72,48 @@
       </form>
       <div id="metricsMessage" class="message"></div>
     </article>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Monthly goals</h2><p>Save a different budget, registration target and CPL target for every month. The dashboard divides each monthly goal into daily and Friday-to-Thursday weekly targets and preserves the historical result.</p></div></div>
+      <form id="monthlyGoalForm" class="form-grid">
+        <label>Goal month<input required type="month" name="month"></label>
+        <label>Target CPL (€)<input required type="number" min="0.01" step="0.01" name="target_cpl"></label>
+        <label>Monthly budget (€)<input required type="number" min="0.01" step="0.01" name="total_budget"></label>
+        <label>Monthly registration target<input required type="number" min="0.01" step="1" name="target_registrations"></label>
+        <label class="full">Goal note<input name="note" placeholder="Example: L23 acquisition target, revised after week 2"></label>
+        <button class="btn btn-primary full" type="submit">Save monthly goal</button>
+      </form>
+      <div id="monthlyGoalMessage" class="message"></div>
+      <div id="monthlyGoalsList" class="annotation-admin-list"></div>
+    </article>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Alert thresholds</h2><p>These rules use the CPL target saved for the month of the selected reporting period.</p></div></div>
+      <form id="thresholdsForm" class="form-grid">
+        <label>Spend without result, in target CPLs<input required type="number" min="0.1" step="0.1" name="spend_without_result_multiplier"></label>
+        <label>High CPL threshold (%)<input required type="number" min="1" step="1" name="high_cpl_percent"></label>
+        <label>CTR drop threshold (%)<input required type="number" min="1" step="1" name="ctr_drop_percent"></label>
+        <label>Minimum click → LPV (%)<input required type="number" min="1" max="100" step="1" name="page_click_to_lpv_min"></label>
+        <label>Frequency warning<input required type="number" min="0.1" step="0.1" name="frequency_limit"></label>
+        <label>Days without result warning<input required type="number" min="1" step="1" name="no_result_days"></label>
+        <button class="btn btn-primary full" type="submit">Save alert thresholds</button>
+      </form>
+      <div id="thresholdsMessage" class="message"></div>
+    </article>
+
+    <article class="card panel">
+      <div class="section-head"><div><h2>Timeline annotations</h2><p>Add launches, budget changes, new creatives, page changes, emails and other events. They will appear in the public dashboard.</p></div></div>
+      <form id="annotationForm" class="form-grid">
+        <label>Date<input required type="date" name="event_date"></label>
+        <label>Category<select name="category"><option value="creative">Creative</option><option value="budget">Budget</option><option value="page">Landing page</option><option value="email">Email / CRM</option><option value="launch">Launch</option><option value="change">Other change</option></select></label>
+        <label class="full">Title<input required name="title" placeholder="Budget increased by 20%"></label>
+        <label class="full">Description<textarea name="description" rows="3" placeholder="Optional context for the performance change"></textarea></label>
+        <button class="btn btn-primary full" type="submit">Add annotation</button>
+      </form>
+      <div id="annotationMessage" class="message"></div>
+      <div id="annotationList" class="annotation-admin-list"></div>
+    </article>
   </main>
-<script src="/static/admin.js?v=8.0.0"></script>
+<script src="/static/admin.js?v=10.1.0"></script>
 </body>
 </html>

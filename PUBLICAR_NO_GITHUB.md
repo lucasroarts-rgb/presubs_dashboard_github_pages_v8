@@ -20,7 +20,7 @@ O endereço normalmente segue este formato:
 ## Atualização semanal
 
 1. Execute `START_LOCAL_DASHBOARD.bat`.
-2. Importe os três relatórios semanais e o relatório opcional de anúncios com detalhamento por dia no `/admin`.
+2. Importe as novas planilhas no `/admin`.
 3. Confira os números localmente.
 4. Execute `PUBLICAR_NO_GITHUB.bat`.
 
@@ -39,8 +39,3 @@ Não publique:
 - e-mails ou telefones
 
 Somente os resultados agregados presentes em `docs/data.js` serão publicados.
-
-
-## Daily performance
-
-A aba diária só aparece com dados quando o quarto arquivo, de anúncios com o detalhamento **Dia**, é importado para o período.

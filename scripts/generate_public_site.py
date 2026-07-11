@@ -28,8 +28,8 @@ def clean_json(value: Any) -> Any:
 
 def build_public_index() -> str:
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    html = html.replace('/static/styles.css?v=8.0.0', 'styles.css?v=8.0.0')
-    html = html.replace('/static/dashboard.js?v=8.0.0', 'dashboard.js?v=8.0.0')
+    html = html.replace('/static/styles.css?v=10.2.0', 'styles.css?v=10.2.0')
+    html = html.replace('/static/dashboard.js?v=10.2.0', 'dashboard.js?v=10.2.0')
     html = html.replace('<a class="btn" href="/admin">Weekly import</a>', '')
     html = html.replace(
         'No reporting period has been imported. Open <a href="/admin">Weekly import</a>.',
@@ -40,9 +40,11 @@ def build_public_index() -> str:
         '<span class="pill info">Published from the local database</span>',
     )
     html = html.replace('<a class="btn" href="/admin">Page settings</a>', '')
+    html = html.replace('<a class="btn" href="/admin">Edit goals</a>', '')
+    html = html.replace('<a class="btn" href="/admin">Configure goals and events</a>', '')
     html = html.replace(
-        '<script src="dashboard.js?v=8.0.0"></script>',
-        '<script src="data.js?v=8.0.0"></script>\n  <script src="dashboard.js?v=8.0.0"></script>',
+        '<script src="dashboard.js?v=10.2.0"></script>',
+        '<script src="data.js?v=10.2.0"></script>\n  <script src="dashboard.js?v=10.2.0"></script>',
     )
     return html
 
@@ -101,8 +103,8 @@ def build_public_javascript() -> str:
   comparisonData=data;"""
     new_comparison = """  let data;
   if(IS_STATIC){
-    data=STATIC_DATA.comparisons?.[`${currentId}:${previousId}`];
-    if(!data){alert("This comparison was not included in the published export.");return}
+    data=buildClientComparison(currentId,previousId);
+    if(!data){alert("The selected reporting periods are not available in this export.");return}
   }else{
     const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
     data=await response.json();
@@ -136,29 +138,17 @@ def main() -> int:
 
     weeks = dashboard_app.list_weeks()
     dashboards: dict[str, Any] = {}
-    comparisons: dict[str, Any] = {}
-
     for week in weeks:
         week_id = int(week["id"])
         dashboards[str(week_id)] = dashboard_app.dashboard(week_id)
 
-    for current in weeks:
-        for previous in weeks:
-            current_id = int(current["id"])
-            previous_id = int(previous["id"])
-            if current_id == previous_id:
-                continue
-            comparisons[f"{current_id}:{previous_id}"] = dashboard_app.comparison(
-                current_id,
-                previous_id,
-            )
 
     payload = clean_json(
         {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "weeks": weeks,
             "dashboards": dashboards,
-            "comparisons": comparisons,
+            "config": dashboard_app.read_dashboard_config(),
         }
     )
 
@@ -203,6 +193,9 @@ def main() -> int:
         "daily_days_published": sum(
             len(item.get("daily_summary", [])) for item in dashboards.values()
         ),
+        "config_updated_at": payload.get("config", {}).get("updated_at"),
+        "annotations": len(payload.get("config", {}).get("annotations", [])),
+        "scope": "CompleteRegistration only; Quiz/Lead campaigns excluded",
     }
     (DOCS_DIR / "export-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2),
