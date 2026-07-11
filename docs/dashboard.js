@@ -1597,6 +1597,15 @@ function comparisonPreviousDashboard(){
   return advancedState.dashboards.find(item=>String(item.current_week?.id)===String(dashboard.previous_week.id))||null;
 }
 
+function severityOrder(value){
+  const order={critical:0,warning:1,info:2,good:3};
+  return order[value] ?? 4;
+}
+function severityLabel(value){
+  const labels={critical:"Critical",warning:"Warning",info:"Information",good:"Good"};
+  return labels[value] || "Information";
+}
+
 function buildAlerts(){
   if(!dashboard?.current_week) return [];
   const targetCpl=configGoal("target_cpl")||safeNum(dashboard.totals?.cpl)||1;
@@ -1667,7 +1676,7 @@ function renderExecutiveSummary(){
   if(bestCampaign)sentences.push(`${bestCampaign.entity_name} had the strongest campaign CPL at ${money(calculatedCpl(bestCampaign))}.`);
   if(bestPage)sentences.push(`${bestPage.page_name} led page conversion at ${percent(bestPage.conversion_rate)}.`);
   sentences.push(actionable.length?`${actionable.length} management alert${actionable.length===1?" requires":"s require"} attention.`:"No configured alert threshold was breached.");
-  const el=document.getElementById("executiveSummary");if(el)el.innerHTML=`<p>${sentences.join(" ")}</p><div class="summary-facts"><span>CompleteRegistration only</span><span>Quiz/Lead excluded</span><span>${dashboard?.current_week?.label||""}</span></div>`;
+  const el=document.getElementById("executiveSummary");if(el)el.innerHTML=`<p>${sentences.join(" ")}</p><div class="summary-facts"><span>${dashboard?.current_week?.label||""}</span></div>`;
 }
 
 function renderTimeline(containerId,start=null,end=null){
@@ -1794,7 +1803,82 @@ function togglePresentationMode(){
 document.getElementById("presentationModeBtn")?.addEventListener("click",togglePresentationMode);
 
 
+
+
+const studentProfileState={selected:"combined"};
+function profileData(){return window.PEASY_STUDENT_PROFILE_DATA||null}
+function profileItem(dataset,key,label){return (dataset?.[key]||[]).find(item=>item.label===label)||{count:0,pct:0}}
+function profilePct(dataset,key,label){return safeNum(profileItem(dataset,key,label).pct)}
+function profileSum(dataset,key,labels){return labels.reduce((sum,label)=>sum+profilePct(dataset,key,label),0)}
+function profileTop(dataset,key){return (dataset?.[key]||[])[0]||{label:"—",count:0,pct:0}}
+function profileDate(value){if(!value)return "—";return new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`))}
+function profileBarList(targetId,items,maxItems=6){
+  const target=document.getElementById(targetId);if(!target)return;
+  const rows=(items||[]).slice(0,maxItems),max=Math.max(1,...rows.map(item=>safeNum(item.pct)));
+  target.innerHTML=rows.length?rows.map(item=>`<div class="profile-bar-row"><div class="profile-bar-head"><span>${item.label}</span><strong>${decimal(item.pct)}%</strong></div><div class="profile-bar-track"><span style="width:${Math.max(2,safeNum(item.pct)/max*100)}%"></span></div><small>${number(item.count)} students</small></div>`).join(""):`<div class="empty">No profile data.</div>`;
+}
+function profileKpi(label,value,note){return `<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div></div></article>`}
+function studentProfilePersona(dataset){
+  const age3160=profileSum(dataset,"age",["31-40","41-50","51-60"]);
+  const france=profilePct(dataset,"country","France");
+  const intermediate=profilePct(dataset,"level","Intermediate, can communicate but still feels blocked");
+  const beginner=profilePct(dataset,"level","Beginner, not yet able to communicate");
+  const travel=profilePct(dataset,"reasons","Travel confidently");
+  const professional=profilePct(dataset,"reasons","Professional needs");
+  const practice=profilePct(dataset,"barriers","Lack of practice opportunities");
+  const confidence=profilePct(dataset,"barriers","Low confidence and fear of mistakes");
+  return [
+    ["Adult learner",`${decimal(age3160)}% are between 31 and 60 years old.`],
+    ["French-speaking core",`${decimal(france)}% live in France.`],
+    ["Blocked, not starting from zero",`${decimal(intermediate)}% identify as intermediate; ${decimal(beginner)}% as beginner.`],
+    ["Practical ambition",`${decimal(travel)}% cite travel and ${decimal(professional)}% cite professional needs.`],
+    ["Confidence through practice",`${decimal(practice)}% lack practice opportunities and ${decimal(confidence)}% fear making mistakes.`]
+  ];
+}
+function renderStudentProfile(){
+  const payload=profileData();if(!payload)return;
+  const dataset=payload.datasets?.[studentProfileState.selected]||payload.datasets?.combined;if(!dataset)return;
+  document.querySelectorAll(".profile-filter-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.profile===studentProfileState.selected));
+  const photo=document.getElementById("studentProfilePhoto");if(photo&&!photo.src)photo.src=payload.photo?.url||"";
+  const credit=document.getElementById("studentProfilePhotoCredit");if(credit){credit.href=payload.photo?.creditUrl||"#";credit.textContent=payload.photo?.credit||"Photo / Unsplash"}
+  const source=document.getElementById("studentProfileSource");if(source)source.innerHTML=`<strong>${dataset.label}:</strong> ${number(dataset.total)} completed placement tests from ${profileDate(dataset.dateStart)} to ${profileDate(dataset.dateEnd)}. ${payload.privacy}`;
+  const france=profilePct(dataset,"country","France"),intermediate=profilePct(dataset,"level","Intermediate, can communicate but still feels blocked"),age3160=profileSum(dataset,"age",["31-40","41-50","51-60"]),travel=profilePct(dataset,"reasons","Travel confidently");
+  const kpis=document.getElementById("studentProfileKpis");if(kpis)kpis.innerHTML=[
+    profileKpi("Responses",number(dataset.total),`${dataset.label} placement tests`),
+    profileKpi("France",`${decimal(france)}%`,`${number(profileItem(dataset,"country","France").count)} respondents`),
+    profileKpi("Intermediate",`${decimal(intermediate)}%`,`Can communicate but still feels blocked`),
+    profileKpi("Age 31–60",`${decimal(age3160)}%`,`Core adult audience`),
+    profileKpi("Travel motivation",`${decimal(travel)}%`,`Multiple answers allowed`),
+    profileKpi("Average score",decimal(dataset.averageScore),`Median ${decimal(dataset.medianScore)}`)
+  ].join("");
+  const persona=document.getElementById("studentPersona");if(persona)persona.innerHTML=studentProfilePersona(dataset).map(([title,text],index)=>`<div class="persona-point"><span>${index+1}</span><div><strong>${title}</strong><p>${text}</p></div></div>`).join("");
+  const practice=profilePct(dataset,"barriers","Lack of practice opportunities"),method=profilePct(dataset,"barriers","Lack of method and structure"),confidence=profilePct(dataset,"barriers","Low confidence and fear of mistakes"),instagram=profilePct(dataset,"discovery","Instagram content and lives"),events=profilePct(dataset,"discovery","Online events and masterclasses"),platform=profilePct(dataset,"attractions","Platform content"),speaking=profilePct(dataset,"attractions","Speaking Groups");
+  const implications=document.getElementById("studentImplications");if(implications)implications.innerHTML=[
+    ["Lead with real-life confidence",`${decimal(practice)}% lack practice and ${decimal(confidence)}% fear mistakes. Show safe speaking situations, progress and repetition.`],
+    ["Sell structure, not only content",`${decimal(method)}% identify method and organisation as a barrier. Make the roadmap and weekly routine visible.`],
+    ["Use trusted content to warm audiences",`${decimal(instagram)}% discovered Alex through Instagram and ${decimal(events)}% through online events.`],
+    ["Connect the offer to guided practice",`${decimal(platform)}% value platform content and ${decimal(speaking)}% value Speaking Groups.`]
+  ].map(([title,text])=>`<div class="profile-implication"><span>→</span><div><strong>${title}</strong><p>${text}</p></div></div>`).join("");
+  profileBarList("studentAgeChart",dataset.age,6);profileBarList("studentLevelChart",dataset.level,4);profileBarList("studentReasonChart",dataset.reasons,6);profileBarList("studentBarrierChart",dataset.barriers,6);profileBarList("studentDiscoveryChart",dataset.discovery,6);profileBarList("studentAttractionChart",dataset.attractions,6);
+  const academy=payload.datasets?.academy,fluency=payload.datasets?.fluency;
+  if(academy&&fluency){
+    const rows=[
+      ["Completed tests",number(academy.total),number(fluency.total)],
+      ["Age 51+",`${decimal(profileSum(academy,"age",["51-60","Plus de 60 ans"]))}%`,`${decimal(profileSum(fluency,"age",["51-60","Plus de 60 ans"]))}%`],
+      ["Intermediate or advanced",`${decimal(profileSum(academy,"level",["Intermediate, can communicate but still feels blocked","Advanced, communicates well but wants to improve"]))}%`,`${decimal(profileSum(fluency,"level",["Intermediate, can communicate but still feels blocked","Advanced, communicates well but wants to improve"]))}%`],
+      ["Average placement score",decimal(academy.averageScore),decimal(fluency.averageScore)],
+      ["Travel motivation",`${decimal(profilePct(academy,"reasons","Travel confidently"))}%`,`${decimal(profilePct(fluency,"reasons","Travel confidently"))}%`],
+      ["Professional motivation",`${decimal(profilePct(academy,"reasons","Professional needs"))}%`,`${decimal(profilePct(fluency,"reasons","Professional needs"))}%`],
+      ["Lack of practice",`${decimal(profilePct(academy,"barriers","Lack of practice opportunities"))}%`,`${decimal(profilePct(fluency,"barriers","Lack of practice opportunities"))}%`],
+      ["Speaking Groups appeal",`${decimal(profilePct(academy,"attractions","Speaking Groups"))}%`,`${decimal(profilePct(fluency,"attractions","Speaking Groups"))}%`]
+    ];
+    const target=document.getElementById("studentComparisonTable");if(target)target.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Indicator</th><th class="num">Peasy Academy</th><th class="num">Fluency Club</th></tr></thead><tbody>${rows.map(row=>`<tr><td><strong>${row[0]}</strong></td><td class="num">${row[1]}</td><td class="num">${row[2]}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+}
+document.querySelectorAll(".profile-filter-btn").forEach(btn=>btn.addEventListener("click",()=>{studentProfileState.selected=btn.dataset.profile;renderStudentProfile()}));
+
 async function bootstrapDashboard(){
+  renderStudentProfile();
   advancedConfig=await loadAdvancedConfig();
   await loadWeeks();
   await initializeDateAnalysis();

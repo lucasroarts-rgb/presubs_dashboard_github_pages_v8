@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-11T03:37:09.158117+00:00",
+  "generated_at": "2026-07-11T13:24:46.012992+00:00",
   "weeks": 27,
   "campaigns_latest": 2,
   "adsets_latest": 4,
@@ -10,5 +10,5 @@
   "daily_days_published": 189,
   "config_updated_at": null,
   "annotations": 0,
-  "scope": "CompleteRegistration only; Quiz/Lead campaigns excluded"
+  "student_profile_responses": 2115
 }

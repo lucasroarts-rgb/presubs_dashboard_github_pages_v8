@@ -79,3 +79,18 @@ Use `AUTOMATIZAR_DIARIO.bat` for a manual daily update and
 
 The public dashboard now uses a responsive icon sidebar and includes a separate
 Daily briefing page. See `DAILY_AUTOMATION_V10_3.md`.
+
+
+## v10.3.1 daily briefing hotfix
+
+Fixes the missing alert severity helpers that prevented the advanced rendering chain from reaching the Daily briefing page.
+
+
+## v10.3.1 student profile and Peasy branding
+
+- Adds the Peasy Anglais logo to the sidebar and top bar.
+- Adds a Student profile menu with aggregated Academy and Fluency Club placement-test insight.
+- Removes repeated scope labels from the hero and sidebar.
+- Includes the Daily briefing JavaScript correction from v10.3.1.
+
+See `STUDENT_PROFILE_V10_3_1.md`.
