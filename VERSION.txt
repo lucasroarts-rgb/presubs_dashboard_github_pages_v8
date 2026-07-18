@@ -1,1 +1,1 @@
-10.3 - Daily 06:00 sync, daily briefing, icon sidebar and resilient Meta Insights fallback.
+10.4 - Meta Ads audit-style overview with health score, diagnostics, Pareto analysis and action plan.

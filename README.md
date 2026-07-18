@@ -94,3 +94,8 @@ Fixes the missing alert severity helpers that prevented the advanced rendering c
 - Includes the Daily briefing JavaScript correction from v10.3.1.
 
 See `STUDENT_PROFILE_V10_3_1.md`.
+
+
+## v10.4 audit overview
+
+The new first page is an audit-style Meta Ads overview. See `AUDIT_OVERVIEW_V10_4.md`.

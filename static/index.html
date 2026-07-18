@@ -5,19 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css?v=10.3.0" />
+  <link rel="stylesheet" href="/static/styles.css?v=10.4.0" />
 </head>
-<body>
+<body data-active-view="auditOverview">
 
   <aside class="app-sidebar" id="appSidebar" aria-label="Dashboard navigation">
     <div class="sidebar-brand">
-      <div class="brand-mark">P</div>
-      <div><strong>Peasy Anglais</strong><span>Marketing Performance</span></div>
+      <div class="sidebar-brand-logo"><img src="/static/assets/peasy-logo.png" alt="Peasy Anglais" /></div>
+      <div class="sidebar-brand-copy"><span>Marketing Performance</span></div>
       <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation">×</button>
     </div>
     <nav class="sidebar-nav">
-      <button class="tab active" data-view="overview" title="Overview"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg><span>Overview</span></button>
+      <button class="tab active" data-view="auditOverview" title="Audit overview"><svg viewBox="0 0 24 24"><path d="M12 2 20 6v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.1L6 8v4c0 3.6 2.2 6.1 6 7.5 3.8-1.4 6-3.9 6-7.5V8l-6-2.9Zm-4 8.4 2.2-2.2 1.6 1.6 3.6-3.6 1.4 1.4-5 5-3.8-3.8Z"/></svg><span>Audit overview</span></button>
+      <button class="tab" data-view="overview" title="Overview"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg><span>Overview</span></button>
 <button class="tab" data-view="dailyBrief" title="Daily briefing"><svg viewBox="0 0 24 24"><path d="M7 3h10v2h3v16H4V5h3V3Zm2 2h6V4H9v1Zm-3 4v10h12V9H6Zm2 2h3v3H8v-3Zm5 0h3v2h-3v-2Zm0 4h3v2h-3v-2Z"/></svg><span>Daily briefing</span></button>
+<button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
 <button class="tab" data-view="strategy" title="Management"><svg viewBox="0 0 24 24"><path d="M4 19V9h3v10H4Zm6 0V5h3v14h-3Zm6 0v-7h3v7h-3ZM3 21h18v-2H3v2Z"/></svg><span>Management</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
 <button class="tab" data-view="comparison" title="Weekly comparison"><svg viewBox="0 0 24 24"><path d="M7 3h2v14h3l-4 4-4-4h3V3Zm10 18h-2V7h-3l4-4 4 4h-3v14Z"/></svg><span>Weekly comparison</span></button>
@@ -30,19 +32,15 @@
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
 <button class="tab" data-view="quality" title="Data quality"><svg viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.2L6 8v4c0 3.7 2.3 6.2 6 7.6 3.7-1.4 6-3.9 6-7.6V8l-6-2.8Zm-1 9.3-2.5-2.5 1.4-1.4 1.1 1.1 3.1-3.1 1.4 1.4-4.5 4.5Z"/></svg><span>Data quality</span></button>
     </nav>
-    <div class="sidebar-footer">
-      <span>CompleteRegistration only</span>
-      <small>Quiz and Lead campaigns excluded</small>
-    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="shell" id="app">
     <div class="topbar">
       <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Open navigation">☰</button>
-      <div class="brand">
-        <div class="brand-mark">P</div>
-        <div>Peasy Anglais <span style="color:var(--muted);font-weight:650">/ Marketing Performance</span></div>
+      <div class="brand topbar-brand">
+        <img src="/static/assets/peasy-logo.png" alt="Peasy Anglais" class="topbar-logo" />
+        <span>/ Marketing Performance</span>
       </div>
       <div class="top-actions">
         <a class="btn" href="/admin">Weekly import</a>
@@ -59,7 +57,6 @@
         <span><strong>Reporting period:</strong> <span id="heroPeriod">Loading…</span></span>
         <span><strong>Comparison:</strong> <span id="heroComparison">Previous imported week</span></span>
         <span><strong>Currency:</strong> EUR</span>
-        <span><strong>Scope:</strong> CompleteRegistration only · Quiz/Lead campaigns excluded</span>
         <label class="hero-select"><strong>Change period:</strong>
           <select id="weekSelect"></select>
         </label>
@@ -67,7 +64,95 @@
     </section>
 
 
-    <section id="overview" class="view active">
+    
+    <section id="auditOverview" class="view active audit-view">
+      <article class="audit-hero">
+        <div class="audit-hero-main">
+          <span class="audit-kicker">META ADS ACCOUNT AUDIT</span>
+          <h1>PreSubs acquisition health & opportunity review</h1>
+          <div class="audit-meta-row">
+            <span><strong>Brand:</strong> Peasy Anglais</span>
+            <span><strong>Window:</strong> <span id="auditPeriod">Loading…</span></span>
+            <span><strong>Currency:</strong> EUR</span>
+            <span><strong>Comparison:</strong> <span id="auditComparison">Previous period</span></span>
+          </div>
+          <div class="audit-reviewed-row">
+            <span>Spend reviewed: <strong id="auditSpendReviewed">—</strong></span>
+            <span>Registrations: <strong id="auditRegistrations">—</strong></span>
+            <span>CPL: <strong id="auditCpl">—</strong></span>
+            <span>Conversion: <strong id="auditConversion">—</strong></span>
+          </div>
+        </div>
+        <div class="audit-health-wrap">
+          <div id="auditHealthRing" class="audit-health-ring"><strong>—</strong><span>HEALTH SCORE</span></div>
+          <div id="auditSeverityLegend" class="audit-severity-legend"></div>
+        </div>
+      </article>
+
+      <div class="audit-impact-grid">
+        <article class="audit-impact-card critical"><span>Immediate</span><h3>Recoverable inefficient spend</h3><p>Spend from ads with no registrations or cost above the current CPL target.</p><strong id="auditWasteImpact">—</strong></article>
+        <article class="audit-impact-card near"><span>Near-term</span><h3>Estimated registration upside</h3><p>Potential registrations if inefficient spend moved toward the strongest current CPL.</p><strong id="auditUpsideImpact">—</strong></article>
+        <article class="audit-impact-card strategic"><span>Strategic</span><h3>Scale-ready creative capacity</h3><p>Ads currently classified as scale or keep candidates by recent performance.</p><strong id="auditScaleImpact">—</strong></article>
+      </div>
+
+      <article class="card panel audit-overview-card">
+        <div class="section-head"><div><h2>Audit overview</h2><p>A health model adapted to the Meta metrics available in the dashboard.</p></div><span class="pill" id="auditOverallPill">Calculating</span></div>
+        <div class="audit-overview-grid">
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Health radar</strong><span>8 dimensions</span></div><div id="auditRadarChart" class="audit-radar"></div></div>
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Findings by severity</strong><span>Action priority</span></div><div id="auditSeverityDonut" class="audit-donut-wrap"></div></div>
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Category score vs target</strong><span>Target: 80</span></div><div id="auditCategoryBars" class="audit-score-bars"></div></div>
+        </div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Audit scorecard</h2><p>Traffic-management dimensions scored from 0 to 100.</p></div></div>
+        <div id="auditScorecards" class="audit-scorecard-grid"></div>
+      </article>
+
+      <article class="card panel audit-pulse-card">
+        <div class="section-head"><div><h2>Performance pulse</h2><p>Last 30 completed days ending in the selected reporting period.</p></div><span class="pill info">30-day trends</span></div>
+        <div id="auditPulseKpis" class="audit-pulse-grid"></div>
+        <div id="auditPerformanceChart" class="audit-main-chart"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Campaign breakdown</h2><p>Spend, registrations and CPL across the current selected period.</p></div><span class="pill info" id="auditCampaignBadge">0 campaigns</span></div>
+        <div class="audit-campaign-grid">
+          <div><div class="audit-chart-heading"><strong>Spend by campaign</strong></div><div id="auditCampaignSpend" class="audit-horizontal-bars"></div></div>
+          <div><div class="audit-chart-heading"><strong>Registrations by campaign</strong></div><div id="auditCampaignResults" class="audit-horizontal-bars"></div></div>
+          <div><div class="audit-chart-heading"><strong>CPL by campaign</strong></div><div id="auditCampaignCpl" class="audit-horizontal-bars"></div></div>
+        </div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Funnel & creative diagnostics</h2><p>Equivalent Meta diagnostics for the Google Ads views used as visual reference.</p></div></div>
+        <div class="audit-diagnostic-grid">
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Click → LPV → registration</strong><span>By campaign</span></div><div id="auditFunnelBars" class="audit-funnel-bars"></div></div>
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Creative action mix</strong><span>Scale, keep, refresh, pause</span></div><div id="auditCreativeDonut" class="audit-donut-wrap"></div></div>
+          <div class="audit-chart-block"><div class="audit-chart-heading"><strong>Spend vs CPL</strong><span>Bubble size = registrations</span></div><div id="auditBubbleChart" class="audit-bubble-chart"></div></div>
+        </div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Waste vs opportunity Pareto</h2><p>Where inefficient spend is concentrated and which ads offer the strongest reallocation opportunity.</p></div></div>
+        <div class="audit-pareto-grid">
+          <div><div class="audit-chart-heading danger"><strong>Waste concentration</strong><span>Highest estimated waste first</span></div><div id="auditWastePareto" class="audit-pareto"></div></div>
+          <div><div class="audit-chart-heading success"><strong>Opportunity concentration</strong><span>Strongest efficient spend first</span></div><div id="auditOpportunityPareto" class="audit-pareto"></div></div>
+        </div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Findings & recommendations</h2><p>Ordered by severity and potential business impact.</p></div><span class="pill warn" id="auditFindingCount">0 findings</span></div>
+        <div id="auditFindings" class="audit-findings"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>30-day action plan</h2><p>Prioritised actions generated from current account signals.</p></div><span class="pill good" id="auditActionImpact">Account optimisation plan</span></div>
+        <div id="auditActionPlan" class="audit-action-plan"></div>
+      </article>
+    </section>
+
+    <section id="overview" class="view">
       <div id="emptyState" class="card empty hidden">
         No reporting period has been imported. Open <a href="/admin">Weekly import</a>.
       </div>
@@ -178,6 +263,63 @@
       <article class="card panel">
         <div class="section-head"><div><h2>Page snapshot</h2><p>Click, LPV and CompleteRegistration performance on the latest day.</p></div></div>
         <div id="dailyBriefPageTable"></div>
+      </article>
+    </section>
+
+
+    <section id="studentProfile" class="view">
+      <div class="profile-hero card">
+        <div class="profile-hero-copy">
+          <span class="eyebrow">Audience intelligence</span>
+          <h2>Who are Peasy students?</h2>
+          <p>Aggregated insight from completed placement tests, designed to guide acquisition angles, landing-page messaging and offer positioning.</p>
+          <div class="profile-filter" role="group" aria-label="Student profile dataset">
+            <button class="profile-filter-btn active" data-profile="combined">All students</button>
+            <button class="profile-filter-btn" data-profile="academy">Peasy Academy</button>
+            <button class="profile-filter-btn" data-profile="fluency">Fluency Club</button>
+          </div>
+        </div>
+        <div class="profile-hero-media">
+          <img id="studentProfilePhoto" alt="People learning together" />
+          <a id="studentProfilePhotoCredit" target="_blank" rel="noopener">Photo credit</a>
+        </div>
+      </div>
+
+      <div id="studentProfileSource" class="source-notice profile-source"></div>
+      <div id="studentProfileKpis" class="kpi-grid"></div>
+
+      <div class="profile-main-grid">
+        <article class="card panel profile-persona-card">
+          <div class="section-head"><div><h2>Core student persona</h2><p>The strongest shared characteristics in the selected dataset.</p></div><span class="pill info">Aggregated</span></div>
+          <div id="studentPersona" class="student-persona"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Strategic implications</h2><p>How the student profile should influence marketing decisions.</p></div></div>
+          <div id="studentImplications" class="profile-implications"></div>
+        </article>
+      </div>
+
+      <div class="profile-chart-grid">
+        <article class="card panel"><div class="section-head"><div><h2>Age distribution</h2><p>Share of completed placement tests.</p></div></div><div id="studentAgeChart" class="profile-bars"></div></article>
+        <article class="card panel"><div class="section-head"><div><h2>Current English level</h2><p>Self-declared level before starting.</p></div></div><div id="studentLevelChart" class="profile-bars"></div></article>
+        <article class="card panel"><div class="section-head"><div><h2>Main motivations</h2><p>Multiple selections were allowed.</p></div></div><div id="studentReasonChart" class="profile-bars"></div></article>
+        <article class="card panel"><div class="section-head"><div><h2>Main barriers</h2><p>What students say keeps them from progressing.</p></div></div><div id="studentBarrierChart" class="profile-bars"></div></article>
+        <article class="card panel"><div class="section-head"><div><h2>Discovery channels</h2><p>Where the relationship with Alex started.</p></div></div><div id="studentDiscoveryChart" class="profile-bars"></div></article>
+        <article class="card panel"><div class="section-head"><div><h2>Most attractive programme elements</h2><p>Features selected before joining.</p></div></div><div id="studentAttractionChart" class="profile-bars"></div></article>
+      </div>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Academy versus Fluency Club</h2><p>Audience differences that can support product-specific creative and messaging.</p></div></div>
+        <div id="studentComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Profile data notes</h2><p>How to use this information responsibly.</p></div></div>
+        <div class="profile-note-grid">
+          <div><strong>Aggregated only</strong><p>No email address or individual free-text answer is published in the dashboard.</p></div>
+          <div><strong>Placement-test respondents</strong><p>This describes students who completed the supplied Academy or Fluency Club placement tests, not every lead.</p></div>
+          <div><strong>Refresh manually</strong><p>The daily Meta automation updates media performance. Student-profile data changes only when new placement-test exports are added to a future dashboard version.</p></div>
+        </div>
       </article>
     </section>
 
@@ -558,6 +700,7 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="/static/dashboard.js?v=10.3.0"></script>
+  <script src="/static/student_profile_data.js?v=10.4.0"></script>
+  <script src="/static/dashboard.js?v=10.4.0"></script>
 </body>
 </html>

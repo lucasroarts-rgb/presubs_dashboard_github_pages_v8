@@ -2,7 +2,7 @@
 $Root = Split-Path -Parent $PSScriptRoot
 
 Write-Host ""
-Write-Host "Migrate your current PreSubs dashboard to v10.1" -ForegroundColor Cyan
+Write-Host "Migrate your current PreSubs dashboard to v10.4" -ForegroundColor Cyan
 Write-Host ""
 
 $currentPath = Read-Host "Path to the current dashboard folder"
@@ -34,7 +34,7 @@ if (Test-Path $gitSource) {
     Copy-Item $gitSource $gitTarget -Recurse -Force
     Write-Host "GitHub repository connection copied." -ForegroundColor Green
 } else {
-    Write-Host "No .git folder was found. Add the v10.1 folder in GitHub Desktop." -ForegroundColor Yellow
+    Write-Host "No .git folder was found. Add the v10.4 folder in GitHub Desktop." -ForegroundColor Yellow
 }
 
 foreach ($folderName in @("exports", "logs")) {
@@ -47,6 +47,6 @@ foreach ($folderName in @("exports", "logs")) {
 
 Write-Host ""
 Write-Host "Migration completed." -ForegroundColor Green
-Write-Host "Run START_LOCAL_DASHBOARD.bat to configure existing settings and annotations."
+Write-Host "Run START_LOCAL_DASHBOARD.bat to review goals and settings."
 Write-Host "The historical data does not need another reimport if it already finished successfully in v10."
 Write-Host ""

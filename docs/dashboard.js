@@ -17,6 +17,7 @@ document.querySelectorAll(".tab").forEach(button=>{
     document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
     button.classList.add("active");
     document.getElementById(button.dataset.view).classList.add("active");
+    document.body.dataset.activeView=button.dataset.view;
     document.body.classList.remove("sidebar-open");
     window.scrollTo({top:0,behavior:"smooth"});
   });
@@ -165,7 +166,7 @@ function renderKpis(data){
   const lpvAvailable=Number(t.landing_page_views)>0;
   const items=[
     ["Spend",money(t.spend),"Total across all campaigns"],
-    ["Registrations",number(t.results),"Meta complete registrations only"],
+    ["Registrations",number(t.results),"Primary acquisition result"],
     ["Cost / registration",money(t.cpl),"Blended CPL"],
     ["Link clicks",number(t.link_clicks),`Blended CPC ${money(t.cpc)}`],
     ["Landing-page views",lpvAvailable?number(t.landing_page_views):"—",lpvAvailable?`Cost / LPV ${money(t.cost_per_lpv)}`:"Not included in this export"],
@@ -867,7 +868,7 @@ function renderConversion(data){
 
   const cards=[
     [basis.denominator,number(c.conversion_denominator),"Conversion denominator"],
-    ["Registrations",number(c.results),"Meta complete registrations only"],
+    ["Registrations",number(c.results),"Primary acquisition result"],
     ["Page conversion",percent(c.conversion_rate),`${basis.denominator} → registration`],
     ["Drop-off",percent(c.drop_off_rate),"Did not complete registration"],
     ["Spend",money(c.spend),"Selected reporting week"],
@@ -1059,6 +1060,7 @@ async function loadDashboard(weekId){
   safe("performance tables",()=>renderPerformanceTables(dashboard));
   safe("daily performance",()=>renderDaily());
   safe("campaign hierarchy",()=>renderHierarchy(dashboard));
+  if(typeof renderAuditOverview==="function") safe("audit overview",()=>renderAuditOverview());
   if(typeof renderAdvancedCurrent==="function" && advancedState?.rows?.length) safe("management intelligence",()=>renderAdvancedCurrent());
 }
 
@@ -1309,7 +1311,7 @@ function setRangePreset(){
 function renderRangeKpis(current,previous){
   const items=[
     ["Spend",money(current.spend),previous?`Comparison ${money(previous.spend)}`:"No comparison",previous?change(current.spend,previous.spend,true):null],
-    ["Registrations",number(current.results),previous?`Comparison ${number(previous.results)}`:"Meta complete registrations only",previous?change(current.results,previous.results):null],
+    ["Registrations",number(current.results),previous?`Comparison ${number(previous.results)}`:"Primary acquisition result",previous?change(current.results,previous.results):null],
     ["Cost / registration",money(current.cpl),previous?`Comparison ${money(previous.cpl)}`:"Recalculated CPL",previous?change(current.cpl,previous.cpl,true):null],
     ["Link clicks",number(current.link_clicks),previous?`Comparison ${number(previous.link_clicks)}`:`${number(current.impressions)} impressions`,previous?change(current.link_clicks,previous.link_clicks):null],
     ["CPC",money(current.cpc),previous?`Comparison ${money(previous.cpc)}`:`CTR ${percent(current.ctr)}`,previous?change(current.cpc,previous.cpc,true):null],
@@ -1749,7 +1751,7 @@ function buildQualityChecks(){
   const campaignSpend=campaigns.reduce((sum,row)=>sum+safeNum(row.spend),0),adSpend=ads.reduce((sum,row)=>sum+safeNum(row.spend),0);checks.push({status:Math.abs(campaignSpend-adSpend)<=.11?"pass":"critical",title:"Campaign vs ad spend",detail:`Campaign total ${money(campaignSpend)} · Ad total ${money(adSpend)}.`});
   const missingRelations=ads.filter(ad=>!ad.campaign_name||!ad.adset_name).length;checks.push({status:missingRelations?"warning":"pass",title:"Campaign and ad-set relations",detail:missingRelations?`${missingRelations} ads have incomplete relations.`:"All ads have campaign and ad-set relations."});
   const mainAds=ads.filter(ad=>(ad.page_key||"main")==="main").length;checks.push({status:mainAds?"info":"pass",title:"Conversion-page tagging",detail:mainAds?`${mainAds} ads are assigned to Main page because their names have no [LP-...] tag.`:"Every ad uses an [LP-...] page tag."});
-  const quizRows=[...campaigns,...(dashboard.adsets||[]),...ads].filter(row=>/quiz/i.test(row.entity_name||""));checks.push({status:quizRows.length?"critical":"pass",title:"Quiz / Lead exclusion",detail:quizRows.length?`${quizRows.length} excluded-name rows were found. Reimport with v10.`:"No Quiz-named campaign, ad set or ad is present. CompleteRegistration scope is active."});
+  const quizRows=[...campaigns,...(dashboard.adsets||[]),...ads].filter(row=>/quiz/i.test(row.entity_name||""));checks.push({status:quizRows.length?"critical":"pass",title:"Campaign naming scope",detail:quizRows.length?`${quizRows.length} excluded-name rows were found. Reimport with v10.`:"No excluded campaign, ad-set or ad naming pattern is present."});
   checks.push({status:safeNum(dashboard.totals?.landing_page_views)>0?"pass":"warning",title:"Landing-page-view availability",detail:safeNum(dashboard.totals?.landing_page_views)>0?"LPV is available, so page conversion uses LPV → registration.":"LPV is unavailable; conversion uses link clicks as a proxy."});
   return checks;
 }
@@ -1770,9 +1772,195 @@ function renderPageFunnels(groups=(dashboard?.page_groups||[])){
   }).join(""):`<div class="empty">No page funnel data.</div>`;
 }
 
+
+/* v10.4 account-audit overview ------------------------------------------------ */
+function auditTargetCpl(){
+  const key=dashboard?.current_week?.week_end?.slice(0,7)||monthKey(new Date().toISOString().slice(0,10));
+  return safeNum(monthlyGoalForMonth(key)?.target_cpl)||safeNum(advancedConfig?.goals?.target_cpl)||safeNum(dashboard?.totals?.cpl)||1;
+}
+function auditLatestDate(){
+  const end=dashboard?.current_week?.week_end;
+  const available=(advancedState?.rows||[]).filter(row=>!end||row.report_date<=end).map(row=>row.report_date).sort();
+  return available.at(-1)||end||null;
+}
+function auditRowsLastDays(days=30){
+  const latest=auditLatestDate();if(!latest)return [];
+  const start=new Date(`${latest}T12:00:00Z`);start.setUTCDate(start.getUTCDate()-(days-1));
+  const startKey=start.toISOString().slice(0,10);
+  const rows=(advancedState?.rows||dashboard?.daily_ads||[]).filter(row=>row.report_date>=startKey&&row.report_date<=latest);
+  return rows;
+}
+function auditDailySeries(days=30){
+  const rows=auditRowsLastDays(days);
+  return groupRangeRows(rows,row=>row.report_date,row=>formatDate(row.report_date)).sort((a,b)=>a.key.localeCompare(b.key));
+}
+function auditSafeScore(value){return Math.round(clamp(safeNum(value),0,100))}
+function auditGoalPaceScore(){
+  const p=buildGoalProjection();
+  if(!p.goalConfigured||!p.expectedResultsToDate)return 65;
+  return auditSafeScore(p.actual.results/p.expectedResultsToDate*100);
+}
+function auditCreativeScore(){
+  const rows=advancedState?.creativeRows||[];if(!rows.length)return 65;
+  const healthy=rows.filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
+  const monitor=rows.filter(row=>row.recommendation==="Monitor").length;
+  return auditSafeScore((healthy+monitor*.45)/rows.length*100);
+}
+function auditDataQualityScore(){
+  const checks=buildQualityChecks();if(!checks.length)return 70;
+  const weights={pass:1,info:.8,warning:.45,critical:0};
+  return auditSafeScore(checks.reduce((sum,row)=>sum+(weights[row.status]??.5),0)/checks.length*100);
+}
+function auditDimensions(){
+  const t=dashboard?.totals||{},prev=dashboard?.previous_totals||{},conv=dashboard?.conversion_summary||{},targetCpl=auditTargetCpl();
+  const lpvRate=ratioPercent(t.landing_page_views,t.link_clicks);
+  const ctrBenchmark=Math.max(.8,safeNum(prev.ctr)||0);
+  const cpcBenchmark=Math.max(.01,safeNum(prev.cpc)||1);
+  const conversionBenchmark=Math.max(2,safeNum(dashboard?.previous_conversion_summary?.conversion_rate)||0);
+  const avgFrequency=(dashboard?.campaigns||[]).reduce((sum,row)=>sum+safeNum(row.frequency)*safeNum(row.spend),0)/Math.max(1,(dashboard?.campaigns||[]).reduce((sum,row)=>sum+safeNum(row.spend),0));
+  return [
+    {key:"cpl",label:"CPL efficiency",short:"CPL",score:auditSafeScore(targetCpl/Math.max(.01,safeNum(t.cpl))*100),detail:`${money(t.cpl)} vs ${money(targetCpl)}`},
+    {key:"pace",label:"Registration pace",short:"Goal pace",score:auditGoalPaceScore(),detail:"Monthly pace to date"},
+    {key:"ctr",label:"Click-through rate",short:"CTR",score:auditSafeScore(safeNum(t.ctr)/ctrBenchmark*80),detail:`${percent(t.ctr)} current`},
+    {key:"cpc",label:"Click cost",short:"CPC",score:auditSafeScore(cpcBenchmark/Math.max(.01,safeNum(t.cpc))*80),detail:`${money(t.cpc)} current`},
+    {key:"lpv",label:"Landing engagement",short:"Click → LPV",score:auditSafeScore((lpvRate||0)/(safeNum(advancedConfig?.thresholds?.page_click_to_lpv_min)||70)*80),detail:lpvRate==null?"LPV unavailable":percent(lpvRate)},
+    {key:"conversion",label:"Page conversion",short:"Conversion",score:auditSafeScore(safeNum(conv.conversion_rate)/conversionBenchmark*80),detail:percent(conv.conversion_rate)},
+    {key:"creative",label:"Creative health",short:"Creative",score:auditCreativeScore(),detail:"Recent ad recommendations"},
+    {key:"quality",label:"Data reliability",short:"Data",score:auditDataQualityScore(),detail:`${decimal(avgFrequency)} avg frequency`}
+  ];
+}
+function auditHealthModel(){
+  const dimensions=auditDimensions();
+  const score=auditSafeScore(dimensions.reduce((sum,row)=>sum+row.score,0)/Math.max(1,dimensions.length));
+  return {score,dimensions};
+}
+function auditHealthLabel(score){if(score>=85)return {label:"Strong",cls:"good"};if(score>=70)return {label:"Healthy with opportunities",cls:"info"};if(score>=55)return {label:"Needs improvement",cls:"warn"};return {label:"Critical attention",cls:"bad"}}
+function auditSeverityData(){
+  const alerts=buildAlerts().filter(row=>row.severity!=="good");
+  const quality=buildQualityChecks().filter(row=>row.status!=="pass").map(row=>({severity:row.status==="critical"?"critical":row.status==="warning"?"warning":"info",type:"Data",title:row.title,detail:row.detail,entity:"Data quality"}));
+  const rows=[...alerts,...quality];
+  const counts={critical:0,warning:0,info:0,good:0};rows.forEach(row=>counts[row.severity]=(counts[row.severity]||0)+1);
+  counts.good=auditDimensions().filter(row=>row.score>=80).length;
+  return {rows,counts};
+}
+function auditEstimatedWasteRows(){
+  const target=auditTargetCpl();
+  return (dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0).map(row=>{
+    const spend=safeNum(row.spend),results=safeNum(row.results),cpl=results?spend/results:null;
+    const waste=results===0?spend:Math.max(0,spend-target*results);
+    const opportunity=results>0&&cpl<target?Math.max(0,target*results-spend):0;
+    return {...row,auditWaste:waste,auditOpportunity:opportunity,auditCpl:cpl};
+  });
+}
+function auditRing(score){
+  const el=document.getElementById("auditHealthRing");if(!el)return;
+  const angle=clamp(score,0,100)*3.6;
+  const tone=score>=80?"#24a56a":score>=60?"#f0b323":"#d74747";
+  el.style.background=`conic-gradient(${tone} 0 ${angle}deg,rgba(255,255,255,.16) ${angle}deg 360deg)`;
+  el.innerHTML=`<div><strong>${number(score)}</strong><span>HEALTH SCORE</span></div>`;
+}
+function auditDonutHtml(parts,centerValue,centerLabel){
+  const palette={critical:"#d53f45",warning:"#df7a18",medium:"#d5a81e",info:"#3d76cf",good:"#24966a",Scale:"#248c66",Keep:"#2c66c5",Monitor:"#98a2b3",Refresh:"#d89a24","Pause candidate":"#d74747"};
+  const total=Math.max(1,parts.reduce((sum,row)=>sum+safeNum(row.value),0));let cursor=0;const stops=[];
+  parts.forEach(row=>{const start=cursor/total*360;cursor+=safeNum(row.value);const end=cursor/total*360;stops.push(`${palette[row.key]||"#6b7280"} ${start}deg ${end}deg`)});
+  return `<div class="audit-css-donut" style="background:conic-gradient(${stops.join(",")})"><div><strong>${centerValue}</strong><span>${centerLabel}</span></div></div><div class="audit-donut-legend">${parts.map(row=>`<span><i style="background:${palette[row.key]||"#6b7280"}"></i>${row.label}<strong>${number(row.value)}</strong></span>`).join("")}</div>`;
+}
+function auditRadarSvg(dimensions){
+  const width=360,height=300,cx=180,cy=145,r=100,n=dimensions.length;
+  const point=(i,value=100)=>{const angle=-Math.PI/2+i*2*Math.PI/n;const rr=r*value/100;return {x:cx+Math.cos(angle)*rr,y:cy+Math.sin(angle)*rr}};
+  const polygon=value=>dimensions.map((_,i)=>{const p=point(i,value);return `${p.x.toFixed(1)},${p.y.toFixed(1)}`}).join(" ");
+  const axes=dimensions.map((row,i)=>{const p=point(i,100),label=point(i,126);return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}"/><text x="${label.x}" y="${label.y}" text-anchor="middle">${row.short}</text>`}).join("");
+  const labels=dimensions.map((row,i)=>{const p=point(i,row.score);return `<circle cx="${p.x}" cy="${p.y}" r="3.5"><title>${row.label}: ${row.score}</title></circle>`}).join("");
+  return `<svg class="audit-radar-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Account health radar"><g class="radar-grid"><polygon points="${polygon(100)}"/><polygon points="${polygon(75)}"/><polygon points="${polygon(50)}"/><polygon points="${polygon(25)}"/>${axes}</g><polygon class="radar-current" points="${dimensions.map((row,i)=>{const p=point(i,row.score);return `${p.x.toFixed(1)},${p.y.toFixed(1)}`}).join(" ")}"/>${labels}</svg>`;
+}
+function auditHorizontalBars(targetId,rows,{value,label,formatter,colorClass="blue",target=null}){
+  const el=document.getElementById(targetId);if(!el)return;
+  const data=(rows||[]).filter(row=>safeNum(value(row))>0);const max=Math.max(1,...data.map(row=>safeNum(value(row))),target||0);
+  el.innerHTML=data.length?data.map(row=>{const val=safeNum(value(row));return `<div class="audit-hbar-row"><div class="audit-hbar-label" title="${label(row)}">${label(row)}</div><div class="audit-hbar-track">${target?`<i class="audit-target-marker" style="left:${clamp(target/max*100,0,100)}%"></i>`:""}<span class="${colorClass}" style="width:${Math.max(2,val/max*100)}%"></span></div><strong>${formatter(val)}</strong></div>`}).join(""):`<div class="empty">No delivery in this period.</div>`;
+}
+function auditSparkline(values,cls="blue"){
+  const data=values.map(safeNum);if(!data.length)return "";const width=230,height=78,pad=4,max=Math.max(...data,1),min=Math.min(...data,0),range=Math.max(.001,max-min);
+  const points=data.map((v,i)=>({x:pad+i/(Math.max(1,data.length-1))*(width-pad*2),y:pad+(max-v)/range*(height-pad*2)}));
+  const poly=svgPolyline(points);const area=`${pad},${height-pad} ${poly} ${width-pad},${height-pad}`;
+  return `<svg class="audit-sparkline ${cls}" viewBox="0 0 ${width} ${height}"><polygon points="${area}"/><polyline points="${poly}"/></svg>`;
+}
+function auditRolling(series,key,days=7){return series.map((row,index)=>{const start=Math.max(0,index-days+1),slice=series.slice(start,index+1);const totals=slice.reduce((sum,item)=>{sum.spend+=safeNum(item.spend);sum.results+=safeNum(item.results);sum.clicks+=safeNum(item.link_clicks);sum.impressions+=safeNum(item.impressions);sum.lpv+=safeNum(item.landing_page_views);return sum},{spend:0,results:0,clicks:0,impressions:0,lpv:0});if(key==="cpl")return totals.results?totals.spend/totals.results:null;if(key==="conversion")return (totals.lpv||totals.clicks)?totals.results*100/(totals.lpv||totals.clicks):null;return safeNum(row[key])})}
+function auditMainPerformanceChart(series){
+  const el=document.getElementById("auditPerformanceChart");if(!el)return;if(!series.length){el.innerHTML='<div class="empty">No 30-day data.</div>';return}
+  const width=Math.max(900,series.length*35),height=360,left=52,right=54,top=28,bottom=56,plotH=height-top-bottom,plotW=width-left-right;
+  const maxSpend=Math.max(1,...series.map(r=>safeNum(r.spend)))*1.15,maxResults=Math.max(1,...series.map(r=>safeNum(r.results)))*1.25;
+  const cpl=auditRolling(series,"cpl",7),maxCpl=Math.max(1,...cpl.map(safeNum))*1.15;
+  const x=i=>left+i/Math.max(1,series.length-1)*plotW,ySpend=v=>top+plotH-safeNum(v)/maxSpend*plotH,yResult=v=>top+plotH-safeNum(v)/maxResults*plotH,yCpl=v=>top+plotH-safeNum(v)/maxCpl*plotH;
+  const barW=Math.max(8,Math.min(22,plotW/series.length*.58));
+  const bars=series.map((row,i)=>`<rect class="audit-perf-bar" x="${x(i)-barW/2}" y="${ySpend(row.spend)}" width="${barW}" height="${top+plotH-ySpend(row.spend)}" rx="4"><title>${formatDate(row.key)} · Spend ${money(row.spend)}</title></rect>`).join("");
+  const resultsPts=series.map((row,i)=>({x:x(i),y:yResult(row.results)})),cplPts=cpl.map((v,i)=>({x:x(i),y:yCpl(v)}));
+  const labels=series.map((row,i)=>i%Math.max(1,Math.ceil(series.length/8))===0?`<text x="${x(i)}" y="${height-20}" text-anchor="middle">${row.key.slice(5)}</text>`:"").join("");
+  const grid=[0,.25,.5,.75,1].map(t=>`<line x1="${left}" y1="${top+plotH-t*plotH}" x2="${width-right}" y2="${top+plotH-t*plotH}"/>`).join("");
+  el.innerHTML=`<div class="audit-chart-legend"><span><i class="bar"></i>Spend</span><span><i class="line green"></i>Registrations</span><span><i class="line amber"></i>Rolling CPL</span></div><div class="chart-scroll"><svg class="audit-performance-svg" viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${grid}${bars}<polyline class="results-line" points="${svgPolyline(resultsPts)}"/><polyline class="cpl-line" points="${svgPolyline(cplPts)}"/>${resultsPts.map(p=>`<circle class="result-point" cx="${p.x}" cy="${p.y}" r="3"/>`).join("")}${labels}</svg></div>`;
+}
+function auditFunnelBars(){
+  const el=document.getElementById("auditFunnelBars");if(!el)return;const rows=(dashboard?.campaigns||[]).filter(row=>safeNum(row.spend)>0);
+  el.innerHTML=rows.map(row=>{const clicks=safeNum(row.link_clicks),lpv=safeNum(row.landing_page_views),results=safeNum(row.results),lpvRate=ratioPercent(lpv,clicks)||0,regRate=ratioPercent(results,lpv||clicks)||0;return `<div class="audit-funnel-row"><strong title="${row.entity_name}">${row.entity_name}</strong><div class="audit-funnel-stage"><span>Clicks ${number(clicks)}</span><i style="width:100%"></i></div><div class="audit-funnel-stage lpv"><span>LPV ${number(lpv)} · ${percent(lpvRate)}</span><i style="width:${clamp(lpvRate,2,100)}%"></i></div><div class="audit-funnel-stage result"><span>Registrations ${number(results)} · ${percent(regRate)}</span><i style="width:${clamp(regRate*8,2,100)}%"></i></div></div>`}).join("")||'<div class="empty">No campaign funnel data.</div>';
+}
+function auditCreativeMix(){
+  const rows=advancedState?.creativeRows||[];const counts={Scale:0,Keep:0,Monitor:0,Refresh:0,"Pause candidate":0};rows.forEach(row=>counts[row.recommendation]=(counts[row.recommendation]||0)+1);
+  const parts=Object.entries(counts).filter(([,value])=>value>0).map(([key,value])=>({key,label:key,value}));
+  const el=document.getElementById("auditCreativeDonut");if(el)el.innerHTML=auditDonutHtml(parts,number(rows.length),"ADS");
+}
+function auditBubbleChart(){
+  const el=document.getElementById("auditBubbleChart");if(!el)return;const rows=(dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0&&safeNum(row.results)>0).slice(0,40);if(!rows.length){el.innerHTML='<div class="empty">No ads with registrations.</div>';return}
+  const width=430,height=285,left=45,right=18,top=20,bottom=38,maxSpend=Math.max(1,...rows.map(r=>safeNum(r.spend))),maxCpl=Math.max(1,...rows.map(r=>safeNum(r.auditCpl||calculatedCpl(r)))),maxResults=Math.max(1,...rows.map(r=>safeNum(r.results))),target=auditTargetCpl();
+  const x=v=>left+safeNum(v)/maxCpl*(width-left-right),y=v=>top+(1-safeNum(v)/maxSpend)*(height-top-bottom);const bubbles=rows.map(row=>{const cpl=calculatedCpl(row),r=5+Math.sqrt(safeNum(row.results)/maxResults)*16,cls=cpl<=target?"good":cpl<=target*1.2?"warn":"bad";return `<circle class="${cls}" cx="${x(cpl)}" cy="${y(row.spend)}" r="${r}"><title>${row.entity_name} · Spend ${money(row.spend)} · CPL ${money(cpl)} · ${number(row.results)} registrations</title></circle>`}).join("");
+  el.innerHTML=`<svg class="audit-bubble-svg" viewBox="0 0 ${width} ${height}"><line class="bubble-target" x1="${x(target)}" y1="${top}" x2="${x(target)}" y2="${height-bottom}"/><text x="${x(target)+4}" y="${top+11}">Target CPL</text>${bubbles}<text x="${width/2}" y="${height-8}" text-anchor="middle">CPL →</text><text transform="translate(12 ${height/2}) rotate(-90)" text-anchor="middle">Spend →</text></svg>`;
+}
+function auditPareto(targetId,rows,valueKey,kind){
+  const el=document.getElementById(targetId);if(!el)return;const data=[...rows].filter(row=>safeNum(row[valueKey])>0).sort((a,b)=>safeNum(b[valueKey])-safeNum(a[valueKey])).slice(0,10);if(!data.length){el.innerHTML='<div class="empty">No concentration found.</div>';return}
+  const total=data.reduce((sum,row)=>sum+safeNum(row[valueKey]),0),max=Math.max(...data.map(row=>safeNum(row[valueKey]))),width=610,height=300,left=38,right=20,top=20,bottom=82,plotH=height-top-bottom,plotW=width-left-right,barSpace=plotW/data.length,barW=Math.min(38,barSpace*.62);let cumulative=0;const pts=[];
+  const bars=data.map((row,i)=>{const value=safeNum(row[valueKey]);cumulative+=value;const x=left+i*barSpace+barSpace/2,y=top+plotH-value/max*plotH;pts.push({x,y:top+plotH-(cumulative/total)*plotH});const label=(row.entity_name||"").slice(0,16);return `<rect class="${kind}" x="${x-barW/2}" y="${y}" width="${barW}" height="${top+plotH-y}" rx="4"><title>${row.entity_name} · ${money(value)}</title></rect><text class="pareto-label" x="${x}" y="${height-66}" text-anchor="end" transform="rotate(-42 ${x} ${height-66})">${label}</text>`}).join("");
+  el.innerHTML=`<div class="chart-scroll"><svg class="audit-pareto-svg" viewBox="0 0 ${width} ${height}">${bars}<polyline points="${svgPolyline(pts)}"/><circle cx="${pts.at(-1).x}" cy="${pts.at(-1).y}" r="3"/></svg></div>`;
+}
+function auditRecommendationAction(alert,index){
+  const text=normalized(`${alert.type} ${alert.title} ${alert.detail}`);
+  if(/without registrations|no registration/.test(text))return "Pause or reduce the affected ad, verify tracking and move budget to efficient ads.";
+  if(/cpl|cost/.test(text))return "Review the ad-to-page match, refresh the hook and reallocate spend toward CPL below target.";
+  if(/ctr|creative|frequency/.test(text))return "Prepare a new creative variation with a different opening, proof angle and visual pattern.";
+  if(/page|lpv|conversion/.test(text))return "Audit page speed, message continuity, mobile layout and form friction before increasing traffic.";
+  if(/goal|budget|pace/.test(text))return "Recalculate the remaining daily requirement and align budget with the monthly registration target.";
+  if(/data|coverage|relation/.test(text))return "Correct the data issue before using this metric for optimisation decisions.";
+  return index===0?"Review this finding today and assign an owner.":"Monitor the signal and validate it against the next completed day.";
+}
+function renderAuditOverview(){
+  const root=document.getElementById("auditOverview");if(!root||!dashboard?.current_week)return;
+  const health=auditHealthModel(),healthLabel=auditHealthLabel(health.score),severity=auditSeverityData(),t=dashboard.totals||{},conv=dashboard.conversion_summary||{};
+  document.getElementById("auditPeriod").textContent=dashboard.current_week.label;document.getElementById("auditComparison").textContent=dashboard.previous_week?.label||"No earlier period";document.getElementById("auditSpendReviewed").textContent=money(t.spend);document.getElementById("auditRegistrations").textContent=number(t.results);document.getElementById("auditCpl").textContent=money(t.cpl);document.getElementById("auditConversion").textContent=percent(conv.conversion_rate);auditRing(health.score);
+  const severityItems=[{key:"critical",label:"Critical",value:severity.counts.critical},{key:"warning",label:"High",value:severity.counts.warning},{key:"info",label:"Medium",value:severity.counts.info},{key:"good",label:"Strengths",value:severity.counts.good}];
+  document.getElementById("auditSeverityLegend").innerHTML=severityItems.map(row=>`<span class="${row.key}"><i></i><strong>${number(row.value)}</strong> ${row.label}</span>`).join("");
+  const model=auditEstimatedWasteRows(),waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=(advancedState?.creativeRows||[]).filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
+  document.getElementById("auditWasteImpact").textContent=money(waste);document.getElementById("auditUpsideImpact").textContent=`~${decimal(upside)} registrations`;document.getElementById("auditScaleImpact").textContent=`${number(scale)} ads`;
+  const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`Overall · ${healthLabel.label}`;
+  document.getElementById("auditRadarChart").innerHTML=auditRadarSvg(health.dimensions);
+  document.getElementById("auditSeverityDonut").innerHTML=auditDonutHtml(severityItems,number(severity.rows.length),"FINDINGS");
+  document.getElementById("auditCategoryBars").innerHTML=health.dimensions.map(row=>`<div class="audit-score-row"><div><span>${row.short}</span><strong>${row.score}</strong></div><div class="audit-score-track"><i class="target" style="left:80%"></i><span class="${row.score>=80?"good":row.score>=60?"warn":"bad"}" style="width:${row.score}%"></span></div></div>`).join("");
+  document.getElementById("auditScorecards").innerHTML=health.dimensions.map(row=>`<article class="audit-scorecard ${row.score>=80?"good":row.score>=60?"warn":"bad"}"><span>${row.label}</span><strong>${row.score}</strong><div><i style="width:${row.score}%"></i></div><p>${row.detail}</p></article>`).join("");
+  const series=auditDailySeries(30),rollingCpl=auditRolling(series,"cpl",7),rollingConv=auditRolling(series,"conversion",7),total30=series.reduce((sum,row)=>{sum.spend+=safeNum(row.spend);sum.results+=safeNum(row.results);return sum},{spend:0,results:0});
+  const avgSpend=series.length?total30.spend/series.length:0,avgResults=series.length?total30.results/series.length:0,lastRollingCpl=rollingCpl.filter(v=>v!=null).at(-1),lastRollingConv=rollingConv.filter(v=>v!=null).at(-1);
+  const pulse=[
+    ["Daily spend",money(avgSpend),`Total ${money(total30.spend)}`,series.map(r=>r.spend),"blue"],
+    ["Daily registrations",decimal(avgResults),`Total ${number(total30.results)}`,series.map(r=>r.results),"green"],
+    ["Rolling CPL",money(lastRollingCpl),"7-day blended",rollingCpl,"amber"],
+    ["Rolling conversion",percent(lastRollingConv),"7-day blended",rollingConv,"purple"]
+  ];
+  document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${row[0]}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4])}</article>`).join("");auditMainPerformanceChart(series);
+  const campaigns=[...(dashboard.campaigns||[])].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${campaigns.length} campaign${campaigns.length===1?"":"s"}`;
+  auditHorizontalBars("auditCampaignSpend",campaigns,{value:r=>r.spend,label:r=>r.entity_name,formatter:money,colorClass:"blue"});auditHorizontalBars("auditCampaignResults",campaigns,{value:r=>r.results,label:r=>r.entity_name,formatter:number,colorClass:"green"});auditHorizontalBars("auditCampaignCpl",campaigns.filter(r=>safeNum(r.results)>0),{value:r=>calculatedCpl(r),label:r=>r.entity_name,formatter:money,colorClass:"amber",target:auditTargetCpl()});
+  auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
+  const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${findings.length} findings`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
+  const actionSeed=findings.length?findings:[{type:"Account",title:"Maintain current controls",detail:"Continue daily monitoring."}];const unique=[];actionSeed.forEach((row,index)=>{const action=auditRecommendationAction(row,index);if(!unique.includes(action))unique.push(action)});const actions=unique.slice(0,6);document.getElementById("auditActionPlan").innerHTML=actions.map((action,index)=>`<div class="audit-action-step"><span>${index+1}</span><div><strong>${action}</strong><p>${index<2?"Execute this week":index<4?"Complete within 14 days":"Validate within 30 days"}</p></div><small>${index<2?"Immediate":index<4?"Near-term":"Strategic"}</small></div>`).join("");
+}
+
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();renderDailyBrief();
+  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
@@ -1796,7 +1984,7 @@ function togglePresentationMode(){
   const button=document.getElementById("presentationModeBtn");if(button)button.textContent=enabled?"Exit presentation":"Presentation mode";
   if(enabled){
     document.querySelectorAll(".tab").forEach(tab=>tab.classList.remove("active"));document.querySelectorAll(".view").forEach(view=>view.classList.remove("active"));
-    document.querySelector('.tab[data-view="overview"]')?.classList.add("active");document.getElementById("overview")?.classList.add("active");
+    document.querySelector('.tab[data-view="auditOverview"]')?.classList.add("active");document.getElementById("auditOverview")?.classList.add("active");document.body.dataset.activeView="auditOverview";
     window.scrollTo({top:0,behavior:"smooth"});
   }
 }
