@@ -14,7 +14,7 @@ const UI_TRANSLATIONS={
     "Marketing Performance":"Performance Marketing","Weekly import":"Import hebdomadaire","Language":"Langue","Presentation mode":"Mode présentation","Exit presentation":"Quitter la présentation","Export / Print":"Exporter / Imprimer",
     "PreSubs acquisition review":"Revue d’acquisition PreSubs","Campaign performance, from spend to creative.":"Performance des campagnes, du budget aux créatifs.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Une vue interactive des campagnes, ensembles et publicités : dépenses, inscriptions, efficacité, diffusion et ancienneté des assets.",
     "Reporting period:":"Période :","Comparison:":"Comparaison :","Currency:":"Devise :","Period type:":"Type de période :","Weekly":"Hebdomadaire","Custom dates":"Dates personnalisées","Change period:":"Changer la période :","From:":"Du :","To:":"Au :","Apply":"Appliquer",
-    "Period intelligence":"Intelligence de période","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexte rapide pour les réunions : meilleur jour, meilleure campagne, meilleur créatif, meilleure page et concentration des dépenses sur la période sélectionnée.","Selected period":"Période sélectionnée","Analysis period":"Période d’analyse","Choose a full imported week or any custom date range.":"Choisissez une semaine importée complète ou une plage de dates personnalisée.",
+    "Period intelligence":"Intelligence de période","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexte rapide pour les réunions : meilleur jour, meilleure campagne, meilleur créatif, meilleure page et concentration des dépenses sur la période sélectionnée.","Selected period":"Période sélectionnée","Data through":"Données jusqu’au","No delivery in this period.":"Aucune diffusion sur cette période.","No campaign funnel data.":"Aucune donnée de funnel par campagne.","No ads with registrations.":"Aucune publicité avec inscription.","Analysis period":"Période d’analyse","Choose a full imported week or any custom date range.":"Choisissez une semaine importée complète ou une plage de dates personnalisée.",
     "Spend":"Dépenses","Registrations":"Inscriptions","Cost / registration":"Coût / inscription","Link clicks":"Clics sur le lien","Landing-page views":"Vues de page de destination","Link CTR":"CTR lien","CPL":"CPL","CTR":"CTR","CPC":"CPC","LPV":"LPV","Conversion":"Conversion","Impressions":"Impressions","Frequency":"Fréquence","Reach":"Couverture","Status":"Statut","Start date":"Date de début","Created":"Créée","Page":"Page","Campaign":"Campagne","Ad set":"Ensemble","Ad":"Publicité",
     "Immediate":"Immédiat","Near-term":"Court terme","Strategic":"Stratégique","Recoverable inefficient spend":"Dépenses inefficaces récupérables","Estimated registration upside":"Potentiel estimé d’inscriptions","Scale-ready creative capacity":"Capacité créative prête à scaler","Meeting recap & change impact":"Résumé réunion & impact des changements","Copy meeting recap":"Copier le résumé","Annotation":"Annotation","Comparison window":"Fenêtre de comparaison","Before vs after":"Avant vs après","New creatives vs existing ads":"Nouveaux créatifs vs publicités existantes",
     "All campaigns":"Toutes les campagnes","All ad sets":"Tous les ensembles","All pages":"Toutes les pages","All statuses":"Tous les statuts","No data for this period.":"Aucune donnée pour cette période.","No previous data":"Pas de données précédentes","No earlier period":"Aucune période antérieure","No comparison":"Pas de comparaison",
@@ -25,7 +25,7 @@ const UI_TRANSLATIONS={
     "Marketing Performance":"Performance de Marketing","Weekly import":"Importação semanal","Language":"Idioma","Presentation mode":"Modo apresentação","Exit presentation":"Sair da apresentação","Export / Print":"Exportar / Imprimir",
     "PreSubs acquisition review":"Revisão de aquisição PreSubs","Campaign performance, from spend to creative.":"Performance das campanhas, do investimento aos criativos.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Uma visão interativa de campanhas, conjuntos e anúncios, incluindo investimento, registros, eficiência, veiculação e tempo de atividade de cada ativo.",
     "Reporting period:":"Período analisado:","Comparison:":"Comparação:","Currency:":"Moeda:","Period type:":"Tipo de período:","Weekly":"Semanal","Custom dates":"Datas personalizadas","Change period:":"Alterar período:","From:":"De:","To:":"Até:","Apply":"Aplicar",
-    "Period intelligence":"Inteligência do período","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexto rápido para reuniões: melhor dia, campanha mais forte, melhor criativo, página líder e concentração de investimento nas datas selecionadas.","Selected period":"Período selecionado","Analysis period":"Período de análise","Choose a full imported week or any custom date range.":"Escolha uma semana importada completa ou qualquer intervalo de datas personalizado.",
+    "Period intelligence":"Inteligência do período","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexto rápido para reuniões: melhor dia, campanha mais forte, melhor criativo, página líder e concentração de investimento nas datas selecionadas.","Selected period":"Período selecionado","Data through":"Dados até","No delivery in this period.":"Sem entrega neste período.","No campaign funnel data.":"Sem dados de funil por campanha.","No ads with registrations.":"Sem anúncios com registros.","Analysis period":"Período de análise","Choose a full imported week or any custom date range.":"Escolha uma semana importada completa ou qualquer intervalo de datas personalizado.",
     "Spend":"Investimento","Registrations":"Registros","Cost / registration":"Custo / registro","Link clicks":"Cliques no link","Landing-page views":"Visualizações da página","Link CTR":"CTR do link","CPL":"CPL","CTR":"CTR","CPC":"CPC","LPV":"LPV","Conversion":"Conversão","Impressions":"Impressões","Frequency":"Frequência","Reach":"Alcance","Status":"Status","Start date":"Data de início","Created":"Criado","Page":"Página","Campaign":"Campanha","Ad set":"Conjunto","Ad":"Anúncio",
     "Immediate":"Imediato","Near-term":"Curto prazo","Strategic":"Estratégico","Recoverable inefficient spend":"Investimento ineficiente recuperável","Estimated registration upside":"Potencial estimado de registros","Scale-ready creative capacity":"Capacidade de criativos prontos para escala","Meeting recap & change impact":"Resumo da reunião e impacto das mudanças","Copy meeting recap":"Copiar resumo","Annotation":"Anotação","Comparison window":"Janela de comparação","Before vs after":"Antes vs depois","New creatives vs existing ads":"Novos criativos vs anúncios existentes",
     "All campaigns":"Todas as campanhas","All ad sets":"Todos os conjuntos","All pages":"Todas as páginas","All statuses":"Todos os status","No data for this period.":"Sem dados para este período.","No previous data":"Sem dados anteriores","No earlier period":"Sem período anterior","No comparison":"Sem comparação",
@@ -1448,7 +1448,16 @@ async function loadDashboard(weekId){
 function selectedPeriodRows(){
   if(!dashboard?.current_week)return [];
   const start=dashboard.current_week.week_start,end=dashboard.current_week.week_end;
-  return (advancedState?.rows||dashboard.daily_ads||[]).filter(row=>row.report_date>=start&&row.report_date<=end);
+  const merged=[],seen=new Set();
+  const sources=[...(dashboard?.daily_ads||[]),...(advancedState?.rows||[])];
+  sources.forEach(row=>{
+    if(!row?.report_date||!row?.entity_key)return;
+    const key=`${row.report_date}::${row.entity_key}`;
+    if(seen.has(key))return;
+    seen.add(key);
+    merged.push(row);
+  });
+  return merged.filter(row=>row.report_date>=start&&row.report_date<=end).sort((a,b)=>a.report_date.localeCompare(b.report_date));
 }
 function latestEntityMetadata(type,key){
   const collection=type==="campaign"?"campaigns":type==="adset"?"adsets":"ads";
@@ -1502,7 +1511,7 @@ function renderPeriodIntelligence(){
   target.innerHTML=items.map(([label,value,note])=>`<div class="period-intel-item"><span>${label}</span><strong>${value}</strong><p>${note}</p></div>`).join("");
   const grouped=new Map();daily.forEach(row=>{const day=new Date(`${row.report_date}T12:00:00Z`).getUTCDay(),item=grouped.get(day)||{day,spend:0,results:0,dates:0};item.spend+=row.spend;item.results+=row.results;item.dates++;grouped.set(day,item)});const rowsDay=[1,2,3,4,5,6,0].map(day=>grouped.get(day)||{day,spend:0,results:0,dates:0}),maxResults=Math.max(1,...rowsDay.map(x=>x.dates?x.results/x.dates:0));const anchor="2026-07-";const dayDate={0:"12",1:"13",2:"14",3:"15",4:"16",5:"17",6:"18"};
   const weekday=document.getElementById("weekdayPerformance");if(weekday)weekday.innerHTML=rowsDay.map(item=>{const avgResults=item.dates?item.results/item.dates:0,avgSpend=item.dates?item.spend/item.dates:0,cpl=item.results?item.spend/item.results:null;return `<div class="weekday-card" style="--day-strength:${Math.min(100,avgResults/maxResults*100)}%"><span>${weekdayLabel(anchor+dayDate[item.day])}</span><strong>${decimal(avgResults)} reg/day</strong><small>${money(cpl)} CPL · ${money(avgSpend)}/day</small></div>`}).join("");
-  const fresh=document.getElementById("periodFreshness");if(fresh)fresh.textContent=`${formatDate(dashboard.current_week.week_start)} – ${formatDate(dashboard.current_week.week_end)}`;
+  const fresh=document.getElementById("periodFreshness");if(fresh){const availableDates=rows.map(r=>r.report_date).filter(Boolean).sort();const through=availableDates.at(-1);fresh.textContent=through?`${formatDate(dashboard.current_week.week_start)} – ${formatDate(dashboard.current_week.week_end)} · ${t("Data through")} ${formatDate(through)}`:`${formatDate(dashboard.current_week.week_start)} – ${formatDate(dashboard.current_week.week_end)}`;}
   setTimeout(()=>applyTranslations(document),0);
 }
 
@@ -2239,6 +2248,61 @@ function auditAnnotationList(){return [...(advancedConfig?.annotations||[])].fil
 function auditImpactAnnotation(){const rows=auditAnnotationList();if(!rows.length)return null;if(auditInteractiveState.impactAnnotationId){const found=rows.find(x=>String(x.id)===String(auditInteractiveState.impactAnnotationId));if(found)return found}auditInteractiveState.impactAnnotationId=String(rows[0].id);return rows[0]}
 function auditDailyCount(rows){return new Set((rows||[]).map(r=>r.report_date)).size}
 function auditPerDayMetrics(rows){const m=rangeMetrics(rows),days=Math.max(1,auditDailyCount(rows));return {...m,days,spend_per_day:m.spend/days,results_per_day:m.results/days}}
+
+function auditScopedRows(){
+  return selectedPeriodRows();
+}
+function auditScopedCampaigns(){
+  const rows=auditScopedRows();
+  if(rows.length)return customEntityRows(rows,"campaign").filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+  return (dashboard?.campaigns||[]).filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+}
+function auditScopedAdsets(){
+  const rows=auditScopedRows();
+  if(rows.length)return customEntityRows(rows,"adset").filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+  return (dashboard?.adsets||[]).filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+}
+function auditScopedAds(){
+  const rows=auditScopedRows();
+  if(rows.length)return customEntityRows(rows,"ad").filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+  return (dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0||safeNum(row.results)>0);
+}
+function auditScopedCreativeRows(){
+  const rows=auditScopedRows();
+  return rows.length?aggregateAdHistory(rows):(advancedState?.creativeRows||[]);
+}
+function auditScopedTotals(){
+  const rows=auditScopedRows();
+  return rows.length?rangeMetrics(rows):(dashboard?.totals||{});
+}
+function auditScopedConversion(){
+  const totals=auditScopedTotals();
+  return rowsToConversionSummary?rowsToConversionSummary(totals):customConversionSummary(totals);
+}
+function rowsToConversionSummary(metrics){
+  return {
+    spend:metrics.spend,
+    results:metrics.results,
+    cpl:metrics.cpl,
+    link_clicks:metrics.link_clicks,
+    landing_page_views:metrics.landing_page_views,
+    conversion_denominator:metrics.denominator,
+    conversion_basis:metrics.conversion_basis,
+    conversion_rate:metrics.conversion_rate,
+    drop_off_rate:metrics.drop_off_rate
+  };
+}
+function auditPreviousPeriodMetrics(){
+  if(!dashboard?.current_week)return {totals:{},conversion:{}};
+  const days=daysInclusive(dashboard.current_week.week_start,dashboard.current_week.week_end);
+  const end=addDaysIso(dashboard.current_week.week_start,-1);
+  const start=addDaysIso(end,-days+1);
+  const all=[...(advancedState?.rows||[])];
+  const rows=all.filter(row=>row.report_date>=start&&row.report_date<=end);
+  const totals=rows.length?rangeMetrics(rows):(dashboard?.previous_totals||{});
+  return {totals,conversion:rows.length?rowsToConversionSummary(totals):(dashboard?.previous_conversion_summary||{})};
+}
+
 function auditFirstSeenMap(){const map=new Map();(advancedState?.rows||[]).forEach(row=>{const key=row.entity_key;if(!key||!row.report_date)return;const current=map.get(key);if(!current||row.report_date<current)map.set(key,row.report_date)});return map}
 function auditImpactAnalysis(annotation,days=auditInteractiveState.impactDays){
   if(!annotation)return null;const rows=advancedState?.rows||[];const latest=auditLatestDate();if(!latest)return null;const eventDate=annotation.event_date;
@@ -2330,7 +2394,7 @@ function auditGoalPaceScore(){
   return auditSafeScore(p.actual.results/p.expectedResultsToDate*100);
 }
 function auditCreativeScore(){
-  const rows=advancedState?.creativeRows||[];if(!rows.length)return 65;
+  const rows=auditScopedCreativeRows();if(!rows.length)return 65;
   const healthy=rows.filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
   const monitor=rows.filter(row=>row.recommendation==="Monitor").length;
   return auditSafeScore((healthy+monitor*.45)/rows.length*100);
@@ -2341,12 +2405,12 @@ function auditDataQualityScore(){
   return auditSafeScore(checks.reduce((sum,row)=>sum+(weights[row.status]??.5),0)/checks.length*100);
 }
 function auditDimensions(){
-  const t=dashboard?.totals||{},prev=dashboard?.previous_totals||{},conv=dashboard?.conversion_summary||{},targetCpl=auditTargetCpl();
+  const t=auditScopedTotals(),previous=auditPreviousPeriodMetrics(),prev=previous.totals||{},conv=auditScopedConversion(),targetCpl=auditTargetCpl();
   const lpvRate=ratioPercent(t.landing_page_views,t.link_clicks);
   const ctrBenchmark=Math.max(.8,safeNum(prev.ctr)||0);
   const cpcBenchmark=Math.max(.01,safeNum(prev.cpc)||1);
-  const conversionBenchmark=Math.max(2,safeNum(dashboard?.previous_conversion_summary?.conversion_rate)||0);
-  const avgFrequency=(dashboard?.campaigns||[]).reduce((sum,row)=>sum+safeNum(row.frequency)*safeNum(row.spend),0)/Math.max(1,(dashboard?.campaigns||[]).reduce((sum,row)=>sum+safeNum(row.spend),0));
+  const conversionBenchmark=Math.max(2,safeNum(previous.conversion?.conversion_rate)||0);
+  const scopedCampaigns=auditScopedCampaigns();const avgFrequency=scopedCampaigns.reduce((sum,row)=>sum+safeNum(row.frequency)*safeNum(row.spend),0)/Math.max(1,scopedCampaigns.reduce((sum,row)=>sum+safeNum(row.spend),0));
   return [
     {key:"cpl",label:"CPL efficiency",short:"CPL",score:auditSafeScore(targetCpl/Math.max(.01,safeNum(t.cpl))*100),detail:`${money(t.cpl)} vs ${money(targetCpl)}`},
     {key:"pace",label:"Registration pace",short:"Goal pace",score:auditGoalPaceScore(),detail:"Monthly pace to date"},
@@ -2374,7 +2438,7 @@ function auditSeverityData(){
 }
 function auditEstimatedWasteRows(){
   const target=auditTargetCpl();
-  return (dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0).map(row=>{
+  return auditScopedAds().filter(row=>safeNum(row.spend)>0).map(row=>{
     const spend=safeNum(row.spend),results=safeNum(row.results),cpl=results?spend/results:null;
     const waste=results===0?spend:Math.max(0,spend-target*results);
     const opportunity=results>0&&cpl<target?Math.max(0,target*results-spend):0;
@@ -2452,16 +2516,16 @@ function auditMainPerformanceChart(series){
 }
 
 function auditFunnelBars(){
-  const el=document.getElementById("auditFunnelBars");if(!el)return;const rows=(dashboard?.campaigns||[]).filter(row=>safeNum(row.spend)>0);
+  const el=document.getElementById("auditFunnelBars");if(!el)return;const rows=auditScopedCampaigns().filter(row=>safeNum(row.spend)>0);
   el.innerHTML=rows.map(row=>{const clicks=safeNum(row.link_clicks),lpv=safeNum(row.landing_page_views),results=safeNum(row.results),lpvRate=ratioPercent(lpv,clicks)||0,regRate=ratioPercent(results,lpv||clicks)||0;return `<div class="audit-funnel-row"><strong title="${row.entity_name}">${row.entity_name}</strong><div class="audit-funnel-stage"><span>Clicks ${number(clicks)}</span><i style="width:100%"></i></div><div class="audit-funnel-stage lpv"><span>LPV ${number(lpv)} · ${percent(lpvRate)}</span><i style="width:${clamp(lpvRate,2,100)}%"></i></div><div class="audit-funnel-stage result"><span>Registrations ${number(results)} · ${percent(regRate)}</span><i style="width:${clamp(regRate*8,2,100)}%"></i></div></div>`}).join("")||'<div class="empty">No campaign funnel data.</div>';
 }
 function auditCreativeMix(){
-  const rows=advancedState?.creativeRows||[];const counts={Scale:0,Keep:0,Monitor:0,Refresh:0,"Pause candidate":0};rows.forEach(row=>counts[row.recommendation]=(counts[row.recommendation]||0)+1);
+  const rows=auditScopedCreativeRows();const counts={Scale:0,Keep:0,Monitor:0,Refresh:0,"Pause candidate":0};rows.forEach(row=>counts[row.recommendation]=(counts[row.recommendation]||0)+1);
   const parts=Object.entries(counts).filter(([,value])=>value>0).map(([key,value])=>({key,label:key,value}));
   const el=document.getElementById("auditCreativeDonut");if(el)el.innerHTML=auditDonutHtml(parts,number(rows.length),"ADS");
 }
 function auditBubbleChart(){
-  const el=document.getElementById("auditBubbleChart");if(!el)return;const rows=(dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0&&safeNum(row.results)>0).slice(0,40);if(!rows.length){el.innerHTML='<div class="empty">No ads with registrations.</div>';return}
+  const el=document.getElementById("auditBubbleChart");if(!el)return;const rows=auditScopedAds().filter(row=>safeNum(row.spend)>0&&safeNum(row.results)>0).slice(0,40);if(!rows.length){el.innerHTML='<div class="empty">No ads with registrations.</div>';return}
   const width=430,height=285,left=45,right=18,top=20,bottom=38,maxSpend=Math.max(1,...rows.map(r=>safeNum(r.spend))),maxCpl=Math.max(1,...rows.map(r=>safeNum(r.auditCpl||calculatedCpl(r)))),maxResults=Math.max(1,...rows.map(r=>safeNum(r.results))),target=auditTargetCpl();
   const x=v=>left+safeNum(v)/maxCpl*(width-left-right),y=v=>top+(1-safeNum(v)/maxSpend)*(height-top-bottom);const bubbles=rows.map(row=>{const cpl=calculatedCpl(row),r=5+Math.sqrt(safeNum(row.results)/maxResults)*16,cls=cpl<=target?"good":cpl<=target*1.2?"warn":"bad",tip=`<strong>${auditEscape(row.entity_name)}</strong><span>Spend ${money(row.spend)}</span><span>CPL ${money(cpl)}</span><span>${number(row.results)} registrations</span>`;return `<circle class="${cls}" cx="${x(cpl)}" cy="${y(row.spend)}" r="${r}" data-audit-tooltip="${auditEscape(tip)}"></circle>`}).join("");
   el.innerHTML=`<svg class="audit-bubble-svg interactive-chart" viewBox="0 0 ${width} ${height}"><line class="bubble-target" x1="${x(target)}" y1="${top}" x2="${x(target)}" y2="${height-bottom}"/><text x="${x(target)+4}" y="${top+11}">Target CPL</text>${bubbles}<text x="${width/2}" y="${height-8}" text-anchor="middle">CPL →</text><text transform="translate(12 ${height/2}) rotate(-90)" text-anchor="middle">Spend →</text></svg>`;auditBindTooltips(el);
@@ -2484,11 +2548,11 @@ function auditRecommendationAction(alert,index){
 }
 function renderAuditOverview(){
   const root=document.getElementById("auditOverview");if(!root||!dashboard?.current_week)return;
-  const health=auditHealthModel(),healthLabel=auditHealthLabel(health.score),severity=auditSeverityData(),t=dashboard.totals||{},conv=dashboard.conversion_summary||{};
+  const health=auditHealthModel(),healthLabel=auditHealthLabel(health.score),severity=auditSeverityData(),t=auditScopedTotals(),conv=auditScopedConversion();
   document.getElementById("auditPeriod").textContent=dashboard.current_week.label;document.getElementById("auditComparison").textContent=dashboard.previous_week?.label||"No earlier period";document.getElementById("auditSpendReviewed").textContent=money(t.spend);document.getElementById("auditRegistrations").textContent=number(t.results);document.getElementById("auditCpl").textContent=money(t.cpl);document.getElementById("auditConversion").textContent=percent(conv.conversion_rate);auditRing(health.score);
   const severityItems=[{key:"critical",label:"Critical",value:severity.counts.critical},{key:"warning",label:"High",value:severity.counts.warning},{key:"info",label:"Medium",value:severity.counts.info},{key:"good",label:"Strengths",value:severity.counts.good}];
   document.getElementById("auditSeverityLegend").innerHTML=severityItems.map(row=>`<span class="${row.key}"><i></i><strong>${number(row.value)}</strong> ${row.label}</span>`).join("");
-  const model=auditEstimatedWasteRows(),waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=(advancedState?.creativeRows||[]).filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
+  const model=auditEstimatedWasteRows(),waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=auditScopedCreativeRows().filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
   document.getElementById("auditWasteImpact").textContent=money(waste);document.getElementById("auditUpsideImpact").textContent=`~${decimal(upside)} registrations`;document.getElementById("auditScaleImpact").textContent=`${number(scale)} ads`;
   const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`${t("Overall")} · ${healthLabel.label}`;
   document.getElementById("auditRadarChart").innerHTML=auditRadarSvg(health.dimensions);
@@ -2504,7 +2568,7 @@ function renderAuditOverview(){
     ["Rolling conversion",percent(lastRollingConv),t("7-day blended"),rollingConv,"purple",percent]
   ];
   document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${t(row[0])}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4],row[5])}</article>`).join("");auditMainPerformanceChart(series);
-  const campaigns=[...(dashboard.campaigns||[])].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${number(campaigns.length)} ${t(campaigns.length===1?"campaign":"campaigns")}`;
+  const campaigns=[...auditScopedCampaigns()].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${number(campaigns.length)} ${t(campaigns.length===1?"campaign":"campaigns")}`;
   auditHorizontalBars("auditCampaignSpend",campaigns,{value:r=>r.spend,label:r=>r.entity_name,formatter:money,colorClass:"blue"});auditHorizontalBars("auditCampaignResults",campaigns,{value:r=>r.results,label:r=>r.entity_name,formatter:number,colorClass:"green"});auditHorizontalBars("auditCampaignCpl",campaigns.filter(r=>safeNum(r.results)>0),{value:r=>calculatedCpl(r),label:r=>r.entity_name,formatter:money,colorClass:"amber",target:auditTargetCpl()});
   auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
   const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${number(findings.length)} ${t(findings.length===1?"finding":"findings")}`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;

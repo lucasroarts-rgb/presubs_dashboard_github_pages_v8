@@ -1,1 +1,1 @@
-10.6.2 - Full localization pass and clearer multi-axis chart labels.
+10.6.3 - Audit data scope fix for fresh daily periods and current-week charts.
