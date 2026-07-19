@@ -99,3 +99,7 @@ See `STUDENT_PROFILE_V10_3_1.md`.
 ## v10.4 audit overview
 
 The new first page is an audit-style Meta Ads overview. See `AUDIT_OVERVIEW_V10_4.md`.
+
+
+## v10.5 interactive audit
+See `INTERACTIVE_AUDIT_V10_5.md` for animated charts, annotation markers and the automatic before/after meeting recap.
