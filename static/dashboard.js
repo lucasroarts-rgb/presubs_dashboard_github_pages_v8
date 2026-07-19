@@ -46,6 +46,328 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Travel confidently":"Viajar com confiança","Professional needs":"Necessidades profissionais","Lack of practice opportunities":"Falta de oportunidades de prática","Lack of method and structure":"Falta de método e estrutura","Low confidence and fear of mistakes":"Baixa confiança e medo de errar","Instagram content and lives":"Conteúdo e lives no Instagram","Online events and masterclasses":"Eventos online e masterclasses","Platform content":"Conteúdo da plataforma","Speaking Groups":"Speaking Groups",
   "Choose any two imported reporting periods.":"Escolha dois períodos importados.","Compare weeks":"Comparar semanas","Campaign → Ad set → Ad":"Campanha → Conjunto → Anúncio","Campaign performance":"Performance das campanhas","Ad-set performance":"Performance dos conjuntos","Ad-level performance":"Performance dos anúncios","Daily overview":"Visão diária","Ad-by-day detail":"Detalhe por anúncio e dia","Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.":"Períodos personalizados, comparações, tendências mensais e análise completa do funil.","Latest 7 days":"Últimos 7 dias","Latest 30 days":"Últimos 30 dias","Latest 90 days":"Últimos 90 dias","Latest month to date":"Mês atual até hoje","Previous calendar month":"Mês calendário anterior","Year to date":"Ano até hoje","All available data":"Todos os dados disponíveis","Previous period, same length":"Período anterior, mesma duração","Apply analysis":"Aplicar análise","Export selected data":"Exportar dados selecionados","Performance trend":"Tendência de performance","Month-over-month performance":"Performance mês a mês","Performance by weekday":"Performance por dia da semana","Top ads for the range":"Melhores anúncios do período","Page funnel":"Funil da página","Management cockpit":"Cockpit de gestão","Automatic alerts":"Alertas automáticos","Monthly goal history":"Histórico de metas mensais","Management timeline":"Linha do tempo de gestão"
 });
+
+Object.assign(UI_TRANSLATIONS.fr,{
+  "Last 30 completed days ending in the selected reporting period.":"30 derniers jours complets se terminant dans la période sélectionnée.","30-day trends":"Tendances sur 30 jours","Daily spend":"Dépense quotidienne","Daily registrations":"Inscriptions quotidiennes","Rolling CPL":"CPL glissant","Rolling conversion":"Conversion glissante","Total":"Total","7-day blended":"Lissage sur 7 jours","Spend from ads with no registrations or cost above the current CPL target.":"Dépenses provenant de publicités sans inscriptions ou avec un coût supérieur à l’objectif CPL actuel.","Potential registrations if inefficient spend moved toward the strongest current CPL.":"Inscriptions potentielles si les dépenses inefficaces étaient déplacées vers le meilleur CPL actuel.","Ads currently classified as scale or keep candidates by recent performance.":"Publicités actuellement classées comme à scaler ou à conserver selon les performances récentes.","Traffic-management dimensions scored from 0 to 100.":"Dimensions de gestion du trafic notées de 0 à 100.","Spend, registrations and CPL across the current selected period.":"Dépenses, inscriptions et CPL sur la période sélectionnée.","Equivalent Meta diagnostics for the Google Ads views used as visual reference.":"Diagnostics Meta équivalents aux vues Google Ads utilisées comme référence visuelle.","By campaign":"Par campagne","Scale, keep, refresh, pause":"Scaler, conserver, rafraîchir, mettre en pause","Bubble size = registrations":"Taille de la bulle = inscriptions","Where inefficient spend is concentrated and which ads offer the strongest reallocation opportunity.":"Où les dépenses inefficaces se concentrent et quelles publicités offrent la meilleure opportunité de réallocation.","Highest estimated waste first":"Plus grand gaspillage estimé d’abord","Strongest efficient spend first":"Dépenses efficaces les plus fortes d’abord","Ordered by severity and potential business impact.":"Classé par sévérité et impact business potentiel.","Prioritised actions generated from current account signals.":"Actions prioritaires générées à partir des signaux actuels du compte.","Target":"Objectif","Previous imported week":"Période importée précédente","Loading…":"Chargement…","Loading latest day…":"Chargement du dernier jour…","Current selected reporting period.":"Période sélectionnée actuellement.","Daily-normalised comparison":"Comparaison normalisée par jour","Same post-change window":"Même fenêtre après le changement","Ready to present":"Prêt à présenter","Top contributors":"Principaux contributeurs","Account optimisation plan":"Plan d’optimisation du compte","Calculating":"Calcul en cours","Auto-generated":"Généré automatiquement","Items that deserve a traffic-management decision.":"Éléments nécessitant une décision de gestion du trafic.","Budget, registrations and projected outcome against the goal saved for the selected month.":"Budget, inscriptions et projection par rapport à l’objectif enregistré pour le mois sélectionné.","Actual versus monthly target":"Réel vs objectif mensuel","Current selected reporting period.":"Période d’analyse actuellement sélectionnée.","Overall":"Global","FINDINGS":"CONSTATS","campaign":"campagne","campaigns":"campagnes","finding":"constat","findings":"constats"});
+Object.assign(UI_TRANSLATIONS.pt,{
+  "Last 30 completed days ending in the selected reporting period.":"Últimos 30 dias completos encerrando no período selecionado.","30-day trends":"Tendências de 30 dias","Daily spend":"Investimento diário","Daily registrations":"Registros diários","Rolling CPL":"CPL móvel","Rolling conversion":"Conversão móvel","Total":"Total","7-day blended":"Média móvel de 7 dias","Spend from ads with no registrations or cost above the current CPL target.":"Investimento vindo de anúncios sem registros ou com custo acima da meta atual de CPL.","Potential registrations if inefficient spend moved toward the strongest current CPL.":"Registros potenciais caso o investimento ineficiente seja realocado para o melhor CPL atual.","Ads currently classified as scale or keep candidates by recent performance.":"Anúncios atualmente classificados para escalar ou manter com base na performance recente.","Traffic-management dimensions scored from 0 to 100.":"Dimensões de gestão de tráfego pontuadas de 0 a 100.","Spend, registrations and CPL across the current selected period.":"Investimento, registros e CPL no período selecionado.","Equivalent Meta diagnostics for the Google Ads views used as visual reference.":"Diagnósticos equivalentes do Meta para as visões do Google Ads usadas como referência visual.","By campaign":"Por campanha","Scale, keep, refresh, pause":"Escalar, manter, renovar, pausar","Bubble size = registrations":"Tamanho da bolha = registros","Where inefficient spend is concentrated and which ads offer the strongest reallocation opportunity.":"Onde o investimento ineficiente está concentrado e quais anúncios oferecem a melhor oportunidade de realocação.","Highest estimated waste first":"Maior desperdício estimado primeiro","Strongest efficient spend first":"Investimento eficiente mais forte primeiro","Ordered by severity and potential business impact.":"Ordenado por severidade e impacto potencial no negócio.","Prioritised actions generated from current account signals.":"Ações priorizadas geradas a partir dos sinais atuais da conta.","Target":"Meta","Previous imported week":"Período importado anterior","Loading…":"Carregando…","Loading latest day…":"Carregando o último dia…","Current selected reporting period.":"Período atualmente selecionado.","Daily-normalised comparison":"Comparação normalizada por dia","Same post-change window":"Mesma janela após a mudança","Ready to present":"Pronto para apresentar","Top contributors":"Principais contribuintes","Account optimisation plan":"Plano de otimização da conta","Calculating":"Calculando","Auto-generated":"Gerado automaticamente","Items that deserve a traffic-management decision.":"Itens que merecem uma decisão de gestão de tráfego.","Budget, registrations and projected outcome against the goal saved for the selected month.":"Orçamento, registros e projeção em relação à meta salva para o mês selecionado.","Actual versus monthly target":"Real versus meta mensal","Current selected reporting period.":"Período de análise atualmente selecionado.","Overall":"Geral","FINDINGS":"ACHADOS","campaign":"campanha","campaigns":"campanhas","finding":"achado","findings":"achados"});
+
+
+Object.assign(UI_TRANSLATIONS.fr,{
+  "Analysis period":"Période d’analyse",
+  "Choose a full imported week or any custom date range.":"Choisissez une semaine importée complète ou toute plage de dates personnalisée.",
+  "Previous imported week":"Semaine importée précédente",
+  "Previous period":"Période précédente",
+  "Estimated registration upside":"Potentiel estimé d’inscriptions",
+  "Potential registrations if inefficient spend moved toward the strongest current CPL.":"Inscriptions potentielles si les dépenses inefficaces sont réallouées vers le meilleur CPL actuel.",
+  "Connect timeline annotations to performance before and after each change. Observed movement is shown as correlation, not causal proof.":"Reliez les annotations de la chronologie aux performances avant et après chaque changement. Les variations observées indiquent une corrélation, pas une causalité prouvée.",
+  "Waiting for annotation":"En attente d’une annotation",
+  "Automatic meeting narrative":"Résumé automatique pour la réunion",
+  "New ads first seen after the change":"Nouvelles publicités observées après le changement",
+  "Top contributors":"Principaux contributeurs",
+  "Traffic-management dimensions scored from 0 to 100.":"Dimensions de gestion du trafic notées de 0 à 100.",
+  "Click → LPV → registration":"Clic → LPV → inscription",
+  "By campaign":"Par campagne",
+  "Waste concentration":"Concentration du gaspillage",
+  "Highest estimated waste first":"Plus forte dépense inefficace estimée en premier",
+  "Opportunity concentration":"Concentration des opportunités",
+  "Strongest efficient spend first":"Dépenses efficaces les plus fortes en premier",
+  "Automatic interpretation of the selected period.":"Interprétation automatique de la période sélectionnée.",
+  "Items that deserve a traffic-management decision.":"Éléments nécessitant une décision de gestion du trafic.",
+  "Edit goals":"Modifier les objectifs",
+  "Lower is better. Current account average:":"Plus bas est meilleur. Moyenne actuelle du compte :",
+  "Ranked using both registration volume and cost efficiency.":"Classement basé sur le volume d’inscriptions et l’efficacité du coût.",
+  "Strongest current signals":"Signaux actuels les plus forts",
+  "The latest completed Meta day, compared with the previous day and recent pace.":"Dernier jour Meta terminé, comparé au jour précédent et au rythme récent.",
+  "Yesterday versus previous day":"Hier vs jour précédent",
+  "Fast operational comparison for spend, registrations, CPL, CTR and conversion.":"Comparaison opérationnelle rapide des dépenses, inscriptions, CPL, CTR et conversion.",
+  "Actual delivery against the monthly goal divided by calendar day.":"Diffusion réelle comparée à l’objectif mensuel réparti par jour calendaire.",
+  "Last 14 completed days":"14 derniers jours terminés",
+  "Spend, registrations and CPL based on the daily ad history.":"Dépenses, inscriptions et CPL basés sur l’historique quotidien des publicités.",
+  "Best ads yesterday":"Meilleures publicités hier",
+  "Registration volume and cost efficiency.":"Volume d’inscriptions et efficacité du coût.",
+  "Needs attention":"À surveiller",
+  "Spend without registrations and CPL above the monthly target.":"Dépenses sans inscription et CPL au-dessus de l’objectif mensuel.",
+  "Campaign snapshot":"Aperçu des campagnes",
+  "Latest completed day by campaign.":"Dernier jour terminé par campagne.",
+  "Page snapshot":"Aperçu des pages",
+  "Click, LPV and CompleteRegistration performance on the latest day.":"Performance clics, LPV et CompleteRegistration du dernier jour.",
+  "Audience intelligence":"Intelligence audience",
+  "Who are Peasy students?":"Qui sont les étudiants Peasy ?",
+  "Aggregated insight from completed placement tests, designed to guide acquisition angles, landing-page messaging and offer positioning.":"Données agrégées issues des tests de niveau pour guider les angles d’acquisition, les messages des landing pages et le positionnement de l’offre.",
+  "All students":"Tous les étudiants",
+  "Core student persona":"Persona étudiant principal",
+  "The strongest shared characteristics in the selected dataset.":"Caractéristiques communes les plus fortes du jeu de données sélectionné.",
+  "Strategic implications":"Implications stratégiques",
+  "How the student profile should influence marketing decisions.":"Comment le profil étudiant doit influencer les décisions marketing.",
+  "Age distribution":"Répartition par âge",
+  "Share of completed placement tests.":"Part des tests de niveau complétés.",
+  "Current English level":"Niveau d’anglais actuel",
+  "Self-declared level before starting.":"Niveau déclaré avant de commencer.",
+  "Main motivations":"Motivations principales",
+  "Multiple selections were allowed.":"Plusieurs réponses étaient possibles.",
+  "Main barriers":"Freins principaux",
+  "What students say keeps them from progressing.":"Ce qui, selon les étudiants, freine leur progression.",
+  "Discovery channels":"Canaux de découverte",
+  "Where the relationship with Alex started.":"Où la relation avec Alex a commencé.",
+  "Most attractive programme elements":"Éléments du programme les plus attractifs",
+  "Features selected before joining.":"Éléments sélectionnés avant l’inscription.",
+  "Academy versus Fluency Club":"Academy vs Fluency Club",
+  "Audience differences that can support product-specific creative and messaging.":"Différences d’audience utiles pour adapter les créatifs et les messages par produit.",
+  "Profile data notes":"Notes sur les données de profil",
+  "How to use this information responsibly.":"Comment utiliser ces informations de manière responsable.",
+  "Aggregated only":"Données agrégées uniquement",
+  "No email address or individual free-text answer is published in the dashboard.":"Aucune adresse e-mail ni réponse individuelle en texte libre n’est publiée dans le tableau de bord.",
+  "Placement-test respondents":"Répondants aux tests de niveau",
+  "Refresh manually":"Actualisation manuelle",
+  "Choose any two imported reporting periods.":"Choisissez deux périodes importées.",
+  "Previous week":"Semaine précédente",
+  "Current week":"Semaine actuelle",
+  "Hide zero-delivery rows":"Masquer les lignes sans diffusion",
+  "Compare weeks":"Comparer les semaines",
+  "Ad-set comparison":"Comparaison des ensembles",
+  "Matched by ID when available, otherwise by name.":"Correspondance par ID si disponible, sinon par nom.",
+  "Ad comparison":"Comparaison des publicités",
+  "Conversion-page comparison":"Comparaison des pages de conversion",
+  "Campaign → Ad set → Ad":"Campagne → Ensemble → Publicité",
+  "Open each campaign to see the full structure, metrics and start dates.":"Ouvrez chaque campagne pour voir la structure complète, les métriques et les dates de début.",
+  "Campaign performance":"Performance des campagnes",
+  "Complete delivery, conversion and start-date metrics.":"Métriques complètes de diffusion, conversion et date de début.",
+  "Ad-set performance":"Performance des ensembles",
+  "Budget, delivery, conversion volume, efficiency and start date.":"Budget, diffusion, volume de conversion, efficacité et date de début.",
+  "Ad-level performance":"Performance des publicités",
+  "All available metrics, conversion-page classification, start date and Meta preview link.":"Toutes les métriques disponibles, classification de page, date de début et lien d’aperçu Meta.",
+  "Links are saved in the database":"Les liens sont enregistrés dans la base de données",
+  "All results":"Tous les résultats",
+  "With registrations":"Avec inscriptions",
+  "Without registrations":"Sans inscription",
+  "Ad-level evolution inside the selected reporting week.":"Évolution des publicités pendant la semaine sélectionnée.",
+  "Ad-by-day export":"Export publicité par jour",
+  "Spend and registrations by day":"Dépenses et inscriptions par jour",
+  "Daily movement based on the detailed ad export.":"Évolution quotidienne basée sur l’export détaillé des publicités.",
+  "Cost per registration by day":"Coût par inscription par jour",
+  "Daily overview":"Vue quotidienne",
+  "Aggregated from every ad delivered on each day.":"Agrégé à partir de toutes les publicités diffusées chaque jour.",
+  "Ad-by-day detail":"Détail publicité par jour",
+  "Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.":"Périodes personnalisées, comparaisons avec la période précédente, tendances mensuelles et analyse complète du funnel.",
+  "Daily Meta data":"Données Meta quotidiennes",
+  "Quick range":"Période rapide",
+  "Latest 7 days":"7 derniers jours",
+  "Latest 30 days":"30 derniers jours",
+  "Latest 90 days":"90 derniers jours",
+  "Latest month to date":"Mois en cours",
+  "Previous calendar month":"Mois calendaire précédent",
+  "Year to date":"Depuis le début de l’année",
+  "All available data":"Toutes les données disponibles",
+  "End date":"Date de fin",
+  "Compare with":"Comparer avec",
+  "Previous period, same length":"Période précédente, même durée",
+  "Same dates, previous month":"Mêmes dates, mois précédent",
+  "Same dates, previous year":"Mêmes dates, année précédente",
+  "Custom comparison":"Comparaison personnalisée",
+  "Comparison start":"Début de comparaison",
+  "Comparison end":"Fin de comparaison",
+  "Trend grouping":"Regroupement de tendance",
+  "Automatic":"Automatique",
+  "Day":"Jour",
+  "Friday–Thursday week":"Semaine vendredi–jeudi",
+  "Month":"Mois",
+  "Apply analysis":"Appliquer l’analyse",
+  "Export selected data":"Exporter les données sélectionnées",
+  "Timeline annotations":"Annotations de chronologie",
+  "Performance trend":"Tendance de performance",
+  "Period comparison":"Comparaison de période",
+  "Month-over-month performance":"Performance mois par mois",
+  "Campaign performance for the range":"Performance des campagnes sur la période",
+  "Ad-set performance for the range":"Performance des ensembles sur la période",
+  "Conversion-page performance for the range":"Performance des pages de conversion sur la période",
+  "Page comparison":"Comparaison des pages",
+  "Performance by weekday":"Performance par jour de la semaine",
+  "Top ads for the range":"Meilleures publicités sur la période",
+  "Page funnel":"Funnel des pages",
+  "Conversion pages":"Pages de conversion",
+  "Conversion rate by page":"Taux de conversion par page",
+  "Week-over-week conversion":"Conversion semaine après semaine",
+  "Performance by conversion page":"Performance par page de conversion",
+  "Page settings":"Paramètres des pages",
+  "Page comparison with previous week":"Comparaison des pages avec la semaine précédente",
+  "Management cockpit":"Cockpit de pilotage",
+  "Goals, projections, alerts and actions for traffic management.":"Objectifs, projections, alertes et actions pour la gestion du trafic.",
+  "Configure goals and events":"Configurer objectifs et événements",
+  "Monthly budget and registration projection":"Projection mensuelle du budget et des inscriptions",
+  "Monthly target split into daily and Friday-to-Thursday weekly goals.":"Objectif mensuel réparti en objectifs quotidiens et hebdomadaires du vendredi au jeudi.",
+  "Automatic alerts":"Alertes automatiques",
+  "Rules are controlled in the local admin.":"Les règles sont contrôlées dans l’administration locale.",
+  "Monthly pacing curves":"Courbes de rythme mensuel",
+  "Daily cumulative":"Cumul quotidien",
+  "Budget pacing":"Rythme du budget",
+  "Spend accumulated through the month":"Dépenses cumulées dans le mois",
+  "Registration pacing":"Rythme des inscriptions",
+  "Monthly goal history":"Historique des objectifs mensuels",
+  "Management timeline":"Chronologie de gestion",
+  "Events that can explain performance movements.":"Événements pouvant expliquer les variations de performance.",
+  "All recommendations":"Toutes les recommandations",
+  "Scale":"Scaler","Keep":"Maintenir","Monitor":"Surveiller","Refresh":"Renouveler","Pause candidate":"Candidat à la pause",
+  "Checks for missing days, total mismatches, relations, page tags and automation scope.":"Contrôles des jours manquants, écarts de totaux, relations, tags de page et périmètre d’automatisation."
+});
+Object.assign(UI_TRANSLATIONS.pt,{
+  "Analysis period":"Período de análise",
+  "Choose a full imported week or any custom date range.":"Escolha uma semana importada completa ou qualquer intervalo de datas personalizado.",
+  "Previous imported week":"Semana importada anterior",
+  "Previous period":"Período anterior",
+  "Estimated registration upside":"Potencial estimado de registros",
+  "Potential registrations if inefficient spend moved toward the strongest current CPL.":"Registros potenciais se o investimento ineficiente for realocado para o melhor CPL atual.",
+  "Connect timeline annotations to performance before and after each change. Observed movement is shown as correlation, not causal proof.":"Conecte as anotações da linha do tempo à performance antes e depois de cada mudança. O movimento observado é mostrado como correlação, não como prova de causalidade.",
+  "Waiting for annotation":"Aguardando anotação",
+  "Automatic meeting narrative":"Resumo automático para reunião",
+  "New ads first seen after the change":"Novos anúncios observados após a mudança",
+  "Top contributors":"Principais contribuintes",
+  "Traffic-management dimensions scored from 0 to 100.":"Dimensões de gestão de tráfego pontuadas de 0 a 100.",
+  "Click → LPV → registration":"Clique → LPV → registro",
+  "By campaign":"Por campanha",
+  "Waste concentration":"Concentração de desperdício",
+  "Highest estimated waste first":"Maior desperdício estimado primeiro",
+  "Opportunity concentration":"Concentração de oportunidades",
+  "Strongest efficient spend first":"Investimento eficiente mais forte primeiro",
+  "Automatic interpretation of the selected period.":"Interpretação automática do período selecionado.",
+  "Items that deserve a traffic-management decision.":"Itens que merecem uma decisão de gestão de tráfego.",
+  "Edit goals":"Editar metas",
+  "Lower is better. Current account average:":"Quanto menor, melhor. Média atual da conta:",
+  "Ranked using both registration volume and cost efficiency.":"Classificado usando volume de registros e eficiência de custo.",
+  "Strongest current signals":"Sinais atuais mais fortes",
+  "The latest completed Meta day, compared with the previous day and recent pace.":"O último dia completo do Meta, comparado ao dia anterior e ao ritmo recente.",
+  "Yesterday versus previous day":"Ontem versus dia anterior",
+  "Fast operational comparison for spend, registrations, CPL, CTR and conversion.":"Comparação operacional rápida de investimento, registros, CPL, CTR e conversão.",
+  "Actual delivery against the monthly goal divided by calendar day.":"Entrega real comparada à meta mensal dividida por dia do calendário.",
+  "Last 14 completed days":"Últimos 14 dias completos",
+  "Spend, registrations and CPL based on the daily ad history.":"Investimento, registros e CPL com base no histórico diário dos anúncios.",
+  "Best ads yesterday":"Melhores anúncios de ontem",
+  "Registration volume and cost efficiency.":"Volume de registros e eficiência de custo.",
+  "Needs attention":"Precisa de atenção",
+  "Spend without registrations and CPL above the monthly target.":"Investimento sem registros e CPL acima da meta mensal.",
+  "Campaign snapshot":"Resumo das campanhas",
+  "Latest completed day by campaign.":"Último dia completo por campanha.",
+  "Page snapshot":"Resumo das páginas",
+  "Click, LPV and CompleteRegistration performance on the latest day.":"Performance de clique, LPV e CompleteRegistration no último dia.",
+  "Audience intelligence":"Inteligência de audiência",
+  "Who are Peasy students?":"Quem são os alunos da Peasy?",
+  "Aggregated insight from completed placement tests, designed to guide acquisition angles, landing-page messaging and offer positioning.":"Insights agregados dos testes de nivelamento para orientar ângulos de aquisição, mensagens das landing pages e posicionamento da oferta.",
+  "All students":"Todos os alunos",
+  "Core student persona":"Persona principal dos alunos",
+  "The strongest shared characteristics in the selected dataset.":"As características compartilhadas mais fortes no conjunto de dados selecionado.",
+  "Strategic implications":"Implicações estratégicas",
+  "How the student profile should influence marketing decisions.":"Como o perfil dos alunos deve influenciar as decisões de marketing.",
+  "Age distribution":"Distribuição por idade",
+  "Share of completed placement tests.":"Participação nos testes de nivelamento concluídos.",
+  "Current English level":"Nível atual de inglês",
+  "Self-declared level before starting.":"Nível autodeclarado antes de começar.",
+  "Main motivations":"Principais motivações",
+  "Multiple selections were allowed.":"Era possível selecionar várias opções.",
+  "Main barriers":"Principais barreiras",
+  "What students say keeps them from progressing.":"O que os alunos dizem que impede seu progresso.",
+  "Discovery channels":"Canais de descoberta",
+  "Where the relationship with Alex started.":"Onde começou a relação com a Alex.",
+  "Most attractive programme elements":"Elementos mais atraentes do programa",
+  "Features selected before joining.":"Elementos selecionados antes da entrada.",
+  "Academy versus Fluency Club":"Academy versus Fluency Club",
+  "Audience differences that can support product-specific creative and messaging.":"Diferenças de audiência que podem orientar criativos e mensagens específicos por produto.",
+  "Profile data notes":"Notas sobre os dados de perfil",
+  "How to use this information responsibly.":"Como usar essas informações de forma responsável.",
+  "Aggregated only":"Somente dados agregados",
+  "No email address or individual free-text answer is published in the dashboard.":"Nenhum e-mail ou resposta individual em texto livre é publicado no dashboard.",
+  "Placement-test respondents":"Respondentes dos testes de nivelamento",
+  "Refresh manually":"Atualização manual",
+  "Choose any two imported reporting periods.":"Escolha dois períodos importados.",
+  "Previous week":"Semana anterior",
+  "Current week":"Semana atual",
+  "Hide zero-delivery rows":"Ocultar linhas sem entrega",
+  "Compare weeks":"Comparar semanas",
+  "Ad-set comparison":"Comparação de conjuntos",
+  "Matched by ID when available, otherwise by name.":"Correspondência por ID quando disponível, caso contrário por nome.",
+  "Ad comparison":"Comparação de anúncios",
+  "Conversion-page comparison":"Comparação de páginas de conversão",
+  "Campaign → Ad set → Ad":"Campanha → Conjunto → Anúncio",
+  "Open each campaign to see the full structure, metrics and start dates.":"Abra cada campanha para ver a estrutura completa, métricas e datas de início.",
+  "Campaign performance":"Performance das campanhas",
+  "Complete delivery, conversion and start-date metrics.":"Métricas completas de entrega, conversão e data de início.",
+  "Ad-set performance":"Performance dos conjuntos",
+  "Budget, delivery, conversion volume, efficiency and start date.":"Orçamento, entrega, volume de conversão, eficiência e data de início.",
+  "Ad-level performance":"Performance dos anúncios",
+  "All available metrics, conversion-page classification, start date and Meta preview link.":"Todas as métricas disponíveis, classificação da página, data de início e link de preview do Meta.",
+  "Links are saved in the database":"Os links são salvos no banco de dados",
+  "All results":"Todos os resultados",
+  "With registrations":"Com registros",
+  "Without registrations":"Sem registros",
+  "Ad-level evolution inside the selected reporting week.":"Evolução dos anúncios dentro da semana selecionada.",
+  "Ad-by-day export":"Exportação por anúncio e dia",
+  "Spend and registrations by day":"Investimento e registros por dia",
+  "Daily movement based on the detailed ad export.":"Movimento diário baseado na exportação detalhada dos anúncios.",
+  "Cost per registration by day":"Custo por registro por dia",
+  "Daily overview":"Visão diária",
+  "Aggregated from every ad delivered on each day.":"Agregado de todos os anúncios entregues em cada dia.",
+  "Ad-by-day detail":"Detalhe por anúncio e dia",
+  "Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.":"Períodos personalizados, comparações com período anterior, tendências mensais e detalhamento completo do funil.",
+  "Daily Meta data":"Dados diários do Meta",
+  "Quick range":"Intervalo rápido",
+  "Latest 7 days":"Últimos 7 dias",
+  "Latest 30 days":"Últimos 30 dias",
+  "Latest 90 days":"Últimos 90 dias",
+  "Latest month to date":"Mês atual até hoje",
+  "Previous calendar month":"Mês calendário anterior",
+  "Year to date":"Ano até hoje",
+  "All available data":"Todos os dados disponíveis",
+  "End date":"Data final",
+  "Compare with":"Comparar com",
+  "Previous period, same length":"Período anterior, mesma duração",
+  "Same dates, previous month":"Mesmas datas, mês anterior",
+  "Same dates, previous year":"Mesmas datas, ano anterior",
+  "Custom comparison":"Comparação personalizada",
+  "Comparison start":"Início da comparação",
+  "Comparison end":"Fim da comparação",
+  "Trend grouping":"Agrupamento da tendência",
+  "Automatic":"Automático",
+  "Day":"Dia",
+  "Friday–Thursday week":"Semana sexta–quinta",
+  "Month":"Mês",
+  "Apply analysis":"Aplicar análise",
+  "Export selected data":"Exportar dados selecionados",
+  "Timeline annotations":"Anotações da linha do tempo",
+  "Performance trend":"Tendência de performance",
+  "Period comparison":"Comparação de período",
+  "Month-over-month performance":"Performance mês a mês",
+  "Campaign performance for the range":"Performance das campanhas no período",
+  "Ad-set performance for the range":"Performance dos conjuntos no período",
+  "Conversion-page performance for the range":"Performance das páginas de conversão no período",
+  "Page comparison":"Comparação de páginas",
+  "Performance by weekday":"Performance por dia da semana",
+  "Top ads for the range":"Melhores anúncios no período",
+  "Page funnel":"Funil das páginas",
+  "Conversion pages":"Páginas de conversão",
+  "Conversion rate by page":"Taxa de conversão por página",
+  "Week-over-week conversion":"Conversão semana a semana",
+  "Performance by conversion page":"Performance por página de conversão",
+  "Page settings":"Configurações de páginas",
+  "Page comparison with previous week":"Comparação de páginas com a semana anterior",
+  "Management cockpit":"Cockpit de gestão",
+  "Goals, projections, alerts and actions for traffic management.":"Metas, projeções, alertas e ações para gestão de tráfego.",
+  "Configure goals and events":"Configurar metas e eventos",
+  "Monthly budget and registration projection":"Projeção mensal de orçamento e registros",
+  "Monthly target split into daily and Friday-to-Thursday weekly goals.":"Meta mensal dividida em metas diárias e semanais de sexta a quinta.",
+  "Automatic alerts":"Alertas automáticos",
+  "Rules are controlled in the local admin.":"As regras são controladas no admin local.",
+  "Monthly pacing curves":"Curvas de ritmo mensal",
+  "Daily cumulative":"Acumulado diário",
+  "Budget pacing":"Ritmo do orçamento",
+  "Spend accumulated through the month":"Investimento acumulado ao longo do mês",
+  "Registration pacing":"Ritmo de registros",
+  "Monthly goal history":"Histórico de metas mensais",
+  "Management timeline":"Linha do tempo de gestão",
+  "Events that can explain performance movements.":"Eventos que podem explicar movimentos de performance.",
+  "All recommendations":"Todas as recomendações",
+  "Scale":"Escalar","Keep":"Manter","Monitor":"Monitorar","Refresh":"Renovar","Pause candidate":"Candidato a pausa",
+  "Checks for missing days, total mismatches, relations, page tags and automation scope.":"Verificações de dias ausentes, diferenças de totais, relações, tags de página e escopo da automação."
+});
+
 const originalTextNodes=new WeakMap();
 const originalAttrs=new WeakMap();
 function translatePhrase(source){
@@ -61,6 +383,8 @@ function translatePhrase(source){
   for(const [pattern,repl] of replacements){if(pattern.test(source))return source.replace(pattern,repl)}
   return out;
 }
+const t=source=>translatePhrase(source);
+
 function applyTranslations(root=document){
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement&&!["SCRIPT","STYLE","CODE"].includes(node.parentElement.tagName)&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
@@ -121,7 +445,7 @@ function comparisonDelta(value,invert,currentValue,previousValue){
 function statusPill(status){
   const value=(status||"unknown").toLowerCase();
   const cls=value==="active"?"active":"inactive";
-  const label=value==="active"?"Active":value==="inactive"?"Inactive":status||"Unknown";
+  const label=value==="active"?t("Active"):value==="inactive"?t("Inactive"):status||t("Unknown");
   return `<span class="pill ${cls}">${label}</span>`;
 }
 
@@ -142,7 +466,7 @@ function startCell(row){
 
 function pageBadge(row){
   const code=row.page_code||"MAIN";
-  return `<span class="pill ${row.is_default?"inactive":"info"}">${row.is_default?"Main page":`LP-${code}`}</span>`;
+  return `<span class="pill ${row.is_default?"inactive":"info"}">${row.is_default?t("Main page"):`LP-${code}`}</span>`;
 }
 
 function calculatedCpl(row){
@@ -2083,32 +2407,50 @@ function auditHorizontalBars(targetId,rows,{value,label,formatter,colorClass="bl
   const data=(rows||[]).filter(row=>safeNum(value(row))>0);const max=Math.max(1,...data.map(row=>safeNum(value(row))),target||0);
   el.innerHTML=data.length?data.map(row=>{const val=safeNum(value(row)),tip=`<strong>${auditEscape(label(row))}</strong><span>${formatter(val)}</span>${target?`<span>Target ${formatter(target)}</span>`:""}`;return `<div class="audit-hbar-row" data-audit-tooltip="${auditEscape(tip)}"><div class="audit-hbar-label" title="${label(row)}">${label(row)}</div><div class="audit-hbar-track">${target?`<i class="audit-target-marker" style="left:${clamp(target/max*100,0,100)}%"></i>`:""}<span class="${colorClass}" style="width:${Math.max(2,val/max*100)}%"></span></div><strong>${formatter(val)}</strong></div>`}).join(""):`<div class="empty">No delivery in this period.</div>`;auditBindTooltips(el);
 }
-function auditSparkline(values,cls="blue"){
-  const data=values.map(safeNum);if(!data.length)return "";const width=230,height=78,pad=4,max=Math.max(...data,1),min=Math.min(...data,0),range=Math.max(.001,max-min);
-  const points=data.map((v,i)=>({x:pad+i/(Math.max(1,data.length-1))*(width-pad*2),y:pad+(max-v)/range*(height-pad*2)}));
+function auditSparkline(values,cls="blue",formatter=null){
+  const data=values.map(v=>v==null?null:safeNum(v)).filter(v=>v!=null);if(!data.length)return "";
+  const width=230,height=78,pad=6,max=Math.max(...data,1),min=Math.min(...data,0),range=Math.max(.001,max-min);
+  const y=v=>pad+(max-v)/range*(height-pad*2);
+  const points=data.map((v,i)=>({x:pad+i/(Math.max(1,data.length-1))*(width-pad*2),y:y(v),value:v}));
   const poly=svgPolyline(points);const area=`${pad},${height-pad} ${poly} ${width-pad},${height-pad}`;
-  return `<svg class="audit-sparkline ${cls}" viewBox="0 0 ${width} ${height}"><polygon points="${area}"/><polyline points="${poly}"/></svg>`;
+  const ticks=[max,max-(range*.5),min].map((value,index)=>({value,y:y(value),anchor:index===0?"hanging":"middle"}));
+  const fmt=formatter||((v)=>decimal(v));
+  const grid=ticks.map(tick=>`<line x1="${pad}" y1="${tick.y}" x2="${width-pad}" y2="${tick.y}" class="spark-grid"/>`).join("");
+  const labels=ticks.map(tick=>`<text x="${width-pad-2}" y="${tick.y+(tick.anchor==='hanging'?2:0)}" text-anchor="end" dominant-baseline="${tick.anchor}" class="spark-label">${auditEscape(fmt(tick.value))}</text>`).join("");
+  const last=points.at(-1);
+  return `<svg class="audit-sparkline ${cls}" viewBox="0 0 ${width} ${height}">${grid}<polygon points="${area}"/><polyline points="${poly}"/><circle cx="${last.x}" cy="${last.y}" r="2.8" class="spark-last"/><text x="${Math.min(width-pad,last.x+6)}" y="${Math.max(10,last.y-6)}" class="spark-end-value">${auditEscape(fmt(last.value))}</text>${labels}</svg>`;
 }
 function auditRolling(series,key,days=7){return series.map((row,index)=>{const start=Math.max(0,index-days+1),slice=series.slice(start,index+1);const totals=slice.reduce((sum,item)=>{sum.spend+=safeNum(item.spend);sum.results+=safeNum(item.results);sum.clicks+=safeNum(item.link_clicks);sum.impressions+=safeNum(item.impressions);sum.lpv+=safeNum(item.landing_page_views);return sum},{spend:0,results:0,clicks:0,impressions:0,lpv:0});if(key==="cpl")return totals.results?totals.spend/totals.results:null;if(key==="conversion")return (totals.lpv||totals.clicks)?totals.results*100/(totals.lpv||totals.clicks):null;return safeNum(row[key])})}
 function auditMainPerformanceChart(series){
-  const el=document.getElementById("auditPerformanceChart");if(!el)return;if(!series.length){el.innerHTML='<div class="empty">No 30-day data.</div>';return}
-  const width=Math.max(900,series.length*35),height=360,left=52,right=54,top=28,bottom=56,plotH=height-top-bottom,plotW=width-left-right;
+  const el=document.getElementById("auditPerformanceChart");if(!el)return;if(!series.length){el.innerHTML=`<div class="empty">${t("No 30-day data.")}</div>`;return}
+  const width=Math.max(1040,series.length*38),height=390,left=82,right=168,top=34,bottom=62,plotH=height-top-bottom,plotW=width-left-right;
   const maxSpend=Math.max(1,...series.map(r=>safeNum(r.spend)))*1.15,maxResults=Math.max(1,...series.map(r=>safeNum(r.results)))*1.25;
   const cpl=auditRolling(series,"cpl",7),maxCpl=Math.max(1,...cpl.map(safeNum))*1.15;
   const x=i=>left+i/Math.max(1,series.length-1)*plotW,ySpend=v=>top+plotH-safeNum(v)/maxSpend*plotH,yResult=v=>top+plotH-safeNum(v)/maxResults*plotH,yCpl=v=>top+plotH-safeNum(v)/maxCpl*plotH;
   const barW=Math.max(8,Math.min(22,plotW/series.length*.58)),step=series.length>1?plotW/(series.length-1):plotW;
   const bars=series.map((row,i)=>`<rect class="audit-perf-bar ${auditInteractiveState.spend?"":"series-hidden"}" x="${x(i)-barW/2}" y="${ySpend(row.spend)}" width="${barW}" height="${top+plotH-ySpend(row.spend)}" rx="4"></rect>`).join("");
-  const resultsPts=series.map((row,i)=>({x:x(i),y:yResult(row.results)})),cplPts=cpl.map((v,i)=>({x:x(i),y:yCpl(v)}));
-  const labels=series.map((row,i)=>i%Math.max(1,Math.ceil(series.length/8))===0?`<text x="${x(i)}" y="${height-20}" text-anchor="middle">${row.key.slice(5)}</text>`:"").join("");
-  const grid=[0,.25,.5,.75,1].map(t=>`<line x1="${left}" y1="${top+plotH-t*plotH}" x2="${width-right}" y2="${top+plotH-t*plotH}"/>`).join("");
-  const hover=series.map((row,i)=>{const tip=`<strong>${formatDate(row.key)}</strong><span>Spend ${money(row.spend)}</span><span>Registrations ${number(row.results)}</span><span>CPL ${money(row.cpl)}</span><span>CTR ${percent(row.ctr)}</span><span>Conversion ${percent(row.conversion_rate)}</span>`;return `<rect class="audit-hover-zone" data-day="${row.key}" data-audit-tooltip="${auditEscape(tip)}" x="${Math.max(left,x(i)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`}).join("");
+  const resultsPts=series.map((row,i)=>({x:x(i),y:yResult(row.results),value:safeNum(row.results)})),cplPts=cpl.map((v,i)=>({x:x(i),y:yCpl(v),value:v==null?null:safeNum(v)}));
+  const labelEvery=Math.max(1,Math.ceil(series.length/10));
+  const labels=series.map((row,i)=>i%labelEvery===0||i===series.length-1?`<text x="${x(i)}" y="${height-22}" text-anchor="middle" class="axis-date">${row.key.slice(5)}</text>`:"").join("");
+  const gridSteps=[0,.2,.4,.6,.8,1];
+  const grid=gridSteps.map(tick=>`<line x1="${left}" y1="${top+plotH-tick*plotH}" x2="${width-right}" y2="${top+plotH-tick*plotH}" class="audit-grid-line"/>`).join("");
+  const spendAxis=gridSteps.map(tick=>{const value=maxSpend*tick,yy=top+plotH-tick*plotH;return `<text x="${left-10}" y="${yy+4}" text-anchor="end" class="axis-value axis-spend">${money(value)}</text>`}).join("");
+  const resultsAxis=gridSteps.map(tick=>{const value=maxResults*tick,yy=top+plotH-tick*plotH;return `<text x="${width-right+10}" y="${yy+4}" text-anchor="start" class="axis-value axis-results">${number(value)}</text>`}).join("");
+  const cplAxis=gridSteps.map(tick=>{const value=maxCpl*tick,yy=top+plotH-tick*plotH;return `<text x="${width-8}" y="${yy+4}" text-anchor="end" class="axis-value axis-cpl">${money(value)}</text>`}).join("");
+  const hover=series.map((row,i)=>{const tip=`<strong>${formatDate(row.key)}</strong><span>${t("Spend")} ${money(row.spend)}</span><span>${t("Registrations")} ${number(row.results)}</span><span>${t("Rolling CPL")} ${money(cpl[i])}</span><span>${t("CTR")} ${percent(row.ctr)}</span><span>${t("Conversion")} ${percent(row.conversion_rate)}</span>`;return `<rect class="audit-hover-zone" data-day="${row.key}" data-audit-tooltip="${auditEscape(tip)}" x="${Math.max(left,x(i)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`}).join("");
   const annotations=auditAnnotationList().filter(a=>a.event_date>=series[0].key&&a.event_date<=series.at(-1).key).map(a=>{const idx=series.findIndex(row=>row.key>=a.event_date);if(idx<0)return "";const xx=x(idx),tip=`<strong>${auditEscape(a.title)}</strong><span>${formatDate(a.event_date)} · ${auditEscape(a.category||"change")}</span>${a.description?`<span>${auditEscape(a.description)}</span>`:""}`;return `<line class="audit-annotation-marker" x1="${xx}" y1="${top}" x2="${xx}" y2="${top+plotH}"></line><circle class="audit-annotation-dot" cx="${xx}" cy="${top+9}" r="5" data-audit-tooltip="${auditEscape(tip)}"></circle>`}).join("");
-  const selected=auditInteractiveState.pinnedDay;const selectedIdx=selected?series.findIndex(r=>r.key===selected):-1;const selectedRect=selectedIdx>=0?`<rect class="audit-day-highlight" x="${Math.max(left,x(selectedIdx)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`:"";
-  el.innerHTML=`<div class="audit-chart-legend"><button type="button" data-audit-series="spend" class="${auditInteractiveState.spend?"":"off"}"><i class="bar"></i>Spend</button><button type="button" data-audit-series="results" class="${auditInteractiveState.results?"":"off"}"><i class="line green"></i>Registrations</button><button type="button" data-audit-series="cpl" class="${auditInteractiveState.cpl?"":"off"}"><i class="line amber"></i>Rolling CPL</button><span class="annotation-key"><i></i>Annotation</span></div><div class="chart-scroll"><svg class="audit-performance-svg interactive-chart" viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${grid}${selectedRect}${bars}<polyline class="results-line ${auditInteractiveState.results?"":"series-hidden"}" points="${svgPolyline(resultsPts)}"/><polyline class="cpl-line ${auditInteractiveState.cpl?"":"series-hidden"}" points="${svgPolyline(cplPts)}"/>${resultsPts.map(p=>`<circle class="result-point ${auditInteractiveState.results?"":"series-hidden"}" cx="${p.x}" cy="${p.y}" r="3"/>`).join("")}${annotations}${hover}${labels}</svg></div>`;
+  const selected=auditInteractiveState.pinnedDay,selectedIdx=selected?series.findIndex(r=>r.key===selected):-1;
+  const selectedRect=selectedIdx>=0?`<rect class="audit-day-highlight" x="${Math.max(left,x(selectedIdx)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`:"";
+  const pointLabelEvery=Math.max(3,Math.ceil(series.length/6));
+  const resultLabels=resultsPts.map((p,i)=>(auditInteractiveState.results&&(i%pointLabelEvery===0||i===resultsPts.length-1))?`<text x="${p.x}" y="${Math.max(top+12,p.y-9)}" text-anchor="middle" class="series-value-label result-series-label">${number(p.value)}</text>`:"").join("");
+  const cplLabels=cplPts.map((p,i)=>(auditInteractiveState.cpl&&p.value!=null&&(i%pointLabelEvery===0||i===cplPts.length-1))?`<text x="${p.x}" y="${Math.min(top+plotH-8,p.y+18)}" text-anchor="middle" class="series-value-label cpl-series-label">${money(p.value)}</text>`:"").join("");
+  const axisTitles=`<text x="${left}" y="${top-14}" class="axis-title axis-spend">${t("Spend")} (€)</text><text x="${width-right+8}" y="${top-14}" class="axis-title axis-results">${t("Registrations")}</text><text x="${width-8}" y="${top-14}" text-anchor="end" class="axis-title axis-cpl">${t("Rolling CPL")} (€)</text>`;
+  el.innerHTML=`<div class="audit-chart-legend"><button type="button" data-audit-series="spend" class="${auditInteractiveState.spend?"":"off"}"><i class="bar"></i>${t("Spend")}</button><button type="button" data-audit-series="results" class="${auditInteractiveState.results?"":"off"}"><i class="line green"></i>${t("Registrations")}</button><button type="button" data-audit-series="cpl" class="${auditInteractiveState.cpl?"":"off"}"><i class="line amber"></i>${t("Rolling CPL")}</button><span class="annotation-key"><i></i>${t("Annotation")}</span></div><div class="chart-scroll"><svg class="audit-performance-svg interactive-chart" viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${grid}${axisTitles}${spendAxis}${resultsAxis}${cplAxis}${selectedRect}${bars}<polyline class="results-line ${auditInteractiveState.results?"":"series-hidden"}" points="${svgPolyline(resultsPts)}"/><polyline class="cpl-line ${auditInteractiveState.cpl?"":"series-hidden"}" points="${svgPolyline(cplPts.filter(p=>p.value!=null))}"/>${resultsPts.map(p=>`<circle class="result-point ${auditInteractiveState.results?"":"series-hidden"}" cx="${p.x}" cy="${p.y}" r="3"/>`).join("")}${resultLabels}${cplLabels}${annotations}${hover}${labels}</svg></div>`;
   el.querySelectorAll("[data-audit-series]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.auditSeries;auditInteractiveState[key]=!auditInteractiveState[key];auditMainPerformanceChart(series)}));
   el.querySelectorAll(".audit-hover-zone").forEach(zone=>zone.addEventListener("click",()=>{auditInteractiveState.pinnedDay=auditInteractiveState.pinnedDay===zone.dataset.day?null:zone.dataset.day;auditMainPerformanceChart(series)}));
   auditBindTooltips(el);
 }
+
 function auditFunnelBars(){
   const el=document.getElementById("auditFunnelBars");if(!el)return;const rows=(dashboard?.campaigns||[]).filter(row=>safeNum(row.spend)>0);
   el.innerHTML=rows.map(row=>{const clicks=safeNum(row.link_clicks),lpv=safeNum(row.landing_page_views),results=safeNum(row.results),lpvRate=ratioPercent(lpv,clicks)||0,regRate=ratioPercent(results,lpv||clicks)||0;return `<div class="audit-funnel-row"><strong title="${row.entity_name}">${row.entity_name}</strong><div class="audit-funnel-stage"><span>Clicks ${number(clicks)}</span><i style="width:100%"></i></div><div class="audit-funnel-stage lpv"><span>LPV ${number(lpv)} · ${percent(lpvRate)}</span><i style="width:${clamp(lpvRate,2,100)}%"></i></div><div class="audit-funnel-stage result"><span>Registrations ${number(results)} · ${percent(regRate)}</span><i style="width:${clamp(regRate*8,2,100)}%"></i></div></div>`}).join("")||'<div class="empty">No campaign funnel data.</div>';
@@ -2148,24 +2490,24 @@ function renderAuditOverview(){
   document.getElementById("auditSeverityLegend").innerHTML=severityItems.map(row=>`<span class="${row.key}"><i></i><strong>${number(row.value)}</strong> ${row.label}</span>`).join("");
   const model=auditEstimatedWasteRows(),waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=(advancedState?.creativeRows||[]).filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
   document.getElementById("auditWasteImpact").textContent=money(waste);document.getElementById("auditUpsideImpact").textContent=`~${decimal(upside)} registrations`;document.getElementById("auditScaleImpact").textContent=`${number(scale)} ads`;
-  const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`Overall · ${healthLabel.label}`;
+  const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`${t("Overall")} · ${healthLabel.label}`;
   document.getElementById("auditRadarChart").innerHTML=auditRadarSvg(health.dimensions);
-  document.getElementById("auditSeverityDonut").innerHTML=auditDonutHtml(severityItems,number(severity.rows.length),"FINDINGS");
+  document.getElementById("auditSeverityDonut").innerHTML=auditDonutHtml(severityItems,number(severity.rows.length),t("FINDINGS"));
   document.getElementById("auditCategoryBars").innerHTML=health.dimensions.map(row=>`<div class="audit-score-row"><div><span>${row.short}</span><strong>${row.score}</strong></div><div class="audit-score-track"><i class="target" style="left:80%"></i><span class="${row.score>=80?"good":row.score>=60?"warn":"bad"}" style="width:${row.score}%"></span></div></div>`).join("");
   document.getElementById("auditScorecards").innerHTML=health.dimensions.map(row=>`<article class="audit-scorecard ${row.score>=80?"good":row.score>=60?"warn":"bad"}"><span>${row.label}</span><strong>${row.score}</strong><div><i style="width:${row.score}%"></i></div><p>${row.detail}</p></article>`).join("");
   const series=auditDailySeries(30),rollingCpl=auditRolling(series,"cpl",7),rollingConv=auditRolling(series,"conversion",7),total30=series.reduce((sum,row)=>{sum.spend+=safeNum(row.spend);sum.results+=safeNum(row.results);return sum},{spend:0,results:0});
   const avgSpend=series.length?total30.spend/series.length:0,avgResults=series.length?total30.results/series.length:0,lastRollingCpl=rollingCpl.filter(v=>v!=null).at(-1),lastRollingConv=rollingConv.filter(v=>v!=null).at(-1);
   const pulse=[
-    ["Daily spend",money(avgSpend),`Total ${money(total30.spend)}`,series.map(r=>r.spend),"blue"],
-    ["Daily registrations",decimal(avgResults),`Total ${number(total30.results)}`,series.map(r=>r.results),"green"],
-    ["Rolling CPL",money(lastRollingCpl),"7-day blended",rollingCpl,"amber"],
-    ["Rolling conversion",percent(lastRollingConv),"7-day blended",rollingConv,"purple"]
+    ["Daily spend",money(avgSpend),`${t("Total")} ${money(total30.spend)}`,series.map(r=>r.spend),"blue",money],
+    ["Daily registrations",decimal(avgResults),`${t("Total")} ${number(total30.results)}`,series.map(r=>r.results),"green",number],
+    ["Rolling CPL",money(lastRollingCpl),t("7-day blended"),rollingCpl,"amber",money],
+    ["Rolling conversion",percent(lastRollingConv),t("7-day blended"),rollingConv,"purple",percent]
   ];
-  document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${row[0]}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4])}</article>`).join("");auditMainPerformanceChart(series);
-  const campaigns=[...(dashboard.campaigns||[])].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${campaigns.length} campaign${campaigns.length===1?"":"s"}`;
+  document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${t(row[0])}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4],row[5])}</article>`).join("");auditMainPerformanceChart(series);
+  const campaigns=[...(dashboard.campaigns||[])].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${number(campaigns.length)} ${t(campaigns.length===1?"campaign":"campaigns")}`;
   auditHorizontalBars("auditCampaignSpend",campaigns,{value:r=>r.spend,label:r=>r.entity_name,formatter:money,colorClass:"blue"});auditHorizontalBars("auditCampaignResults",campaigns,{value:r=>r.results,label:r=>r.entity_name,formatter:number,colorClass:"green"});auditHorizontalBars("auditCampaignCpl",campaigns.filter(r=>safeNum(r.results)>0),{value:r=>calculatedCpl(r),label:r=>r.entity_name,formatter:money,colorClass:"amber",target:auditTargetCpl()});
   auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
-  const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${findings.length} findings`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
+  const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${number(findings.length)} ${t(findings.length===1?"finding":"findings")}`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
   const actionSeed=findings.length?findings:[{type:"Account",title:"Maintain current controls",detail:"Continue daily monitoring."}];const unique=[];actionSeed.forEach((row,index)=>{const action=auditRecommendationAction(row,index);if(!unique.includes(action))unique.push(action)});const actions=unique.slice(0,6);document.getElementById("auditActionPlan").innerHTML=actions.map((action,index)=>`<div class="audit-action-step"><span>${index+1}</span><div><strong>${action}</strong><p>${index<2?"Execute this week":index<4?"Complete within 14 days":"Validate within 30 days"}</p></div><small>${index<2?"Immediate":index<4?"Near-term":"Strategic"}</small></div>`).join("");
   renderAuditImpactAnalysis();bindAuditImpactControls();auditBindTooltips(root);
 }

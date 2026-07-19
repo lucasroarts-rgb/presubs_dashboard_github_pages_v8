@@ -1,1 +1,1 @@
-10.6 - Custom day ranges, EN/FR/PT interface, student-profile banner control and period intelligence.
+10.6.2 - Full localization pass and clearer multi-axis chart labels.
