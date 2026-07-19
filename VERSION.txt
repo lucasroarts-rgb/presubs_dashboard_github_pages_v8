@@ -1,1 +1,1 @@
-10.6.3 - Audit data scope fix for fresh daily periods and current-week charts.
+10.6.4 - Audit Overview renderer fix for blank lower charts and scorecards.
