@@ -1,11 +1,78 @@
 const STATIC_DATA = window.PRESUBS_STATIC_DATA || null;
 const IS_STATIC = Boolean(STATIC_DATA);
 
-const money = value => value == null ? "—" : new Intl.NumberFormat("en-IE",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(value));
-const number = value => new Intl.NumberFormat("en-IE",{maximumFractionDigits:0}).format(Number(value)||0);
-const decimal = value => value == null ? "—" : new Intl.NumberFormat("en-IE",{maximumFractionDigits:2}).format(Number(value));
+let currentLang=(localStorage.getItem("peasy_dashboard_language")||"en").toLowerCase();
+if(!["en","fr","pt"].includes(currentLang))currentLang="en";
+const localeForLang=()=>({en:"en-IE",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-IE";
+const dateLocaleForLang=()=>({en:"en-GB",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-GB";
+const money = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(value));
+const number = value => new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:0}).format(Number(value)||0);
+const decimal = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:2}).format(Number(value));
 const percent = value => value == null ? "—" : `${decimal(value)}%`;
-const formatDate = value => value ? new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)) : "—";
+const formatDate = value => value ? new Intl.DateTimeFormat(dateLocaleForLang(),{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)) : "—";
+
+const UI_TRANSLATIONS={
+  fr:{
+    "Audit overview":"Vue d’audit","Overview":"Vue d’ensemble","Daily briefing":"Brief quotidien","Student profile":"Profil des étudiants","Management":"Pilotage","Creative health":"Santé des créatifs","Weekly comparison":"Comparaison hebdomadaire","Date analysis":"Analyse par date","Campaign structure":"Structure des campagnes","Campaigns":"Campagnes","Ad sets":"Ensembles de publicités","Ads":"Publicités","Daily performance":"Performance quotidienne","Page conversion":"Conversion des pages","Data quality":"Qualité des données",
+    "Marketing Performance":"Performance Marketing","Weekly import":"Import hebdomadaire","Language":"Langue","Presentation mode":"Mode présentation","Exit presentation":"Quitter la présentation","Export / Print":"Exporter / Imprimer",
+    "PreSubs acquisition review":"Revue d’acquisition PreSubs","Campaign performance, from spend to creative.":"Performance des campagnes, du budget aux créatifs.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Une vue interactive des campagnes, ensembles et publicités : dépenses, inscriptions, efficacité, diffusion et ancienneté des assets.",
+    "Reporting period:":"Période :","Comparison:":"Comparaison :","Currency:":"Devise :","Period type:":"Type de période :","Weekly":"Hebdomadaire","Custom dates":"Dates personnalisées","Change period:":"Changer la période :","From:":"Du :","To:":"Au :","Apply":"Appliquer",
+    "Period intelligence":"Intelligence de période","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexte rapide pour les réunions : meilleur jour, meilleure campagne, meilleur créatif, meilleure page et concentration des dépenses sur la période sélectionnée.","Selected period":"Période sélectionnée","Analysis period":"Période d’analyse","Choose a full imported week or any custom date range.":"Choisissez une semaine importée complète ou une plage de dates personnalisée.",
+    "Spend":"Dépenses","Registrations":"Inscriptions","Cost / registration":"Coût / inscription","Link clicks":"Clics sur le lien","Landing-page views":"Vues de page de destination","Link CTR":"CTR lien","CPL":"CPL","CTR":"CTR","CPC":"CPC","LPV":"LPV","Conversion":"Conversion","Impressions":"Impressions","Frequency":"Fréquence","Reach":"Couverture","Status":"Statut","Start date":"Date de début","Created":"Créée","Page":"Page","Campaign":"Campagne","Ad set":"Ensemble","Ad":"Publicité",
+    "Immediate":"Immédiat","Near-term":"Court terme","Strategic":"Stratégique","Recoverable inefficient spend":"Dépenses inefficaces récupérables","Estimated registration upside":"Potentiel estimé d’inscriptions","Scale-ready creative capacity":"Capacité créative prête à scaler","Meeting recap & change impact":"Résumé réunion & impact des changements","Copy meeting recap":"Copier le résumé","Annotation":"Annotation","Comparison window":"Fenêtre de comparaison","Before vs after":"Avant vs après","New creatives vs existing ads":"Nouveaux créatifs vs publicités existantes",
+    "All campaigns":"Toutes les campagnes","All ad sets":"Tous les ensembles","All pages":"Toutes les pages","All statuses":"Tous les statuts","No data for this period.":"Aucune donnée pour cette période.","No previous data":"Pas de données précédentes","No earlier period":"Aucune période antérieure","No comparison":"Pas de comparaison",
+    "Quality-control checks":"Contrôles qualité","Resolve critical items before making budget decisions.":"Résolvez les points critiques avant toute décision budgétaire.","Data quality":"Qualité des données","Student profile":"Profil des étudiants","Strategic implications":"Implications stratégiques"
+  },
+  pt:{
+    "Audit overview":"Visão de auditoria","Overview":"Visão geral","Daily briefing":"Resumo diário","Student profile":"Perfil dos alunos","Management":"Gestão","Creative health":"Saúde dos criativos","Weekly comparison":"Comparação semanal","Date analysis":"Análise por data","Campaign structure":"Estrutura de campanhas","Campaigns":"Campanhas","Ad sets":"Conjuntos","Ads":"Anúncios","Daily performance":"Performance diária","Page conversion":"Conversão das páginas","Data quality":"Qualidade dos dados",
+    "Marketing Performance":"Performance de Marketing","Weekly import":"Importação semanal","Language":"Idioma","Presentation mode":"Modo apresentação","Exit presentation":"Sair da apresentação","Export / Print":"Exportar / Imprimir",
+    "PreSubs acquisition review":"Revisão de aquisição PreSubs","Campaign performance, from spend to creative.":"Performance das campanhas, do investimento aos criativos.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Uma visão interativa de campanhas, conjuntos e anúncios, incluindo investimento, registros, eficiência, veiculação e tempo de atividade de cada ativo.",
+    "Reporting period:":"Período analisado:","Comparison:":"Comparação:","Currency:":"Moeda:","Period type:":"Tipo de período:","Weekly":"Semanal","Custom dates":"Datas personalizadas","Change period:":"Alterar período:","From:":"De:","To:":"Até:","Apply":"Aplicar",
+    "Period intelligence":"Inteligência do período","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexto rápido para reuniões: melhor dia, campanha mais forte, melhor criativo, página líder e concentração de investimento nas datas selecionadas.","Selected period":"Período selecionado","Analysis period":"Período de análise","Choose a full imported week or any custom date range.":"Escolha uma semana importada completa ou qualquer intervalo de datas personalizado.",
+    "Spend":"Investimento","Registrations":"Registros","Cost / registration":"Custo / registro","Link clicks":"Cliques no link","Landing-page views":"Visualizações da página","Link CTR":"CTR do link","CPL":"CPL","CTR":"CTR","CPC":"CPC","LPV":"LPV","Conversion":"Conversão","Impressions":"Impressões","Frequency":"Frequência","Reach":"Alcance","Status":"Status","Start date":"Data de início","Created":"Criado","Page":"Página","Campaign":"Campanha","Ad set":"Conjunto","Ad":"Anúncio",
+    "Immediate":"Imediato","Near-term":"Curto prazo","Strategic":"Estratégico","Recoverable inefficient spend":"Investimento ineficiente recuperável","Estimated registration upside":"Potencial estimado de registros","Scale-ready creative capacity":"Capacidade de criativos prontos para escala","Meeting recap & change impact":"Resumo da reunião e impacto das mudanças","Copy meeting recap":"Copiar resumo","Annotation":"Anotação","Comparison window":"Janela de comparação","Before vs after":"Antes vs depois","New creatives vs existing ads":"Novos criativos vs anúncios existentes",
+    "All campaigns":"Todas as campanhas","All ad sets":"Todos os conjuntos","All pages":"Todas as páginas","All statuses":"Todos os status","No data for this period.":"Sem dados para este período.","No previous data":"Sem dados anteriores","No earlier period":"Sem período anterior","No comparison":"Sem comparação",
+    "Quality-control checks":"Controles de qualidade","Resolve critical items before making budget decisions.":"Resolva itens críticos antes de tomar decisões de orçamento.","Data quality":"Qualidade dos dados","Student profile":"Perfil dos alunos","Strategic implications":"Implicações estratégicas"
+  }
+};
+Object.assign(UI_TRANSLATIONS.fr,{
+  "META ADS ACCOUNT AUDIT":"AUDIT DU COMPTE META ADS","PreSubs acquisition health & opportunity review":"Santé de l’acquisition PreSubs & revue des opportunités","Brand:":"Marque :","Window:":"Fenêtre :","Spend reviewed:":"Dépenses analysées :","HEALTH SCORE":"SCORE DE SANTÉ","Audit overview":"Vue d’audit","A health model adapted to the Meta metrics available in the dashboard.":"Un modèle de santé adapté aux métriques Meta disponibles dans le tableau de bord.","Health radar":"Radar de santé","Findings by severity":"Constats par sévérité","Action priority":"Priorité d’action","Category score vs target":"Score par catégorie vs objectif","Audit scorecard":"Scorecard d’audit","Performance pulse":"Tendance de performance","Campaign breakdown":"Répartition par campagne","Spend by campaign":"Dépenses par campagne","Registrations by campaign":"Inscriptions par campagne","CPL by campaign":"CPL par campagne","Funnel & creative diagnostics":"Diagnostic du funnel et des créatifs","Creative action mix":"Répartition des actions créatives","Spend vs CPL":"Dépenses vs CPL","Waste vs opportunity Pareto":"Pareto gaspillage vs opportunité","Findings & recommendations":"Constats & recommandations","30-day action plan":"Plan d’action 30 jours","Executive summary":"Résumé exécutif","Priority alerts":"Alertes prioritaires","Monthly pacing":"Rythme mensuel","Cumulative spend":"Dépenses cumulées","Cumulative registrations":"Inscriptions cumulées","Campaign comparison":"Comparaison des campagnes","Cost per registration by ad set":"Coût par inscription par ensemble","Top ads":"Meilleures publicités",
+  "Yesterday versus previous day":"Hier vs jour précédent","Daily pacing":"Rythme quotidien","Last 14 completed days":"14 derniers jours complets","Best ads yesterday":"Meilleures publicités hier","Needs attention":"À surveiller","Campaign snapshot":"Aperçu des campagnes","Page snapshot":"Aperçu des pages",
+  "Audience intelligence":"Intelligence audience","Who are Peasy students?":"Qui sont les étudiants Peasy ?","All students":"Tous les étudiants","Core student persona":"Persona étudiant principal","Aggregated":"Agrégé","Age distribution":"Répartition par âge","Current English level":"Niveau d’anglais actuel","Main motivations":"Motivations principales","Main barriers":"Freins principaux","Discovery channels":"Canaux de découverte","Most attractive programme elements":"Éléments du programme les plus attractifs","Academy versus Fluency Club":"Academy vs Fluency Club","Profile data notes":"Notes sur les données de profil","Responses":"Réponses","Average score":"Score moyen","Travel motivation":"Motivation voyage","Adult learner":"Apprenant adulte","French-speaking core":"Cœur francophone","Practical ambition":"Ambition pratique","Confidence through practice":"Confiance par la pratique",
+  "Travel confidently":"Voyager avec confiance","Professional needs":"Besoins professionnels","Lack of practice opportunities":"Manque d’occasions de pratiquer","Lack of method and structure":"Manque de méthode et de structure","Low confidence and fear of mistakes":"Manque de confiance et peur de faire des erreurs","Instagram content and lives":"Contenus et lives Instagram","Online events and masterclasses":"Événements en ligne et masterclasses","Platform content":"Contenu de la plateforme","Speaking Groups":"Speaking Groups",
+  "Choose any two imported reporting periods.":"Choisissez deux périodes importées.","Compare weeks":"Comparer les semaines","Campaign → Ad set → Ad":"Campagne → Ensemble → Publicité","Campaign performance":"Performance des campagnes","Ad-set performance":"Performance des ensembles","Ad-level performance":"Performance des publicités","Daily overview":"Vue quotidienne","Ad-by-day detail":"Détail publicité par jour","Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.":"Périodes personnalisées, comparaisons, tendances mensuelles et analyse complète du funnel.","Latest 7 days":"7 derniers jours","Latest 30 days":"30 derniers jours","Latest 90 days":"90 derniers jours","Latest month to date":"Mois en cours","Previous calendar month":"Mois civil précédent","Year to date":"Depuis le début de l’année","All available data":"Toutes les données disponibles","Previous period, same length":"Période précédente, même durée","Apply analysis":"Appliquer l’analyse","Export selected data":"Exporter les données sélectionnées","Performance trend":"Tendance de performance","Month-over-month performance":"Performance mois sur mois","Performance by weekday":"Performance par jour de semaine","Top ads for the range":"Meilleures publicités de la période","Page funnel":"Funnel de page","Management cockpit":"Cockpit de pilotage","Automatic alerts":"Alertes automatiques","Monthly goal history":"Historique des objectifs mensuels","Management timeline":"Chronologie de gestion"
+});
+Object.assign(UI_TRANSLATIONS.pt,{
+  "META ADS ACCOUNT AUDIT":"AUDITORIA DA CONTA META ADS","PreSubs acquisition health & opportunity review":"Saúde da aquisição PreSubs e revisão de oportunidades","Brand:":"Marca:","Window:":"Janela:","Spend reviewed:":"Investimento analisado:","HEALTH SCORE":"ÍNDICE DE SAÚDE","Audit overview":"Visão de auditoria","A health model adapted to the Meta metrics available in the dashboard.":"Um modelo de saúde adaptado às métricas Meta disponíveis no dashboard.","Health radar":"Radar de saúde","Findings by severity":"Achados por severidade","Action priority":"Prioridade de ação","Category score vs target":"Score por categoria vs meta","Audit scorecard":"Scorecard da auditoria","Performance pulse":"Pulso de performance","Campaign breakdown":"Quebra por campanha","Spend by campaign":"Investimento por campanha","Registrations by campaign":"Registros por campanha","CPL by campaign":"CPL por campanha","Funnel & creative diagnostics":"Diagnóstico do funil e criativos","Creative action mix":"Mix de ações de criativos","Spend vs CPL":"Investimento vs CPL","Waste vs opportunity Pareto":"Pareto desperdício vs oportunidade","Findings & recommendations":"Achados e recomendações","30-day action plan":"Plano de ação de 30 dias","Executive summary":"Resumo executivo","Priority alerts":"Alertas prioritários","Monthly pacing":"Ritmo mensal","Cumulative spend":"Investimento acumulado","Cumulative registrations":"Registros acumulados","Campaign comparison":"Comparação de campanhas","Cost per registration by ad set":"Custo por registro por conjunto","Top ads":"Melhores anúncios",
+  "Yesterday versus previous day":"Ontem vs dia anterior","Daily pacing":"Ritmo diário","Last 14 completed days":"Últimos 14 dias completos","Best ads yesterday":"Melhores anúncios de ontem","Needs attention":"Precisa de atenção","Campaign snapshot":"Resumo das campanhas","Page snapshot":"Resumo das páginas",
+  "Audience intelligence":"Inteligência de audiência","Who are Peasy students?":"Quem são os alunos da Peasy?","All students":"Todos os alunos","Core student persona":"Persona principal dos alunos","Aggregated":"Agregado","Age distribution":"Distribuição por idade","Current English level":"Nível atual de inglês","Main motivations":"Principais motivações","Main barriers":"Principais barreiras","Discovery channels":"Canais de descoberta","Most attractive programme elements":"Elementos mais atrativos do programa","Academy versus Fluency Club":"Academy versus Fluency Club","Profile data notes":"Notas sobre os dados de perfil","Responses":"Respostas","Average score":"Pontuação média","Travel motivation":"Motivação de viagem","Adult learner":"Aluno adulto","French-speaking core":"Base francófona","Practical ambition":"Ambição prática","Confidence through practice":"Confiança por meio da prática",
+  "Travel confidently":"Viajar com confiança","Professional needs":"Necessidades profissionais","Lack of practice opportunities":"Falta de oportunidades de prática","Lack of method and structure":"Falta de método e estrutura","Low confidence and fear of mistakes":"Baixa confiança e medo de errar","Instagram content and lives":"Conteúdo e lives no Instagram","Online events and masterclasses":"Eventos online e masterclasses","Platform content":"Conteúdo da plataforma","Speaking Groups":"Speaking Groups",
+  "Choose any two imported reporting periods.":"Escolha dois períodos importados.","Compare weeks":"Comparar semanas","Campaign → Ad set → Ad":"Campanha → Conjunto → Anúncio","Campaign performance":"Performance das campanhas","Ad-set performance":"Performance dos conjuntos","Ad-level performance":"Performance dos anúncios","Daily overview":"Visão diária","Ad-by-day detail":"Detalhe por anúncio e dia","Custom periods, previous-period comparisons, monthly trends and full-funnel breakdowns.":"Períodos personalizados, comparações, tendências mensais e análise completa do funil.","Latest 7 days":"Últimos 7 dias","Latest 30 days":"Últimos 30 dias","Latest 90 days":"Últimos 90 dias","Latest month to date":"Mês atual até hoje","Previous calendar month":"Mês calendário anterior","Year to date":"Ano até hoje","All available data":"Todos os dados disponíveis","Previous period, same length":"Período anterior, mesma duração","Apply analysis":"Aplicar análise","Export selected data":"Exportar dados selecionados","Performance trend":"Tendência de performance","Month-over-month performance":"Performance mês a mês","Performance by weekday":"Performance por dia da semana","Top ads for the range":"Melhores anúncios do período","Page funnel":"Funil da página","Management cockpit":"Cockpit de gestão","Automatic alerts":"Alertas automáticos","Monthly goal history":"Histórico de metas mensais","Management timeline":"Linha do tempo de gestão"
+});
+const originalTextNodes=new WeakMap();
+const originalAttrs=new WeakMap();
+function translatePhrase(source){
+  if(currentLang==="en")return source;
+  const dict=UI_TRANSLATIONS[currentLang]||{};
+  if(dict[source]!=null)return dict[source];
+  let out=source;
+  const replacements=currentLang==="fr"?[
+    [/^Previous (.+)$/,"Précédent $1"],[/^Comparison (.+)$/,"Comparaison $1"],[/^(\d+) campaigns?$/,"$1 campagne(s)"],[/^(\d+) days?$/,"$1 jour(s)"],[/^No (.+)$/,"Aucun $1"]
+  ]:[
+    [/^Previous (.+)$/,"Anterior $1"],[/^Comparison (.+)$/,"Comparação $1"],[/^(\d+) campaigns?$/,"$1 campanha(s)"],[/^(\d+) days?$/,"$1 dia(s)"],[/^No (.+)$/,"Sem $1"]
+  ];
+  for(const [pattern,repl] of replacements){if(pattern.test(source))return source.replace(pattern,repl)}
+  return out;
+}
+function applyTranslations(root=document){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement&&!["SCRIPT","STYLE","CODE"].includes(node.parentElement.tagName)&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{let source=originalTextNodes.get(node);if(source==null){source=node.nodeValue;originalTextNodes.set(node,source)}const trimmed=source.trim(),translated=translatePhrase(trimmed);node.nodeValue=translated===trimmed?source:source.replace(trimmed,translated)});
+  root.querySelectorAll?.("[title],[placeholder]").forEach(el=>{let original=originalAttrs.get(el);if(!original){original={title:el.getAttribute("title"),placeholder:el.getAttribute("placeholder")};originalAttrs.set(el,original)}if(original.title!=null)el.setAttribute("title",translatePhrase(original.title));if(original.placeholder!=null)el.setAttribute("placeholder",translatePhrase(original.placeholder))});
+  document.documentElement.lang=currentLang==="pt"?"pt-BR":currentLang;
+  const select=document.getElementById("languageSelect");if(select)select.value=currentLang;
+}
+
 
 let weeks=[];
 let dashboard=null;
@@ -141,7 +208,7 @@ async function loadWeeks(){
   const main=document.getElementById("weekSelect");
   const current=document.getElementById("compareCurrent");
   const previous=document.getElementById("comparePrevious");
-  const options=weeks.map(w=>`<option value="${w.id}">${w.label}</option>`).join("");
+  const options=weeks.map(w=>`<option value="${w.id}">${dateRangeLabel(w.week_start,w.week_end)}</option>`).join("");
   main.innerHTML=options||`<option>No reporting periods</option>`;
   current.innerHTML=options;
   previous.innerHTML=options;
@@ -151,7 +218,9 @@ async function loadWeeks(){
   if(weeks[0]) current.value=weeks[0].id;
   if(weeks[1]) previous.value=weeks[1].id;
   else if(weeks[0]) previous.value=weeks[0].id;
-  main.addEventListener("change",()=>loadDashboard(main.value));
+  main.addEventListener("change",()=>{if((document.getElementById("periodMode")?.value||"week")==="week")loadDashboard(main.value)});
+  document.getElementById("periodMode")?.addEventListener("change",handleGlobalPeriodMode);
+  document.getElementById("applyGlobalRange")?.addEventListener("click",applyGlobalCustomRange);
   document.getElementById("runComparison").addEventListener("click",loadComparison);
   document.getElementById("hideZeroDelivery").addEventListener("change",()=>{
     if(comparisonData) renderDetailedComparison(comparisonData);
@@ -285,8 +354,8 @@ function renderCampaignTable(){
     {label:"Spend",numeric:true,render:r=>money(r.spend)},
     {label:"Registrations",numeric:true,render:r=>number(r.results)},
     {label:"CPL",numeric:true,render:r=>money(calculatedCpl(r))},
-    {label:"Reach",numeric:true,render:r=>number(r.reach)},
-    {label:"Frequency",numeric:true,render:r=>decimal(r.frequency)},
+    {label:"Reach",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":number(r.reach)},
+    {label:"Frequency",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":decimal(r.frequency)},
     {label:"Impressions",numeric:true,render:r=>number(r.impressions)},
     {label:"Link clicks",numeric:true,render:r=>number(r.link_clicks)},
     {label:"CTR",numeric:true,render:r=>percent(r.ctr)},
@@ -307,8 +376,8 @@ function renderAdsetTable(){
     {label:"Spend",numeric:true,render:r=>money(r.spend)},
     {label:"Registrations",numeric:true,render:r=>number(r.results)},
     {label:"CPL",numeric:true,render:r=>money(calculatedCpl(r))},
-    {label:"Reach",numeric:true,render:r=>number(r.reach)},
-    {label:"Frequency",numeric:true,render:r=>decimal(r.frequency)},
+    {label:"Reach",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":number(r.reach)},
+    {label:"Frequency",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":decimal(r.frequency)},
     {label:"Impressions",numeric:true,render:r=>number(r.impressions)},
     {label:"Link clicks",numeric:true,render:r=>number(r.link_clicks)},
     {label:"CPC",numeric:true,render:r=>money(r.cpc)},
@@ -331,8 +400,8 @@ function renderAdTable(){
     {label:"Spend",numeric:true,render:r=>money(r.spend)},
     {label:"Registrations",numeric:true,render:r=>number(r.results)},
     {label:"CPL",numeric:true,render:r=>money(calculatedCpl(r))},
-    {label:"Reach",numeric:true,render:r=>number(r.reach)},
-    {label:"Frequency",numeric:true,render:r=>decimal(r.frequency)},
+    {label:"Reach",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":number(r.reach)},
+    {label:"Frequency",numeric:true,render:r=>dashboard?.current_week?.is_custom?"—":decimal(r.frequency)},
     {label:"Impressions",numeric:true,render:r=>number(r.impressions)},
     {label:"Link clicks",numeric:true,render:r=>number(r.link_clicks)},
     {label:"CPC",numeric:true,render:r=>money(r.cpc)},
@@ -668,7 +737,7 @@ function renderDaily(){
 
 
 function dailyBriefDateRows(){
-  const rows=advancedState?.rows||[];
+  const rows=typeof selectedPeriodRows==="function"?selectedPeriodRows():(advancedState?.rows||[]);
   if(!rows.length) return {latestDate:null,latestRows:[],previousDate:null,previousRows:[]};
   const dates=[...new Set(rows.map(row=>row.report_date).filter(Boolean))].sort();
   const latestDate=dates.at(-1)||null;
@@ -688,7 +757,7 @@ function dailyBriefMetricCard(label,value,note,delta=null,invert=false){
 }
 
 function dailyBriefTrendRows(){
-  const rows=advancedState?.rows||[];
+  const rows=typeof selectedPeriodRows==="function"?selectedPeriodRows():(advancedState?.rows||[]);
   const dates=[...new Set(rows.map(row=>row.report_date).filter(Boolean))].sort().slice(-14);
   return dates.map(day=>{
     const dayRows=rows.filter(row=>row.report_date===day);
@@ -1033,7 +1102,31 @@ async function loadComparison(){
   renderDetailedComparison(data);
 }
 
+function renderLoadedDashboard(){
+  const empty=!dashboard?.current_week;
+  document.getElementById("emptyState").classList.toggle("hidden",!empty);
+  if(empty){document.getElementById("kpis").innerHTML="";return}
+  document.getElementById("heroPeriod").textContent=dashboard.current_week.label;
+  document.getElementById("heroComparison").textContent=dashboard.previous_week?dashboard.previous_week.label:"No earlier period";
+  const safe=(label,fn)=>{try{fn()}catch(error){console.error(`Dashboard render error in ${label}:`,error)}};
+  safe("overview KPIs",()=>renderKpis(dashboard));
+  safe("campaign cards",()=>renderCampaignCards(dashboard.campaigns));
+  safe("ad-set bars",()=>renderAdsetBars(dashboard.adsets));
+  safe("top ads",()=>renderTopAds(dashboard.ads));
+  safe("page conversion",()=>renderConversion(dashboard));
+  safe("performance tables",()=>renderPerformanceTables(dashboard));
+  safe("daily performance",()=>renderDaily());
+  safe("campaign hierarchy",()=>renderHierarchy(dashboard));
+  if(typeof renderAdvancedCurrent==="function" && advancedState?.rows?.length){
+    advancedState.creativeRows=aggregateAdHistory(selectedPeriodRows());
+    safe("management intelligence",()=>renderAdvancedCurrent());
+  }else if(typeof renderAuditOverview==="function") safe("audit overview",()=>renderAuditOverview());
+  safe("period intelligence",()=>renderPeriodIntelligence());
+  setTimeout(()=>applyTranslations(document),0);
+}
+
 async function loadDashboard(weekId){
+  document.body.dataset.periodMode="week";
   if(IS_STATIC){
     const selected=weekId || STATIC_DATA.weeks?.[0]?.id;
     dashboard=STATIC_DATA.dashboards?.[String(selected)] || {current_week:null};
@@ -1041,29 +1134,71 @@ async function loadDashboard(weekId){
     const url=weekId?`/api/dashboard?week_id=${weekId}`:"/api/dashboard";
     dashboard=await fetch(url).then(r=>r.json());
   }
-  const empty=!dashboard.current_week;
-  document.getElementById("emptyState").classList.toggle("hidden",!empty);
-  if(empty){document.getElementById("kpis").innerHTML="";return}
-  document.getElementById("heroPeriod").textContent=dashboard.current_week.label;
-  document.getElementById("heroComparison").textContent=dashboard.previous_week?dashboard.previous_week.label:"No earlier week imported";
-  const safe=(label,fn)=>{
-    try{fn()}catch(error){
-      console.error(`Dashboard render error in ${label}:`,error);
-    }
-  };
-  safe("overview KPIs",()=>renderKpis(dashboard));
-  safe("campaign cards",()=>renderCampaignCards(dashboard.campaigns));
-  safe("ad-set bars",()=>renderAdsetBars(dashboard.adsets));
-  safe("top ads",()=>renderTopAds(dashboard.ads));
-  // Page conversion renders independently, so another table can never leave it blank.
-  safe("page conversion",()=>renderConversion(dashboard));
-  safe("performance tables",()=>renderPerformanceTables(dashboard));
-  safe("daily performance",()=>renderDaily());
-  safe("campaign hierarchy",()=>renderHierarchy(dashboard));
-  if(typeof renderAuditOverview==="function") safe("audit overview",()=>renderAuditOverview());
-  if(typeof renderAdvancedCurrent==="function" && advancedState?.rows?.length) safe("management intelligence",()=>renderAdvancedCurrent());
+  renderLoadedDashboard();
 }
 
+
+
+function selectedPeriodRows(){
+  if(!dashboard?.current_week)return [];
+  const start=dashboard.current_week.week_start,end=dashboard.current_week.week_end;
+  return (advancedState?.rows||dashboard.daily_ads||[]).filter(row=>row.report_date>=start&&row.report_date<=end);
+}
+function latestEntityMetadata(type,key){
+  const collection=type==="campaign"?"campaigns":type==="adset"?"adsets":"ads";
+  const dashboards=[...(advancedState?.dashboards||[])].sort((a,b)=>String(b.current_week?.week_end||"").localeCompare(String(a.current_week?.week_end||"")));
+  for(const data of dashboards){const found=(data[collection]||[]).find(row=>String(row.entity_key)===String(key));if(found)return found}
+  return {};
+}
+function customEntityRows(rows,type){
+  return rangeEntityGroups(rows,type).map(group=>{
+    const meta=latestEntityMetadata(type,group.entity_key),firstDate=group.rows.map(r=>r.report_date).sort()[0]||null;
+    const base={...meta,...group,entity_key:group.entity_key,entity_name:group.entity_name,spend:group.spend,results:group.results,impressions:group.impressions,link_clicks:group.link_clicks,landing_page_views:group.landing_page_views,cpc:group.cpc,ctr:group.ctr,cost_per_lpv:group.cost_per_lpv,conversion_rate:group.conversion_rate,conversion_basis:group.conversion_basis,cost_per_result:group.cpl,calculated_cpl:group.cpl};
+    base.effective_start_date=meta.effective_start_date||meta.created_date||firstDate;base.start_date_source=meta.start_date_source||"first_imported_delivery";base.reach=null;base.frequency=null;
+    return base;
+  });
+}
+function customPageGroups(rows){
+  return rangeEntityGroups(rows,"page").map(group=>{
+    const adNames=[...new Set(group.rows.map(r=>r.entity_name).filter(Boolean))];
+    const first=[...group.rows].sort((a,b)=>a.report_date.localeCompare(b.report_date))[0]||{};
+    return {...group,page_key:group.entity_key,page_name:group.entity_name,page_code:first.page_code||"MAIN",is_default:Boolean(first.is_default)||group.entity_key==="main",status:"active",effective_start_date:first.report_date||null,start_date_source:"first_imported_delivery",ad_names:adNames,page_url:first.page_url||null,cpl:group.cpl,drop_off_rate:group.drop_off_rate};
+  });
+}
+function customConversionSummary(metrics){return {spend:metrics.spend,results:metrics.results,cpl:metrics.cpl,link_clicks:metrics.link_clicks,landing_page_views:metrics.landing_page_views,conversion_denominator:metrics.denominator,conversion_basis:metrics.conversion_basis,conversion_rate:metrics.conversion_rate,drop_off_rate:metrics.drop_off_rate}}
+function customDailySummary(rows){return groupRangeRows(rows,r=>r.report_date,r=>r.report_date).sort((a,b)=>a.key.localeCompare(b.key)).map(g=>({report_date:g.key,spend:g.spend,results:g.results,cpl:g.cpl,impressions:g.impressions,link_clicks:g.link_clicks,cpc:g.cpc,ctr:g.ctr,landing_page_views:g.landing_page_views,cost_per_lpv:g.cost_per_lpv,conversion_denominator:g.denominator,conversion_basis:g.conversion_basis,conversion_rate:g.conversion_rate,ad_count:new Set(g.rows.map(r=>r.entity_key)).size,page_count:new Set(g.rows.map(r=>r.page_key||"main")).size}))}
+function buildCustomDashboard(start,end){
+  const rows=(advancedState?.rows||[]).filter(row=>row.report_date>=start&&row.report_date<=end),days=daysInclusive(start,end),prevEnd=addDaysIso(start,-1),prevStart=addDaysIso(start,-days),previousRows=(advancedState?.rows||[]).filter(row=>row.report_date>=prevStart&&row.report_date<=prevEnd);
+  const totals=rangeMetrics(rows),previousTotals=rangeMetrics(previousRows),campaigns=customEntityRows(rows,"campaign"),adsets=customEntityRows(rows,"adset"),ads=customEntityRows(rows,"ad"),previousCampaigns=customEntityRows(previousRows,"campaign"),pages=customPageGroups(rows),previousPages=customPageGroups(previousRows);
+  return {current_week:{id:`custom:${start}:${end}`,week_start:start,week_end:end,label:dateRangeLabel(start,end),is_custom:true},previous_week:{id:`custom:${prevStart}:${prevEnd}`,week_start:prevStart,week_end:prevEnd,label:dateRangeLabel(prevStart,prevEnd),is_custom:true},totals,previous_totals:previousTotals,conversion_summary:customConversionSummary(totals),previous_conversion_summary:customConversionSummary(previousTotals),campaigns,adsets,ads,pages:[],page_groups:pages,previous_page_groups:previousPages,page_comparison:[],daily_ads:rows,daily_summary:customDailySummary(rows),daily_available:Boolean(rows.length)};
+}
+function handleGlobalPeriodMode(){
+  const mode=document.getElementById("periodMode")?.value||"week";document.body.dataset.periodMode=mode;document.getElementById("customDateControls")?.classList.toggle("hidden",mode!=="custom");
+  if(mode==="week"){const id=document.getElementById("weekSelect")?.value;if(id)loadDashboard(id);return}
+  const rows=advancedState?.rows||[];if(!rows.length)return;const min=rows[0].report_date,max=rows.at(-1).report_date,start=document.getElementById("globalRangeStart"),end=document.getElementById("globalRangeEnd");start.min=min;start.max=max;end.min=min;end.max=max;if(!start.value)start.value=dashboard?.current_week?.week_start||addDaysIso(max,-6);if(!end.value)end.value=dashboard?.current_week?.week_end>max?max:(dashboard?.current_week?.week_end||max);
+}
+function applyGlobalCustomRange(){
+  const start=document.getElementById("globalRangeStart")?.value,end=document.getElementById("globalRangeEnd")?.value;if(!start||!end){alert("Choose a start and end date.");return}if(end<start){alert("The end date cannot be before the start date.");return}
+  document.body.dataset.periodMode="custom";dashboard=buildCustomDashboard(start,end);renderLoadedDashboard();
+}
+
+function weekdayLabel(dateValue){return new Intl.DateTimeFormat(dateLocaleForLang(),{weekday:"short",timeZone:"UTC"}).format(new Date(`${dateValue}T12:00:00Z`))}
+function renderPeriodIntelligence(){
+  const target=document.getElementById("periodIntelligence");if(!target||!dashboard?.current_week)return;const rows=selectedPeriodRows(),daily=customDailySummary(rows),campaigns=customEntityRows(rows,"campaign").filter(r=>r.results>0),ads=customEntityRows(rows,"ad").filter(r=>r.results>0),pages=customPageGroups(rows).filter(r=>r.results>0);
+  const bestDay=[...daily].filter(r=>r.results>0).sort((a,b)=>b.results-a.results||a.cpl-b.cpl)[0];const bestCampaign=[...campaigns].sort((a,b)=>a.cpl-b.cpl||b.results-a.results)[0];const topAd=[...ads].sort((a,b)=>b.results-a.results||a.cpl-b.cpl)[0];const pageLeader=[...pages].filter(r=>r.conversion_rate!=null).sort((a,b)=>b.conversion_rate-a.conversion_rate)[0];const spendSorted=[...ads].sort((a,b)=>b.spend-a.spend),top3=spendSorted.slice(0,3).reduce((s,r)=>s+r.spend,0),total=rangeMetrics(rows).spend,concentration=total?top3*100/total:0;
+  const items=[
+    ["Best registration day",bestDay?formatDate(bestDay.report_date):"—",bestDay?`${number(bestDay.results)} registrations · ${money(bestDay.cpl)} CPL`:"No registration day"],
+    ["Strongest campaign",bestCampaign?.entity_name||"—",bestCampaign?`${money(bestCampaign.cpl)} CPL · ${number(bestCampaign.results)} registrations`:"No campaign with registrations"],
+    ["Top creative",topAd?.entity_name||"—",topAd?`${number(topAd.results)} registrations · ${money(topAd.cpl)} CPL`:"No creative with registrations"],
+    ["Page conversion leader",pageLeader?.page_name||"—",pageLeader?`${percent(pageLeader.conversion_rate)} conversion · ${number(pageLeader.results)} registrations`:"No conversion data"],
+    ["Top-3 spend concentration",percent(concentration),`${money(top3)} of ${money(total)} spent on the 3 highest-spend ads`]
+  ];
+  target.innerHTML=items.map(([label,value,note])=>`<div class="period-intel-item"><span>${label}</span><strong>${value}</strong><p>${note}</p></div>`).join("");
+  const grouped=new Map();daily.forEach(row=>{const day=new Date(`${row.report_date}T12:00:00Z`).getUTCDay(),item=grouped.get(day)||{day,spend:0,results:0,dates:0};item.spend+=row.spend;item.results+=row.results;item.dates++;grouped.set(day,item)});const rowsDay=[1,2,3,4,5,6,0].map(day=>grouped.get(day)||{day,spend:0,results:0,dates:0}),maxResults=Math.max(1,...rowsDay.map(x=>x.dates?x.results/x.dates:0));const anchor="2026-07-";const dayDate={0:"12",1:"13",2:"14",3:"15",4:"16",5:"17",6:"18"};
+  const weekday=document.getElementById("weekdayPerformance");if(weekday)weekday.innerHTML=rowsDay.map(item=>{const avgResults=item.dates?item.results/item.dates:0,avgSpend=item.dates?item.spend/item.dates:0,cpl=item.results?item.spend/item.results:null;return `<div class="weekday-card" style="--day-strength:${Math.min(100,avgResults/maxResults*100)}%"><span>${weekdayLabel(anchor+dayDate[item.day])}</span><strong>${decimal(avgResults)} reg/day</strong><small>${money(cpl)} CPL · ${money(avgSpend)}/day</small></div>`}).join("");
+  const fresh=document.getElementById("periodFreshness");if(fresh)fresh.textContent=`${formatDate(dashboard.current_week.week_start)} – ${formatDate(dashboard.current_week.week_end)}`;
+  setTimeout(()=>applyTranslations(document),0);
+}
 
 [
   "campaignSearch","campaignStatusFilter"
@@ -1082,7 +1217,7 @@ async function loadDashboard(weekId){
 
 /* Responsive SVG charts for goals and historical comparisons */
 function chartNumber(value,formatter){return value==null||!Number.isFinite(Number(value))?"—":formatter(Number(value))}
-function shortMonthLabel(key){if(!/^\d{4}-\d{2}$/.test(String(key||"")))return String(key||"");return new Intl.DateTimeFormat("en-GB",{month:"short",year:"2-digit",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
+function shortMonthLabel(key){if(!/^\d{4}-\d{2}$/.test(String(key||"")))return String(key||"");return new Intl.DateTimeFormat(dateLocaleForLang(),{month:"short",year:"2-digit",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
 function chartEmpty(id,message="No chart data is available."){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="chart-empty">${message}</div>`}
 function svgPolyline(points){return points.map(point=>`${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ")}
 function renderCumulativePacingChart(containerId,{month,totalDays,cutoff,rows,targetTotal,metricKey,formatter,actualLabel="Actual",targetLabel="Target"}){
@@ -1263,7 +1398,7 @@ function trendLabel(key,granularity){
   if(granularity==="day") return formatDate(key);
   if(granularity==="week") return `${formatDate(key)} – ${formatDate(addDaysIso(key,6))}`;
   const [year,month]=key.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-GB",{month:"short",year:"numeric"}).format(new Date(Date.UTC(year,month-1,1)));
+  return new Intl.DateTimeFormat(dateLocaleForLang(),{month:"short",year:"numeric"}).format(new Date(Date.UTC(year,month-1,1)));
 }
 function resolveGranularity(start,end){
   const selected=document.getElementById("rangeGranularity")?.value||"auto";
@@ -1508,7 +1643,7 @@ function metricChange(current,previous){return previous?safeNum(current)*100/saf
 function dateDiffDays(start,end){return Math.max(0,Math.floor((isoDateObject(end)-isoDateObject(start))/86400000))}
 function clamp(value,min,max){return Math.min(max,Math.max(min,value))}
 function monthKey(dateValue){return String(dateValue||"").slice(0,7)}
-function monthLabelFromKey(key){if(!/^\d{4}-\d{2}$/.test(key||""))return key||"";return new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
+function monthLabelFromKey(key){if(!/^\d{4}-\d{2}$/.test(key||""))return key||"";return new Intl.DateTimeFormat(dateLocaleForLang(),{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${key}-01T12:00:00Z`))}
 function monthBounds(key){const [year,month]=String(key).split("-").map(Number),last=new Date(Date.UTC(year,month,0)).getUTCDate();return {start:`${key}-01`,end:`${key}-${String(last).padStart(2,"0")}`,days:last}}
 function goalReferenceDate(){return dashboard?.current_week?.week_end||advancedState.rows.at(-1)?.report_date||new Date().toISOString().slice(0,10)}
 function monthlyGoalForMonth(key){return (advancedConfig?.monthly_goals||[]).find(item=>item.month===key)||null}
@@ -2066,7 +2201,8 @@ async function initializeAdvancedFeatures(){
   const pages=[...new Map(advancedState.creativeRows.map(row=>[row.page_key,row.page_name])).entries()];
   const pageFilter=document.getElementById("creativePageFilter");if(pageFilter)pageFilter.insertAdjacentHTML("beforeend",pages.map(([key,name])=>`<option value="${key}">${name}</option>`).join(""));
   ["creativeSearch","creativeActionFilter","creativePageFilter"].forEach(id=>document.getElementById(id)?.addEventListener("input",renderCreativeHealth));
-  renderAdvancedCurrent();
+  const allRows=advancedState.rows||[];if(allRows.length){const min=allRows[0].report_date,max=allRows.at(-1).report_date;["globalRangeStart","globalRangeEnd"].forEach(id=>{const el=document.getElementById(id);if(el){el.min=min;el.max=max}})}
+  renderAdvancedCurrent();renderPeriodIntelligence();
 }
 
 function renderRangeAnnotations(){
@@ -2094,7 +2230,7 @@ function profileItem(dataset,key,label){return (dataset?.[key]||[]).find(item=>i
 function profilePct(dataset,key,label){return safeNum(profileItem(dataset,key,label).pct)}
 function profileSum(dataset,key,labels){return labels.reduce((sum,label)=>sum+profilePct(dataset,key,label),0)}
 function profileTop(dataset,key){return (dataset?.[key]||[])[0]||{label:"—",count:0,pct:0}}
-function profileDate(value){if(!value)return "—";return new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`))}
+function profileDate(value){if(!value)return "—";return new Intl.DateTimeFormat(dateLocaleForLang(),{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`))}
 function profileBarList(targetId,items,maxItems=6){
   const target=document.getElementById(targetId);if(!target)return;
   const rows=(items||[]).slice(0,maxItems),max=Math.max(1,...rows.map(item=>safeNum(item.pct)));
@@ -2157,14 +2293,30 @@ function renderStudentProfile(){
     ];
     const target=document.getElementById("studentComparisonTable");if(target)target.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Indicator</th><th class="num">Peasy Academy</th><th class="num">Fluency Club</th></tr></thead><tbody>${rows.map(row=>`<tr><td><strong>${row[0]}</strong></td><td class="num">${row[1]}</td><td class="num">${row[2]}</td></tr>`).join("")}</tbody></table></div>`;
   }
+  setTimeout(()=>applyTranslations(document),0);
 }
 document.querySelectorAll(".profile-filter-btn").forEach(btn=>btn.addEventListener("click",()=>{studentProfileState.selected=btn.dataset.profile;renderStudentProfile()}));
 
+function refreshWeekLabels(){
+  const ids=["weekSelect","compareCurrent","comparePrevious"];ids.forEach(id=>{const select=document.getElementById(id);if(!select)return;const value=select.value;select.innerHTML=(weeks||[]).map(w=>`<option value="${w.id}">${dateRangeLabel(w.week_start,w.week_end)}</option>`).join("");if([...select.options].some(o=>o.value===value))select.value=value});
+}
+function rerenderLanguage(){
+  refreshWeekLabels();
+  if(dashboard?.current_week)renderLoadedDashboard();
+  renderStudentProfile();
+  if(typeof renderDateAnalysis==="function"&&rangeAnalysisState)renderDateAnalysis();
+  applyTranslations(document);
+}
+document.getElementById("languageSelect")?.addEventListener("change",event=>{currentLang=event.target.value||"en";localStorage.setItem("peasy_dashboard_language",currentLang);rerenderLanguage()});
+
 async function bootstrapDashboard(){
+  const language=document.getElementById("languageSelect");if(language)language.value=currentLang;
+  applyTranslations(document);
   renderStudentProfile();
   advancedConfig=await loadAdvancedConfig();
   await loadWeeks();
   await initializeDateAnalysis();
   await initializeAdvancedFeatures();
+  applyTranslations(document);
 }
 bootstrapDashboard();

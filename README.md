@@ -103,3 +103,12 @@ The new first page is an audit-style Meta Ads overview. See `AUDIT_OVERVIEW_V10_
 
 ## v10.5 interactive audit
 See `INTERACTIVE_AUDIT_V10_5.md` for animated charts, annotation markers and the automatic before/after meeting recap.
+
+## v10.6: custom day ranges, languages and meeting intelligence
+
+- Global period selector now supports full imported weeks or any custom date interval from the available daily Meta history, such as 05 Jul to 07 Jul.
+- Custom ranges automatically compare against the immediately preceding period with the same number of days.
+- Interface language selector: English (default), French and Portuguese. Number and date formatting follow the selected language.
+- The global campaign-performance hero is hidden on Student Profile because the placement-test audience data is not tied to the selected Meta reporting period.
+- Audit Overview now includes Period intelligence: best registration day, strongest campaign, top creative, leading conversion page, top-3 spend concentration and weekday performance.
+- Reach and frequency are intentionally shown as unavailable for custom multi-day ranges when they cannot be safely reconstructed from daily data.

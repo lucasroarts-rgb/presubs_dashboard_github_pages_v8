@@ -1,1 +1,1 @@
-10.5 - Interactive animated audit charts, annotation impact analysis and meeting recap.
+10.6 - Custom day ranges, EN/FR/PT interface, student-profile banner control and period intelligence.

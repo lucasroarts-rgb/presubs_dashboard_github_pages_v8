@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css?v=10.5.0" />
+  <link rel="stylesheet" href="/static/styles.css?v=10.6.0" />
 </head>
 <body data-active-view="auditOverview">
 
@@ -44,8 +44,36 @@
       </div>
       <div class="top-actions">
         <a class="btn" href="/admin">Weekly import</a>
+        <label class="language-picker" title="Interface language">
+          <span>Language</span>
+          <select id="languageSelect" aria-label="Interface language">
+            <option value="en">EN</option>
+            <option value="fr">FR</option>
+            <option value="pt">PT</option>
+          </select>
+        </label>
         <button class="btn" id="presentationModeBtn" type="button">Presentation mode</button>
         <button class="btn btn-primary" onclick="window.print()">↗ Export / Print</button>
+      </div>
+    </div>
+
+    <div class="global-period-toolbar card">
+      <div class="period-toolbar-title"><strong>Analysis period</strong><span>Choose a full imported week or any custom date range.</span></div>
+      <div class="hero-period-controls">
+        <label class="hero-select light"><strong>Period type:</strong>
+          <select id="periodMode">
+            <option value="week">Weekly</option>
+            <option value="custom">Custom dates</option>
+          </select>
+        </label>
+        <label class="hero-select light" id="weekSelectWrap"><strong>Change period:</strong>
+          <select id="weekSelect"></select>
+        </label>
+        <div class="custom-date-controls light hidden" id="customDateControls">
+          <label><strong>From:</strong><input type="date" id="globalRangeStart" /></label>
+          <label><strong>To:</strong><input type="date" id="globalRangeEnd" /></label>
+          <button class="btn btn-primary hero-apply-btn" type="button" id="applyGlobalRange">Apply</button>
+        </div>
       </div>
     </div>
 
@@ -57,9 +85,7 @@
         <span><strong>Reporting period:</strong> <span id="heroPeriod">Loading…</span></span>
         <span><strong>Comparison:</strong> <span id="heroComparison">Previous imported week</span></span>
         <span><strong>Currency:</strong> EUR</span>
-        <label class="hero-select"><strong>Change period:</strong>
-          <select id="weekSelect"></select>
-        </label>
+
       </div>
     </section>
 
@@ -94,6 +120,15 @@
         <article class="audit-impact-card near"><span>Near-term</span><h3>Estimated registration upside</h3><p>Potential registrations if inefficient spend moved toward the strongest current CPL.</p><strong id="auditUpsideImpact">—</strong></article>
         <article class="audit-impact-card strategic"><span>Strategic</span><h3>Scale-ready creative capacity</h3><p>Ads currently classified as scale or keep candidates by recent performance.</p><strong id="auditScaleImpact">—</strong></article>
       </div>
+
+      <article class="card panel period-intelligence-card">
+        <div class="section-head">
+          <div><h2>Period intelligence</h2><p>Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.</p></div>
+          <span class="pill info" id="periodFreshness">Selected period</span>
+        </div>
+        <div id="periodIntelligence" class="period-intelligence-grid"></div>
+        <div id="weekdayPerformance" class="weekday-performance"></div>
+      </article>
 
       <article class="card panel audit-meeting-card">
         <div class="section-head audit-meeting-head">
@@ -736,7 +771,7 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="/static/student_profile_data.js?v=10.5.0"></script>
-  <script src="/static/dashboard.js?v=10.5.0"></script>
+  <script src="/static/student_profile_data.js?v=10.6.0"></script>
+  <script src="/static/dashboard.js?v=10.6.0"></script>
 </body>
 </html>
