@@ -1755,6 +1755,94 @@ function renderPageFunnels(groups=(dashboard?.page_groups||[])){
 }
 
 
+/* v10.5 interactive audit state ------------------------------------------------ */
+const auditInteractiveState={spend:true,results:true,cpl:true,pinnedDay:null,impactDays:7,impactAnnotationId:null};
+function auditTooltip(){
+  let el=document.getElementById("auditGlobalTooltip");
+  if(!el){el=document.createElement("div");el.id="auditGlobalTooltip";el.className="audit-tooltip";document.body.appendChild(el)}
+  return el;
+}
+function auditShowTooltip(html,event){const el=auditTooltip();el.innerHTML=html;el.classList.add("show");auditMoveTooltip(event)}
+function auditMoveTooltip(event){const el=document.getElementById("auditGlobalTooltip");if(!el||!event)return;const pad=14,w=el.offsetWidth||220,h=el.offsetHeight||90;let x=event.clientX+14,y=event.clientY+14;if(x+w>window.innerWidth-pad)x=event.clientX-w-14;if(y+h>window.innerHeight-pad)y=event.clientY-h-14;el.style.left=`${Math.max(pad,x)}px`;el.style.top=`${Math.max(pad,y)}px`}
+function auditHideTooltip(){document.getElementById("auditGlobalTooltip")?.classList.remove("show")}
+function auditEscape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]))}
+function auditBindTooltips(root=document){
+  root.querySelectorAll("[data-audit-tooltip]").forEach(el=>{
+    if(el.dataset.tooltipBound==="1")return;el.dataset.tooltipBound="1";
+    el.addEventListener("mouseenter",event=>auditShowTooltip(el.dataset.auditTooltip,event));
+    el.addEventListener("mousemove",auditMoveTooltip);el.addEventListener("mouseleave",auditHideTooltip);
+  });
+}
+function auditPctChange(after,before){before=safeNum(before);after=safeNum(after);if(!before)return after?null:0;return (after-before)/Math.abs(before)*100}
+function auditImpactTone(delta,invert=false){if(delta==null||!Number.isFinite(delta)||Math.abs(delta)<.05)return "neutral";const good=invert?delta<0:delta>0;return good?"good":"bad"}
+function auditImpactDelta(delta,invert=false){if(delta==null||!Number.isFinite(delta))return '<span class="impact-delta-badge neutral">No baseline</span>';const tone=auditImpactTone(delta,invert),arrow=delta>0?"↑":delta<0?"↓":"→";return `<span class="impact-delta-badge ${tone}">${arrow} ${decimal(Math.abs(delta))}%</span>`}
+function auditAnnotationList(){return [...(advancedConfig?.annotations||[])].filter(x=>x?.event_date).sort((a,b)=>String(b.event_date).localeCompare(String(a.event_date)))}
+function auditImpactAnnotation(){const rows=auditAnnotationList();if(!rows.length)return null;if(auditInteractiveState.impactAnnotationId){const found=rows.find(x=>String(x.id)===String(auditInteractiveState.impactAnnotationId));if(found)return found}auditInteractiveState.impactAnnotationId=String(rows[0].id);return rows[0]}
+function auditDailyCount(rows){return new Set((rows||[]).map(r=>r.report_date)).size}
+function auditPerDayMetrics(rows){const m=rangeMetrics(rows),days=Math.max(1,auditDailyCount(rows));return {...m,days,spend_per_day:m.spend/days,results_per_day:m.results/days}}
+function auditFirstSeenMap(){const map=new Map();(advancedState?.rows||[]).forEach(row=>{const key=row.entity_key;if(!key||!row.report_date)return;const current=map.get(key);if(!current||row.report_date<current)map.set(key,row.report_date)});return map}
+function auditImpactAnalysis(annotation,days=auditInteractiveState.impactDays){
+  if(!annotation)return null;const rows=advancedState?.rows||[];const latest=auditLatestDate();if(!latest)return null;const eventDate=annotation.event_date;
+  const beforeStart=addDaysIso(eventDate,-days),beforeEnd=addDaysIso(eventDate,-1),plannedEnd=addDaysIso(eventDate,days-1),afterEnd=plannedEnd<latest?plannedEnd:latest;
+  const beforeRows=rows.filter(r=>r.report_date>=beforeStart&&r.report_date<=beforeEnd),afterRows=eventDate<=latest?rows.filter(r=>r.report_date>=eventDate&&r.report_date<=afterEnd):[];
+  const before=auditPerDayMetrics(beforeRows),after=auditPerDayMetrics(afterRows),firstSeen=auditFirstSeenMap(),newKeys=new Set([...firstSeen.entries()].filter(([,d])=>d>=eventDate&&d<=afterEnd).map(([k])=>k));
+  const newRows=afterRows.filter(r=>newKeys.has(r.entity_key)),existingRows=afterRows.filter(r=>!newKeys.has(r.entity_key));
+  const newMetrics=rangeMetrics(newRows),existingMetrics=rangeMetrics(existingRows),newAds=rangeEntityGroups(newRows,"ad").sort((a,b)=>safeNum(b.results)-safeNum(a.results)||safeNum(b.spend)-safeNum(a.spend));
+  return {annotation,days,latest,eventDate,beforeStart,beforeEnd,afterEnd,beforeRows,afterRows,before,after,newRows,existingRows,newMetrics,existingMetrics,newAds,newKeys,future:eventDate>latest,afterDays:auditDailyCount(afterRows)};
+}
+function auditImpactMetricRows(analysis){
+  const b=analysis.before,a=analysis.after;
+  return [
+    {label:"Spend / day",before:b.spend_per_day,after:a.spend_per_day,formatter:money,invert:false},
+    {label:"Registrations / day",before:b.results_per_day,after:a.results_per_day,formatter:decimal,invert:false},
+    {label:"CPL",before:b.cpl,after:a.cpl,formatter:money,invert:true},
+    {label:"CTR",before:b.ctr,after:a.ctr,formatter:percent,invert:false},
+    {label:"Conversion",before:b.conversion_rate,after:a.conversion_rate,formatter:percent,invert:false}
+  ];
+}
+function auditImpactNarrative(analysis){
+  if(!analysis)return [];
+  const a=analysis.annotation;
+  if(analysis.future)return [
+    ["Baseline ready",`The annotation “${a.title}” is scheduled for ${formatDate(a.event_date)}. The dashboard already has the ${analysis.days}-day pre-change baseline and will fill the post-change comparison automatically as new daily data arrives.`],
+    ["What will be measured",`Daily registrations, spend, CPL, CTR and conversion will be compared before and after the event.`],
+    ["Creative cohort",`Ads first seen on or after ${formatDate(a.event_date)} will be separated from existing ads so their contribution can be reviewed in the same post-change window.`]
+  ];
+  const rows=auditImpactMetricRows(analysis),byKey=Object.fromEntries(rows.map(r=>[r.label,r])),delta=k=>auditPctChange(byKey[k].after,byKey[k].before);
+  const reg=delta("Registrations / day"),cpl=delta("CPL"),ctr=delta("CTR"),conv=delta("Conversion"),newShare=analysis.after.results?analysis.newMetrics.results/analysis.after.results*100:0;
+  const cplWord=cpl==null?"could not be compared":cpl<0?`improved ${decimal(Math.abs(cpl))}%`:`worsened ${decimal(Math.abs(cpl))}%`;
+  const regWord=reg==null?"has no comparable baseline":`${reg>=0?"increased":"decreased"} ${decimal(Math.abs(reg))}%`;
+  const trafficSignal=[ctr,conv].filter(v=>v!=null);const avgSignal=trafficSignal.length?trafficSignal.reduce((s,v)=>s+v,0)/trafficSignal.length:null;
+  return [
+    ["Observed performance",`After “${a.title}”, registrations per day ${regWord} and CPL ${cplWord} versus the preceding ${analysis.days}-day window.`],
+    ["Traffic quality",avgSignal==null?"CTR and conversion do not yet have enough comparable data.":`The combined direction of CTR and conversion is ${avgSignal>=0?"positive":"negative"}, averaging ${decimal(Math.abs(avgSignal))}% ${avgSignal>=0?"up":"down"} across those two indicators.`],
+    ["New creative contribution",analysis.newAds.length?`${analysis.newAds.length} ads were first seen after the annotation and generated ${number(analysis.newMetrics.results)} registrations at ${money(analysis.newMetrics.cpl)}, representing ${decimal(newShare)}% of post-change registrations.`:"No newly observed ad delivery was detected in the post-change window."],
+    ["Meeting note",`This is an observed before/after association. Budget, audience, seasonality and other simultaneous changes can also explain part of the movement.`]
+  ];
+}
+function auditImpactCopyText(analysis){const lines=auditImpactNarrative(analysis);if(!analysis)return "";return [`${analysis.annotation.title} · ${formatDate(analysis.annotation.event_date)}`,`Window: ${analysis.days} days before vs up to ${analysis.days} days after`,...lines.map(x=>`- ${x[0]}: ${x[1]}`)].join("\n")}
+function renderAuditImpactAnalysis(){
+  const select=document.getElementById("impactAnnotationSelect");if(!select)return;const annotations=auditAnnotationList();const current=auditImpactAnnotation();
+  select.innerHTML=annotations.length?annotations.map(row=>`<option value="${auditEscape(row.id)}" ${current&&String(row.id)===String(current.id)?"selected":""}>${formatDate(row.event_date)} · ${auditEscape(row.title)}</option>`).join(""):'<option value="">No annotations yet</option>';
+  document.querySelectorAll("[data-impact-days]").forEach(btn=>btn.classList.toggle("active",Number(btn.dataset.impactDays)===auditInteractiveState.impactDays));
+  const analysis=current?auditImpactAnalysis(current):null,status=document.getElementById("impactDataStatus"),context=document.getElementById("impactAnnotationContext"),kpis=document.getElementById("impactSummaryKpis"),chart=document.getElementById("impactBeforeAfterChart"),cohorts=document.getElementById("impactCreativeCohorts"),narrative=document.getElementById("impactMeetingNarrative"),tableTarget=document.getElementById("impactNewAdsTable");
+  if(!analysis){status.textContent="No annotation";context.innerHTML='<div class="impact-future">Add an annotation in the local admin to create an automatic before/after meeting recap.</div>';kpis.innerHTML=chart.innerHTML=cohorts.innerHTML=narrative.innerHTML=tableTarget.innerHTML="";return}
+  const a=analysis.annotation;status.className=`pill ${analysis.future?"info":analysis.afterDays>=Math.min(analysis.days,3)?"good":"warn"}`;status.textContent=analysis.future?"Baseline ready":`${analysis.afterDays} post-change day${analysis.afterDays===1?"":"s"}`;
+  context.innerHTML=`<strong>${auditEscape(a.title)}</strong><span>${auditEscape(a.category||"change")}</span><p>${formatDate(a.event_date)}${a.description?` · ${auditEscape(a.description)}`:""}</p>`;
+  if(analysis.future){kpis.innerHTML=`<div class="impact-future" style="grid-column:1/-1">The change is dated after the latest available Meta day (${formatDate(analysis.latest)}). Keep the annotation as-is: the dashboard will calculate the impact automatically after the daily imports pass ${formatDate(a.event_date)}.</div>`;chart.innerHTML="";cohorts.innerHTML="";tableTarget.innerHTML='<div class="empty">No post-change ads yet.</div>';narrative.innerHTML=auditImpactNarrative(analysis).map((row,i)=>`<div class="impact-narrative-line"><span>${i+1}</span><div><strong>${row[0]}</strong><p>${row[1]}</p></div></div>`).join("");return}
+  const metricRows=auditImpactMetricRows(analysis);kpis.innerHTML=metricRows.map(row=>{const d=auditPctChange(row.after,row.before),tone=auditImpactTone(d,row.invert),arrow=d==null?"":d>0?"↑":d<0?"↓":"→";return `<div class="impact-kpi"><span>${row.label}</span><strong>${row.formatter(row.after)}</strong><small>Before ${row.formatter(row.before)}</small><div class="delta ${tone}">${d==null?"No baseline":`${arrow} ${decimal(Math.abs(d))}%`}</div></div>`}).join("");
+  chart.innerHTML=metricRows.map(row=>{const max=Math.max(.0001,safeNum(row.before),safeNum(row.after));const delta=auditPctChange(row.after,row.before);return `<div class="impact-metric-row"><strong>${row.label}</strong><div class="impact-bar-cell"><div class="impact-mini-track"><span class="before" style="width:${Math.max(2,safeNum(row.before)/max*100)}%"></span></div><small>${row.formatter(row.before)}</small></div><div class="impact-bar-cell"><div class="impact-mini-track"><span class="after" style="width:${Math.max(2,safeNum(row.after)/max*100)}%"></span></div><small>${row.formatter(row.after)}</small></div>${auditImpactDelta(delta,row.invert)}</div>`}).join("");
+  const cohortCard=(title,rows,metrics)=>`<div class="impact-cohort-card"><header><strong>${title}</strong><span>${number(new Set(rows.map(r=>r.entity_key)).size)} ads</span></header><div class="impact-cohort-stats"><div><span>Spend</span><strong>${money(metrics.spend)}</strong></div><div><span>Registrations</span><strong>${number(metrics.results)}</strong></div><div><span>CPL</span><strong>${money(metrics.cpl)}</strong></div></div></div>`;
+  cohorts.innerHTML=cohortCard("Newly observed creatives",analysis.newRows,analysis.newMetrics)+cohortCard("Existing ads",analysis.existingRows,analysis.existingMetrics);
+  narrative.innerHTML=auditImpactNarrative(analysis).map((row,i)=>`<div class="impact-narrative-line"><span>${i+1}</span><div><strong>${row[0]}</strong><p>${row[1]}</p></div></div>`).join("");
+  table("impactNewAdsTable",[{label:"Ad",name:true,render:r=>r.entity_name},{label:"Spend",numeric:true,render:r=>money(r.spend)},{label:"Registrations",numeric:true,render:r=>number(r.results)},{label:"CPL",numeric:true,render:r=>money(r.cpl)}],analysis.newAds.slice(0,8),"No new ad delivery detected after this annotation.");
+}
+function bindAuditImpactControls(){
+  const select=document.getElementById("impactAnnotationSelect");if(select&&!select.dataset.bound){select.dataset.bound="1";select.addEventListener("change",()=>{auditInteractiveState.impactAnnotationId=select.value;renderAuditImpactAnalysis();auditMainPerformanceChart(auditDailySeries(30))})}
+  document.querySelectorAll("[data-impact-days]").forEach(btn=>{if(btn.dataset.bound)return;btn.dataset.bound="1";btn.addEventListener("click",()=>{auditInteractiveState.impactDays=Number(btn.dataset.impactDays)||7;renderAuditImpactAnalysis()})});
+  const copy=document.getElementById("copyMeetingRecapBtn");if(copy&&!copy.dataset.bound){copy.dataset.bound="1";copy.addEventListener("click",async()=>{const analysis=auditImpactAnalysis(auditImpactAnnotation());const text=auditImpactCopyText(analysis);if(!text)return;try{await navigator.clipboard.writeText(text);copy.textContent="Copied ✓";setTimeout(()=>copy.textContent="Copy meeting recap",1400)}catch{copy.textContent="Copy failed";setTimeout(()=>copy.textContent="Copy meeting recap",1400)}})}
+}
+
 /* v10.4 account-audit overview ------------------------------------------------ */
 function auditTargetCpl(){
   const key=dashboard?.current_week?.week_end?.slice(0,7)||monthKey(new Date().toISOString().slice(0,10));
@@ -1852,13 +1940,13 @@ function auditRadarSvg(dimensions){
   const point=(i,value=100)=>{const angle=-Math.PI/2+i*2*Math.PI/n;const rr=r*value/100;return {x:cx+Math.cos(angle)*rr,y:cy+Math.sin(angle)*rr}};
   const polygon=value=>dimensions.map((_,i)=>{const p=point(i,value);return `${p.x.toFixed(1)},${p.y.toFixed(1)}`}).join(" ");
   const axes=dimensions.map((row,i)=>{const p=point(i,100),label=point(i,126);return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}"/><text x="${label.x}" y="${label.y}" text-anchor="middle">${row.short}</text>`}).join("");
-  const labels=dimensions.map((row,i)=>{const p=point(i,row.score);return `<circle cx="${p.x}" cy="${p.y}" r="3.5"><title>${row.label}: ${row.score}</title></circle>`}).join("");
-  return `<svg class="audit-radar-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Account health radar"><g class="radar-grid"><polygon points="${polygon(100)}"/><polygon points="${polygon(75)}"/><polygon points="${polygon(50)}"/><polygon points="${polygon(25)}"/>${axes}</g><polygon class="radar-current" points="${dimensions.map((row,i)=>{const p=point(i,row.score);return `${p.x.toFixed(1)},${p.y.toFixed(1)}`}).join(" ")}"/>${labels}</svg>`;
+  const labels=dimensions.map((row,i)=>{const p=point(i,row.score),tip=`<strong>${auditEscape(row.label)}</strong><span>Score ${row.score}/100</span><span>${auditEscape(row.detail)}</span>`;return `<circle cx="${p.x}" cy="${p.y}" r="3.5" data-audit-tooltip="${auditEscape(tip)}"></circle>`}).join("");
+  return `<svg class="audit-radar-svg interactive-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Account health radar"><g class="radar-grid"><polygon points="${polygon(100)}"/><polygon points="${polygon(75)}"/><polygon points="${polygon(50)}"/><polygon points="${polygon(25)}"/>${axes}</g><polygon class="radar-current" points="${dimensions.map((row,i)=>{const p=point(i,row.score);return `${p.x.toFixed(1)},${p.y.toFixed(1)}`}).join(" ")}"/>${labels}</svg>`;
 }
 function auditHorizontalBars(targetId,rows,{value,label,formatter,colorClass="blue",target=null}){
   const el=document.getElementById(targetId);if(!el)return;
   const data=(rows||[]).filter(row=>safeNum(value(row))>0);const max=Math.max(1,...data.map(row=>safeNum(value(row))),target||0);
-  el.innerHTML=data.length?data.map(row=>{const val=safeNum(value(row));return `<div class="audit-hbar-row"><div class="audit-hbar-label" title="${label(row)}">${label(row)}</div><div class="audit-hbar-track">${target?`<i class="audit-target-marker" style="left:${clamp(target/max*100,0,100)}%"></i>`:""}<span class="${colorClass}" style="width:${Math.max(2,val/max*100)}%"></span></div><strong>${formatter(val)}</strong></div>`}).join(""):`<div class="empty">No delivery in this period.</div>`;
+  el.innerHTML=data.length?data.map(row=>{const val=safeNum(value(row)),tip=`<strong>${auditEscape(label(row))}</strong><span>${formatter(val)}</span>${target?`<span>Target ${formatter(target)}</span>`:""}`;return `<div class="audit-hbar-row" data-audit-tooltip="${auditEscape(tip)}"><div class="audit-hbar-label" title="${label(row)}">${label(row)}</div><div class="audit-hbar-track">${target?`<i class="audit-target-marker" style="left:${clamp(target/max*100,0,100)}%"></i>`:""}<span class="${colorClass}" style="width:${Math.max(2,val/max*100)}%"></span></div><strong>${formatter(val)}</strong></div>`}).join(""):`<div class="empty">No delivery in this period.</div>`;auditBindTooltips(el);
 }
 function auditSparkline(values,cls="blue"){
   const data=values.map(safeNum);if(!data.length)return "";const width=230,height=78,pad=4,max=Math.max(...data,1),min=Math.min(...data,0),range=Math.max(.001,max-min);
@@ -1873,12 +1961,18 @@ function auditMainPerformanceChart(series){
   const maxSpend=Math.max(1,...series.map(r=>safeNum(r.spend)))*1.15,maxResults=Math.max(1,...series.map(r=>safeNum(r.results)))*1.25;
   const cpl=auditRolling(series,"cpl",7),maxCpl=Math.max(1,...cpl.map(safeNum))*1.15;
   const x=i=>left+i/Math.max(1,series.length-1)*plotW,ySpend=v=>top+plotH-safeNum(v)/maxSpend*plotH,yResult=v=>top+plotH-safeNum(v)/maxResults*plotH,yCpl=v=>top+plotH-safeNum(v)/maxCpl*plotH;
-  const barW=Math.max(8,Math.min(22,plotW/series.length*.58));
-  const bars=series.map((row,i)=>`<rect class="audit-perf-bar" x="${x(i)-barW/2}" y="${ySpend(row.spend)}" width="${barW}" height="${top+plotH-ySpend(row.spend)}" rx="4"><title>${formatDate(row.key)} · Spend ${money(row.spend)}</title></rect>`).join("");
+  const barW=Math.max(8,Math.min(22,plotW/series.length*.58)),step=series.length>1?plotW/(series.length-1):plotW;
+  const bars=series.map((row,i)=>`<rect class="audit-perf-bar ${auditInteractiveState.spend?"":"series-hidden"}" x="${x(i)-barW/2}" y="${ySpend(row.spend)}" width="${barW}" height="${top+plotH-ySpend(row.spend)}" rx="4"></rect>`).join("");
   const resultsPts=series.map((row,i)=>({x:x(i),y:yResult(row.results)})),cplPts=cpl.map((v,i)=>({x:x(i),y:yCpl(v)}));
   const labels=series.map((row,i)=>i%Math.max(1,Math.ceil(series.length/8))===0?`<text x="${x(i)}" y="${height-20}" text-anchor="middle">${row.key.slice(5)}</text>`:"").join("");
   const grid=[0,.25,.5,.75,1].map(t=>`<line x1="${left}" y1="${top+plotH-t*plotH}" x2="${width-right}" y2="${top+plotH-t*plotH}"/>`).join("");
-  el.innerHTML=`<div class="audit-chart-legend"><span><i class="bar"></i>Spend</span><span><i class="line green"></i>Registrations</span><span><i class="line amber"></i>Rolling CPL</span></div><div class="chart-scroll"><svg class="audit-performance-svg" viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${grid}${bars}<polyline class="results-line" points="${svgPolyline(resultsPts)}"/><polyline class="cpl-line" points="${svgPolyline(cplPts)}"/>${resultsPts.map(p=>`<circle class="result-point" cx="${p.x}" cy="${p.y}" r="3"/>`).join("")}${labels}</svg></div>`;
+  const hover=series.map((row,i)=>{const tip=`<strong>${formatDate(row.key)}</strong><span>Spend ${money(row.spend)}</span><span>Registrations ${number(row.results)}</span><span>CPL ${money(row.cpl)}</span><span>CTR ${percent(row.ctr)}</span><span>Conversion ${percent(row.conversion_rate)}</span>`;return `<rect class="audit-hover-zone" data-day="${row.key}" data-audit-tooltip="${auditEscape(tip)}" x="${Math.max(left,x(i)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`}).join("");
+  const annotations=auditAnnotationList().filter(a=>a.event_date>=series[0].key&&a.event_date<=series.at(-1).key).map(a=>{const idx=series.findIndex(row=>row.key>=a.event_date);if(idx<0)return "";const xx=x(idx),tip=`<strong>${auditEscape(a.title)}</strong><span>${formatDate(a.event_date)} · ${auditEscape(a.category||"change")}</span>${a.description?`<span>${auditEscape(a.description)}</span>`:""}`;return `<line class="audit-annotation-marker" x1="${xx}" y1="${top}" x2="${xx}" y2="${top+plotH}"></line><circle class="audit-annotation-dot" cx="${xx}" cy="${top+9}" r="5" data-audit-tooltip="${auditEscape(tip)}"></circle>`}).join("");
+  const selected=auditInteractiveState.pinnedDay;const selectedIdx=selected?series.findIndex(r=>r.key===selected):-1;const selectedRect=selectedIdx>=0?`<rect class="audit-day-highlight" x="${Math.max(left,x(selectedIdx)-step/2)}" y="${top}" width="${Math.max(12,step)}" height="${plotH}"></rect>`:"";
+  el.innerHTML=`<div class="audit-chart-legend"><button type="button" data-audit-series="spend" class="${auditInteractiveState.spend?"":"off"}"><i class="bar"></i>Spend</button><button type="button" data-audit-series="results" class="${auditInteractiveState.results?"":"off"}"><i class="line green"></i>Registrations</button><button type="button" data-audit-series="cpl" class="${auditInteractiveState.cpl?"":"off"}"><i class="line amber"></i>Rolling CPL</button><span class="annotation-key"><i></i>Annotation</span></div><div class="chart-scroll"><svg class="audit-performance-svg interactive-chart" viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${grid}${selectedRect}${bars}<polyline class="results-line ${auditInteractiveState.results?"":"series-hidden"}" points="${svgPolyline(resultsPts)}"/><polyline class="cpl-line ${auditInteractiveState.cpl?"":"series-hidden"}" points="${svgPolyline(cplPts)}"/>${resultsPts.map(p=>`<circle class="result-point ${auditInteractiveState.results?"":"series-hidden"}" cx="${p.x}" cy="${p.y}" r="3"/>`).join("")}${annotations}${hover}${labels}</svg></div>`;
+  el.querySelectorAll("[data-audit-series]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.auditSeries;auditInteractiveState[key]=!auditInteractiveState[key];auditMainPerformanceChart(series)}));
+  el.querySelectorAll(".audit-hover-zone").forEach(zone=>zone.addEventListener("click",()=>{auditInteractiveState.pinnedDay=auditInteractiveState.pinnedDay===zone.dataset.day?null:zone.dataset.day;auditMainPerformanceChart(series)}));
+  auditBindTooltips(el);
 }
 function auditFunnelBars(){
   const el=document.getElementById("auditFunnelBars");if(!el)return;const rows=(dashboard?.campaigns||[]).filter(row=>safeNum(row.spend)>0);
@@ -1892,8 +1986,8 @@ function auditCreativeMix(){
 function auditBubbleChart(){
   const el=document.getElementById("auditBubbleChart");if(!el)return;const rows=(dashboard?.ads||[]).filter(row=>safeNum(row.spend)>0&&safeNum(row.results)>0).slice(0,40);if(!rows.length){el.innerHTML='<div class="empty">No ads with registrations.</div>';return}
   const width=430,height=285,left=45,right=18,top=20,bottom=38,maxSpend=Math.max(1,...rows.map(r=>safeNum(r.spend))),maxCpl=Math.max(1,...rows.map(r=>safeNum(r.auditCpl||calculatedCpl(r)))),maxResults=Math.max(1,...rows.map(r=>safeNum(r.results))),target=auditTargetCpl();
-  const x=v=>left+safeNum(v)/maxCpl*(width-left-right),y=v=>top+(1-safeNum(v)/maxSpend)*(height-top-bottom);const bubbles=rows.map(row=>{const cpl=calculatedCpl(row),r=5+Math.sqrt(safeNum(row.results)/maxResults)*16,cls=cpl<=target?"good":cpl<=target*1.2?"warn":"bad";return `<circle class="${cls}" cx="${x(cpl)}" cy="${y(row.spend)}" r="${r}"><title>${row.entity_name} · Spend ${money(row.spend)} · CPL ${money(cpl)} · ${number(row.results)} registrations</title></circle>`}).join("");
-  el.innerHTML=`<svg class="audit-bubble-svg" viewBox="0 0 ${width} ${height}"><line class="bubble-target" x1="${x(target)}" y1="${top}" x2="${x(target)}" y2="${height-bottom}"/><text x="${x(target)+4}" y="${top+11}">Target CPL</text>${bubbles}<text x="${width/2}" y="${height-8}" text-anchor="middle">CPL →</text><text transform="translate(12 ${height/2}) rotate(-90)" text-anchor="middle">Spend →</text></svg>`;
+  const x=v=>left+safeNum(v)/maxCpl*(width-left-right),y=v=>top+(1-safeNum(v)/maxSpend)*(height-top-bottom);const bubbles=rows.map(row=>{const cpl=calculatedCpl(row),r=5+Math.sqrt(safeNum(row.results)/maxResults)*16,cls=cpl<=target?"good":cpl<=target*1.2?"warn":"bad",tip=`<strong>${auditEscape(row.entity_name)}</strong><span>Spend ${money(row.spend)}</span><span>CPL ${money(cpl)}</span><span>${number(row.results)} registrations</span>`;return `<circle class="${cls}" cx="${x(cpl)}" cy="${y(row.spend)}" r="${r}" data-audit-tooltip="${auditEscape(tip)}"></circle>`}).join("");
+  el.innerHTML=`<svg class="audit-bubble-svg interactive-chart" viewBox="0 0 ${width} ${height}"><line class="bubble-target" x1="${x(target)}" y1="${top}" x2="${x(target)}" y2="${height-bottom}"/><text x="${x(target)+4}" y="${top+11}">Target CPL</text>${bubbles}<text x="${width/2}" y="${height-8}" text-anchor="middle">CPL →</text><text transform="translate(12 ${height/2}) rotate(-90)" text-anchor="middle">Spend →</text></svg>`;auditBindTooltips(el);
 }
 function auditPareto(targetId,rows,valueKey,kind){
   const el=document.getElementById(targetId);if(!el)return;const data=[...rows].filter(row=>safeNum(row[valueKey])>0).sort((a,b)=>safeNum(b[valueKey])-safeNum(a[valueKey])).slice(0,10);if(!data.length){el.innerHTML='<div class="empty">No concentration found.</div>';return}
@@ -1938,6 +2032,7 @@ function renderAuditOverview(){
   auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
   const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${findings.length} findings`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
   const actionSeed=findings.length?findings:[{type:"Account",title:"Maintain current controls",detail:"Continue daily monitoring."}];const unique=[];actionSeed.forEach((row,index)=>{const action=auditRecommendationAction(row,index);if(!unique.includes(action))unique.push(action)});const actions=unique.slice(0,6);document.getElementById("auditActionPlan").innerHTML=actions.map((action,index)=>`<div class="audit-action-step"><span>${index+1}</span><div><strong>${action}</strong><p>${index<2?"Execute this week":index<4?"Complete within 14 days":"Validate within 30 days"}</p></div><small>${index<2?"Immediate":index<4?"Near-term":"Strategic"}</small></div>`).join("");
+  renderAuditImpactAnalysis();bindAuditImpactControls();auditBindTooltips(root);
 }
 
 function renderAdvancedCurrent(){

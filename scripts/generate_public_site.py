@@ -28,9 +28,9 @@ def clean_json(value: Any) -> Any:
 
 def build_public_index() -> str:
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    html = html.replace('/static/styles.css?v=10.4.0', 'styles.css?v=10.4.0')
-    html = html.replace('/static/dashboard.js?v=10.4.0', 'dashboard.js?v=10.4.0')
-    html = html.replace('/static/student_profile_data.js?v=10.4.0', 'student_profile_data.js?v=10.4.0')
+    html = html.replace('/static/styles.css?v=10.5.0', 'styles.css?v=10.5.0')
+    html = html.replace('/static/dashboard.js?v=10.5.0', 'dashboard.js?v=10.5.0')
+    html = html.replace('/static/student_profile_data.js?v=10.5.0', 'student_profile_data.js?v=10.5.0')
     html = html.replace('/static/assets/peasy-logo.png', 'assets/peasy-logo.png')
     html = html.replace('<a class="btn" href="/admin">Weekly import</a>', '')
     html = html.replace(
@@ -45,8 +45,8 @@ def build_public_index() -> str:
     html = html.replace('<a class="btn" href="/admin">Edit goals</a>', '')
     html = html.replace('<a class="btn" href="/admin">Configure goals and events</a>', '')
     html = html.replace(
-        '<script src="dashboard.js?v=10.4.0"></script>',
-        '<script src="data.js?v=10.4.0"></script>\n  <script src="dashboard.js?v=10.4.0"></script>',
+        '<script src="dashboard.js?v=10.5.0"></script>',
+        '<script src="data.js?v=10.5.0"></script>\n  <script src="dashboard.js?v=10.5.0"></script>',
     )
     return html
 

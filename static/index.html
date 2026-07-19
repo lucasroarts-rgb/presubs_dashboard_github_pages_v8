@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css?v=10.4.0" />
+  <link rel="stylesheet" href="/static/styles.css?v=10.5.0" />
 </head>
 <body data-active-view="auditOverview">
 
@@ -94,6 +94,42 @@
         <article class="audit-impact-card near"><span>Near-term</span><h3>Estimated registration upside</h3><p>Potential registrations if inefficient spend moved toward the strongest current CPL.</p><strong id="auditUpsideImpact">—</strong></article>
         <article class="audit-impact-card strategic"><span>Strategic</span><h3>Scale-ready creative capacity</h3><p>Ads currently classified as scale or keep candidates by recent performance.</p><strong id="auditScaleImpact">—</strong></article>
       </div>
+
+      <article class="card panel audit-meeting-card">
+        <div class="section-head audit-meeting-head">
+          <div><h2>Meeting recap & change impact</h2><p>Connect timeline annotations to performance before and after each change. Observed movement is shown as correlation, not causal proof.</p></div>
+          <div class="audit-meeting-actions">
+            <button class="btn" id="copyMeetingRecapBtn" type="button">Copy meeting recap</button>
+            <span class="pill info" id="impactDataStatus">Waiting for annotation</span>
+          </div>
+        </div>
+        <div class="impact-controls">
+          <label><span>Annotation</span><select id="impactAnnotationSelect"></select></label>
+          <div class="impact-window-control"><span>Comparison window</span><div class="impact-window-buttons"><button type="button" data-impact-days="3">3 days</button><button type="button" data-impact-days="7" class="active">7 days</button><button type="button" data-impact-days="14">14 days</button></div></div>
+        </div>
+        <div id="impactAnnotationContext" class="impact-annotation-context"></div>
+        <div id="impactSummaryKpis" class="impact-summary-kpis"></div>
+        <div class="impact-analysis-grid">
+          <div class="impact-panel">
+            <div class="audit-chart-heading"><strong>Before vs after</strong><span>Daily-normalised comparison</span></div>
+            <div id="impactBeforeAfterChart" class="impact-before-after"></div>
+          </div>
+          <div class="impact-panel">
+            <div class="audit-chart-heading"><strong>New creatives vs existing ads</strong><span>Same post-change window</span></div>
+            <div id="impactCreativeCohorts" class="impact-cohorts"></div>
+          </div>
+        </div>
+        <div class="impact-bottom-grid">
+          <div class="impact-panel">
+            <div class="audit-chart-heading"><strong>Automatic meeting narrative</strong><span>Ready to present</span></div>
+            <div id="impactMeetingNarrative" class="impact-meeting-narrative"></div>
+          </div>
+          <div class="impact-panel">
+            <div class="audit-chart-heading"><strong>New ads first seen after the change</strong><span>Top contributors</span></div>
+            <div id="impactNewAdsTable"></div>
+          </div>
+        </div>
+      </article>
 
       <article class="card panel audit-overview-card">
         <div class="section-head"><div><h2>Audit overview</h2><p>A health model adapted to the Meta metrics available in the dashboard.</p></div><span class="pill" id="auditOverallPill">Calculating</span></div>
@@ -700,7 +736,7 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="/static/student_profile_data.js?v=10.4.0"></script>
-  <script src="/static/dashboard.js?v=10.4.0"></script>
+  <script src="/static/student_profile_data.js?v=10.5.0"></script>
+  <script src="/static/dashboard.js?v=10.5.0"></script>
 </body>
 </html>
