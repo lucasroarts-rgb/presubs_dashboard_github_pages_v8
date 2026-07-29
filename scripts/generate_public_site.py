@@ -99,18 +99,31 @@ def build_public_javascript() -> str:
         raise RuntimeError("Could not patch hierarchy preview button.")
     js = js.replace(old_hierarchy_button, new_hierarchy_button, 1)
 
-    old_comparison = """  const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-  const data=await response.json();
-  if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+    old_comparison = """  let data;
+  try{
+    const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
+    data=await response.json();
+    if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+  }catch(error){
+    console.error("Dashboard render error in loadComparison:",error);
+    alert("Could not load comparison.");
+    return;
+  }
   comparisonData=data;"""
     new_comparison = """  let data;
   if(IS_STATIC){
     data=buildClientComparison(currentId,previousId);
     if(!data){alert("The selected reporting periods are not available in this export.");return}
   }else{
-    const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-    data=await response.json();
-    if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+    try{
+      const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
+      data=await response.json();
+      if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+    }catch(error){
+      console.error("Dashboard render error in loadComparison:",error);
+      alert("Could not load comparison.");
+      return;
+    }
   }
   comparisonData=data;"""
     if old_comparison not in js:
@@ -119,7 +132,12 @@ def build_public_javascript() -> str:
 
     old_dashboard = """  document.body.dataset.periodMode="week";
   const url=weekId?`/api/dashboard?week_id=${weekId}`:"/api/dashboard";
-  dashboard=await fetch(url).then(r=>r.json());
+  try{
+    dashboard=await fetch(url).then(r=>r.json());
+  }catch(error){
+    console.error("Dashboard render error in loadDashboard:",error);
+    dashboard={current_week:null};
+  }
   renderLoadedDashboard();"""
     new_dashboard = """  document.body.dataset.periodMode="week";
   if(IS_STATIC){
@@ -127,7 +145,12 @@ def build_public_javascript() -> str:
     dashboard=STATIC_DATA.dashboards?.[String(selected)] || {current_week:null};
   }else{
     const url=weekId?`/api/dashboard?week_id=${weekId}`:"/api/dashboard";
-    dashboard=await fetch(url).then(r=>r.json());
+    try{
+      dashboard=await fetch(url).then(r=>r.json());
+    }catch(error){
+      console.error("Dashboard render error in loadDashboard:",error);
+      dashboard={current_week:null};
+    }
   }
   renderLoadedDashboard();"""
     if old_dashboard not in js:

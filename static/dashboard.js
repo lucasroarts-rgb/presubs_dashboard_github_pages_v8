@@ -385,6 +385,12 @@ function translatePhrase(source){
 }
 const t=source=>translatePhrase(source);
 
+function safeRender(label,fn){
+  try{fn()}catch(error){console.error(`Dashboard render error in ${label}:`,error)}
+}
+window.addEventListener("error",event=>{console.error("Unhandled dashboard error:",event.error||event.message)});
+window.addEventListener("unhandledrejection",event=>{console.error("Unhandled dashboard promise rejection:",event.reason)});
+
 function applyTranslations(root=document){
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement&&!["SCRIPT","STYLE","CODE"].includes(node.parentElement.tagName)&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
@@ -525,7 +531,12 @@ function relationLabelForAd(ad){
 }
 
 async function loadWeeks(){
-  weeks=await fetch("/api/weeks").then(r=>r.json());
+  try{
+    weeks=await fetch("/api/weeks").then(r=>r.json());
+  }catch(error){
+    console.error("Dashboard render error in loadWeeks:",error);
+    weeks=[];
+  }
   const main=document.getElementById("weekSelect");
   const current=document.getElementById("compareCurrent");
   const previous=document.getElementById("comparePrevious");
@@ -1406,9 +1417,16 @@ async function loadComparison(){
   const currentId=document.getElementById("compareCurrent").value;
   const previousId=document.getElementById("comparePrevious").value;
   if(!currentId || !previousId || currentId===previousId) return;
-  const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-  const data=await response.json();
-  if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+  let data;
+  try{
+    const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
+    data=await response.json();
+    if(!response.ok){alert(data.detail||"Could not load comparison.");return}
+  }catch(error){
+    console.error("Dashboard render error in loadComparison:",error);
+    alert("Could not load comparison.");
+    return;
+  }
   comparisonData=data;
   renderDetailedComparison(data);
 }
@@ -1419,7 +1437,7 @@ function renderLoadedDashboard(){
   if(empty){document.getElementById("kpis").innerHTML="";return}
   document.getElementById("heroPeriod").textContent=dashboard.current_week.label;
   document.getElementById("heroComparison").textContent=dashboard.previous_week?dashboard.previous_week.label:"No earlier period";
-  const safe=(label,fn)=>{try{fn()}catch(error){console.error(`Dashboard render error in ${label}:`,error)}};
+  const safe=safeRender;
   safe("overview KPIs",()=>renderKpis(dashboard));
   safe("campaign cards",()=>renderCampaignCards(dashboard.campaigns));
   safe("ad-set bars",()=>renderAdsetBars(dashboard.adsets));
@@ -1439,7 +1457,12 @@ function renderLoadedDashboard(){
 async function loadDashboard(weekId){
   document.body.dataset.periodMode="week";
   const url=weekId?`/api/dashboard?week_id=${weekId}`:"/api/dashboard";
-  dashboard=await fetch(url).then(r=>r.json());
+  try{
+    dashboard=await fetch(url).then(r=>r.json());
+  }catch(error){
+    console.error("Dashboard render error in loadDashboard:",error);
+    dashboard={current_week:null};
+  }
   renderLoadedDashboard();
 }
 
@@ -2548,32 +2571,51 @@ function auditRecommendationAction(alert,index){
 }
 function renderAuditOverview(){
   const root=document.getElementById("auditOverview");if(!root||!dashboard?.current_week)return;
-  const health=auditHealthModel(),healthLabel=auditHealthLabel(health.score),severity=auditSeverityData(),totals=auditScopedTotals(),conv=auditScopedConversion();
-  document.getElementById("auditPeriod").textContent=dashboard.current_week.label;document.getElementById("auditComparison").textContent=dashboard.previous_week?.label||"No earlier period";document.getElementById("auditSpendReviewed").textContent=money(totals.spend);document.getElementById("auditRegistrations").textContent=number(totals.results);document.getElementById("auditCpl").textContent=money(totals.cpl);document.getElementById("auditConversion").textContent=percent(conv.conversion_rate);auditRing(health.score);
-  const severityItems=[{key:"critical",label:"Critical",value:severity.counts.critical},{key:"warning",label:"High",value:severity.counts.warning},{key:"info",label:"Medium",value:severity.counts.info},{key:"good",label:"Strengths",value:severity.counts.good}];
-  document.getElementById("auditSeverityLegend").innerHTML=severityItems.map(row=>`<span class="${row.key}"><i></i><strong>${number(row.value)}</strong> ${t(row.label)}</span>`).join("");
-  const model=auditEstimatedWasteRows(),waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=auditScopedCreativeRows().filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
-  document.getElementById("auditWasteImpact").textContent=money(waste);document.getElementById("auditUpsideImpact").textContent=`~${decimal(upside)} ${t("registrations")}`;document.getElementById("auditScaleImpact").textContent=`${number(scale)} ${t("ads")}`;
-  const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`${t("Overall")} · ${healthLabel.label}`;
-  document.getElementById("auditRadarChart").innerHTML=auditRadarSvg(health.dimensions);
-  document.getElementById("auditSeverityDonut").innerHTML=auditDonutHtml(severityItems,number(severity.rows.length),t("FINDINGS"));
-  document.getElementById("auditCategoryBars").innerHTML=health.dimensions.map(row=>`<div class="audit-score-row"><div><span>${row.short}</span><strong>${row.score}</strong></div><div class="audit-score-track"><i class="target" style="left:80%"></i><span class="${row.score>=80?"good":row.score>=60?"warn":"bad"}" style="width:${row.score}%"></span></div></div>`).join("");
-  document.getElementById("auditScorecards").innerHTML=health.dimensions.map(row=>`<article class="audit-scorecard ${row.score>=80?"good":row.score>=60?"warn":"bad"}"><span>${row.label}</span><strong>${row.score}</strong><div><i style="width:${row.score}%"></i></div><p>${row.detail}</p></article>`).join("");
-  const series=auditDailySeries(30),rollingCpl=auditRolling(series,"cpl",7),rollingConv=auditRolling(series,"conversion",7),total30=series.reduce((sum,row)=>{sum.spend+=safeNum(row.spend);sum.results+=safeNum(row.results);return sum},{spend:0,results:0});
-  const avgSpend=series.length?total30.spend/series.length:0,avgResults=series.length?total30.results/series.length:0,lastRollingCpl=rollingCpl.filter(v=>v!=null).at(-1),lastRollingConv=rollingConv.filter(v=>v!=null).at(-1);
-  const pulse=[
-    ["Daily spend",money(avgSpend),`${t("Total")} ${money(total30.spend)}`,series.map(r=>r.spend),"blue",money],
-    ["Daily registrations",decimal(avgResults),`${t("Total")} ${number(total30.results)}`,series.map(r=>r.results),"green",number],
-    ["Rolling CPL",money(lastRollingCpl),t("7-day blended"),rollingCpl,"amber",money],
-    ["Rolling conversion",percent(lastRollingConv),t("7-day blended"),rollingConv,"purple",percent]
-  ];
-  document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${t(row[0])}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4],row[5])}</article>`).join("");auditMainPerformanceChart(series);
-  const campaigns=[...auditScopedCampaigns()].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${number(campaigns.length)} ${t(campaigns.length===1?"campaign":"campaigns")}`;
-  auditHorizontalBars("auditCampaignSpend",campaigns,{value:r=>r.spend,label:r=>r.entity_name,formatter:money,colorClass:"blue"});auditHorizontalBars("auditCampaignResults",campaigns,{value:r=>r.results,label:r=>r.entity_name,formatter:number,colorClass:"green"});auditHorizontalBars("auditCampaignCpl",campaigns.filter(r=>safeNum(r.results)>0),{value:r=>calculatedCpl(r),label:r=>r.entity_name,formatter:money,colorClass:"amber",target:auditTargetCpl()});
-  auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
-  const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${number(findings.length)} ${t(findings.length===1?"finding":"findings")}`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
-  const actionSeed=findings.length?findings:[{type:"Account",title:"Maintain current controls",detail:"Continue daily monitoring."}];const unique=[];actionSeed.forEach((row,index)=>{const action=auditRecommendationAction(row,index);if(!unique.includes(action))unique.push(action)});const actions=unique.slice(0,6);document.getElementById("auditActionPlan").innerHTML=actions.map((action,index)=>`<div class="audit-action-step"><span>${index+1}</span><div><strong>${action}</strong><p>${index<2?"Execute this week":index<4?"Complete within 14 days":"Validate within 30 days"}</p></div><small>${index<2?"Immediate":index<4?"Near-term":"Strategic"}</small></div>`).join("");
-  renderAuditImpactAnalysis();bindAuditImpactControls();auditBindTooltips(root);
+  let health,severity,severityItems,model;
+  safeRender("audit header",()=>{
+    health=auditHealthModel();const healthLabel=auditHealthLabel(health.score);severity=auditSeverityData();const totals=auditScopedTotals(),conv=auditScopedConversion();
+    document.getElementById("auditPeriod").textContent=dashboard.current_week.label;document.getElementById("auditComparison").textContent=dashboard.previous_week?.label||"No earlier period";document.getElementById("auditSpendReviewed").textContent=money(totals.spend);document.getElementById("auditRegistrations").textContent=number(totals.results);document.getElementById("auditCpl").textContent=money(totals.cpl);document.getElementById("auditConversion").textContent=percent(conv.conversion_rate);auditRing(health.score);
+    severityItems=[{key:"critical",label:"Critical",value:severity.counts.critical},{key:"warning",label:"High",value:severity.counts.warning},{key:"info",label:"Medium",value:severity.counts.info},{key:"good",label:"Strengths",value:severity.counts.good}];
+    document.getElementById("auditSeverityLegend").innerHTML=severityItems.map(row=>`<span class="${row.key}"><i></i><strong>${number(row.value)}</strong> ${t(row.label)}</span>`).join("");
+    model=auditEstimatedWasteRows();const waste=model.reduce((sum,row)=>sum+row.auditWaste,0),efficient=model.filter(row=>row.auditOpportunity>0||row.auditCpl<auditTargetCpl()).sort((a,b)=>a.auditCpl-b.auditCpl),bestCpl=efficient[0]?.auditCpl||auditTargetCpl(),upside=bestCpl?waste/bestCpl:0,scale=auditScopedCreativeRows().filter(row=>["Scale","Keep"].includes(row.recommendation)).length;
+    document.getElementById("auditWasteImpact").textContent=money(waste);document.getElementById("auditUpsideImpact").textContent=`~${decimal(upside)} ${t("registrations")}`;document.getElementById("auditScaleImpact").textContent=`${number(scale)} ${t("ads")}`;
+    const pill=document.getElementById("auditOverallPill");pill.className=`pill ${healthLabel.cls}`;pill.textContent=`${t("Overall")} · ${healthLabel.label}`;
+  });
+  safeRender("health radar",()=>{
+    document.getElementById("auditRadarChart").innerHTML=auditRadarSvg(health.dimensions);
+  });
+  safeRender("findings by severity",()=>{
+    document.getElementById("auditSeverityDonut").innerHTML=auditDonutHtml(severityItems,number(severity.rows.length),t("FINDINGS"));
+  });
+  safeRender("category scorecards",()=>{
+    document.getElementById("auditCategoryBars").innerHTML=health.dimensions.map(row=>`<div class="audit-score-row"><div><span>${row.short}</span><strong>${row.score}</strong></div><div class="audit-score-track"><i class="target" style="left:80%"></i><span class="${row.score>=80?"good":row.score>=60?"warn":"bad"}" style="width:${row.score}%"></span></div></div>`).join("");
+    document.getElementById("auditScorecards").innerHTML=health.dimensions.map(row=>`<article class="audit-scorecard ${row.score>=80?"good":row.score>=60?"warn":"bad"}"><span>${row.label}</span><strong>${row.score}</strong><div><i style="width:${row.score}%"></i></div><p>${row.detail}</p></article>`).join("");
+  });
+  safeRender("performance pulse",()=>{
+    const series=auditDailySeries(30),rollingCpl=auditRolling(series,"cpl",7),rollingConv=auditRolling(series,"conversion",7),total30=series.reduce((sum,row)=>{sum.spend+=safeNum(row.spend);sum.results+=safeNum(row.results);return sum},{spend:0,results:0});
+    const avgSpend=series.length?total30.spend/series.length:0,avgResults=series.length?total30.results/series.length:0,lastRollingCpl=rollingCpl.filter(v=>v!=null).at(-1),lastRollingConv=rollingConv.filter(v=>v!=null).at(-1);
+    const pulse=[
+      ["Daily spend",money(avgSpend),`${t("Total")} ${money(total30.spend)}`,series.map(r=>r.spend),"blue",money],
+      ["Daily registrations",decimal(avgResults),`${t("Total")} ${number(total30.results)}`,series.map(r=>r.results),"green",number],
+      ["Rolling CPL",money(lastRollingCpl),t("7-day blended"),rollingCpl,"amber",money],
+      ["Rolling conversion",percent(lastRollingConv),t("7-day blended"),rollingConv,"purple",percent]
+    ];
+    document.getElementById("auditPulseKpis").innerHTML=pulse.map(row=>`<article class="audit-pulse-item"><span>${t(row[0])}</span><strong>${row[1]}</strong><small>${row[2]}</small>${auditSparkline(row[3],row[4],row[5])}</article>`).join("");auditMainPerformanceChart(series);
+  });
+  safeRender("campaign breakdown",()=>{
+    const campaigns=[...auditScopedCampaigns()].sort((a,b)=>safeNum(b.spend)-safeNum(a.spend));document.getElementById("auditCampaignBadge").textContent=`${number(campaigns.length)} ${t(campaigns.length===1?"campaign":"campaigns")}`;
+    auditHorizontalBars("auditCampaignSpend",campaigns,{value:r=>r.spend,label:r=>r.entity_name,formatter:money,colorClass:"blue"});auditHorizontalBars("auditCampaignResults",campaigns,{value:r=>r.results,label:r=>r.entity_name,formatter:number,colorClass:"green"});auditHorizontalBars("auditCampaignCpl",campaigns.filter(r=>safeNum(r.results)>0),{value:r=>calculatedCpl(r),label:r=>r.entity_name,formatter:money,colorClass:"amber",target:auditTargetCpl()});
+  });
+  safeRender("funnel and pareto diagnostics",()=>{
+    auditFunnelBars();auditCreativeMix();auditBubbleChart();auditPareto("auditWastePareto",model,"auditWaste","waste");auditPareto("auditOpportunityPareto",model,"auditOpportunity","opportunity");
+  });
+  safeRender("findings and action plan",()=>{
+    const findings=severity.rows.slice(0,12);document.getElementById("auditFindingCount").textContent=`${number(findings.length)} ${t(findings.length===1?"finding":"findings")}`;document.getElementById("auditFindings").innerHTML=findings.length?findings.map((row,index)=>`<article class="audit-finding ${row.severity}"><div class="audit-finding-top"><span>${severityLabel(row.severity)}</span><small>${row.type}</small></div><h3>${row.title}</h3><p>${row.detail}</p><div class="audit-finding-action"><strong>Action</strong><span>${auditRecommendationAction(row,index)}</span></div></article>`).join(""):`<div class="empty">No action finding for this period.</div>`;
+    const actionSeed=findings.length?findings:[{type:"Account",title:"Maintain current controls",detail:"Continue daily monitoring."}];const unique=[];actionSeed.forEach((row,index)=>{const action=auditRecommendationAction(row,index);if(!unique.includes(action))unique.push(action)});const actions=unique.slice(0,6);document.getElementById("auditActionPlan").innerHTML=actions.map((action,index)=>`<div class="audit-action-step"><span>${index+1}</span><div><strong>${action}</strong><p>${index<2?"Execute this week":index<4?"Complete within 14 days":"Validate within 30 days"}</p></div><small>${index<2?"Immediate":index<4?"Near-term":"Strategic"}</small></div>`).join("");
+  });
+  safeRender("audit impact analysis",()=>{
+    renderAuditImpactAnalysis();bindAuditImpactControls();auditBindTooltips(root);
+  });
 }
 
 function renderAdvancedCurrent(){
@@ -2700,11 +2742,11 @@ document.getElementById("languageSelect")?.addEventListener("change",event=>{cur
 async function bootstrapDashboard(){
   const language=document.getElementById("languageSelect");if(language)language.value=currentLang;
   applyTranslations(document);
-  renderStudentProfile();
-  advancedConfig=await loadAdvancedConfig();
-  await loadWeeks();
-  await initializeDateAnalysis();
-  await initializeAdvancedFeatures();
+  safeRender("student profile",()=>renderStudentProfile());
+  try{advancedConfig=await loadAdvancedConfig()}catch(error){console.error("Dashboard render error in advanced config:",error);advancedConfig=null}
+  try{await loadWeeks()}catch(error){console.error("Dashboard render error in loadWeeks bootstrap:",error)}
+  try{await initializeDateAnalysis()}catch(error){console.error("Dashboard render error in date analysis:",error)}
+  try{await initializeAdvancedFeatures()}catch(error){console.error("Dashboard render error in advanced features:",error)}
   applyTranslations(document);
 }
 bootstrapDashboard();
