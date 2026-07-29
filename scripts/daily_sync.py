@@ -24,6 +24,7 @@ from scripts.automate_meta import (  # noqa: E402
     save_exports,
 )
 from scripts.generate_public_site import main as generate_public_site  # noqa: E402
+from scripts.sync_crm import main as sync_crm  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -286,6 +287,14 @@ def main() -> int:
         print(f"Audit folder: {export_folder}")
         print(f"Week ID: {imported['week_id']}")
 
+        print("Syncing CRM leads and sales...")
+        crm_sync_status = "ok"
+        try:
+            sync_crm()
+        except Exception as crm_error:
+            crm_sync_status = f"skipped: {crm_error}"
+            print(f"WARNING: CRM sync skipped ({crm_error})", file=sys.stderr)
+
         print("Generating the GitHub Pages site...")
         if generate_public_site() != 0:
             raise AutomationError("The public site generator failed.")
@@ -312,6 +321,7 @@ def main() -> int:
                         name: len(frame) for name, frame in frames.items()
                     },
                     "qa_warnings": len(qa.get("warnings", [])),
+                    "crm_sync": crm_sync_status,
                     "git": result,
                 },
                 ensure_ascii=False,
