@@ -321,6 +321,25 @@ def init_db() -> None:
         spend REAL NOT NULL DEFAULT 0,
         UNIQUE(week_id, landing_page_id)
     );
+
+    CREATE TABLE IF NOT EXISTS crm_leads_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        source_bucket TEXT NOT NULL DEFAULT 'facebook-ads',
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date, source_bucket)
+    );
+
+    CREATE TABLE IF NOT EXISTS crm_sales_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        sale_campaign TEXT NOT NULL DEFAULT 'presubs',
+        sale_count INTEGER NOT NULL DEFAULT 0,
+        revenue_full REAL NOT NULL DEFAULT 0,
+        revenue_net REAL NOT NULL DEFAULT 0,
+        UNIQUE(report_date, sale_campaign)
+    );
     """
     with db() as con:
         con.executescript(schema)
@@ -1600,6 +1619,39 @@ def aggregate_daily_performance(
     return output
 
 
+def crm_gap_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Aggregated (no personal data) CRM leads/sales for the given date range.
+
+    Compares against Meta's own reported registrations so the tracking gap
+    described in the account audit can be shown directly in the dashboard
+    instead of only in a manual snapshot comparison.
+    """
+    leads_row = con.execute(
+        "SELECT COALESCE(SUM(lead_count), 0), MAX(synced_at) FROM crm_leads_daily "
+        "WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    crm_leads, last_synced_at = int(leads_row[0] or 0), leads_row[1]
+
+    sales_row = con.execute(
+        "SELECT COALESCE(SUM(sale_count), 0), COALESCE(SUM(revenue_full), 0), "
+        "COALESCE(SUM(revenue_net), 0) FROM crm_sales_daily WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    sale_count = int(sales_row[0] or 0)
+    revenue_full = float(sales_row[1] or 0)
+    revenue_net = float(sales_row[2] or 0)
+
+    return {
+        "available": crm_leads > 0 or sale_count > 0,
+        "crm_leads": crm_leads,
+        "sale_count": sale_count,
+        "revenue_full": revenue_full,
+        "revenue_net": revenue_net,
+        "last_synced_at": last_synced_at,
+    }
+
+
 @app.get("/api/dashboard")
 def dashboard(week_id: int | None = None):
     with db() as con:
@@ -1630,6 +1682,7 @@ def dashboard(week_id: int | None = None):
                 "daily_ads": [],
                 "daily_summary": [],
                 "daily_available": False,
+                "crm_gap": None,
             }
 
         previous = con.execute(
@@ -1758,6 +1811,8 @@ def dashboard(week_id: int | None = None):
             previous_ads, page_starts, registered_pages
         )
 
+        crm_gap = crm_gap_summary(con, current["week_start"], current["week_end"])
+
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
     return {
@@ -1777,6 +1832,7 @@ def dashboard(week_id: int | None = None):
         "daily_ads": daily_ads,
         "daily_summary": aggregate_daily_performance(daily_ads),
         "daily_available": bool(daily_ads),
+        "crm_gap": crm_gap,
     }
 
 

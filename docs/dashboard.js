@@ -370,6 +370,30 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Scale":"Escalar","Keep":"Manter","Monitor":"Monitorar","Refresh":"Renovar","Pause candidate":"Candidato a pausa",
   "Checks for missing days, total mismatches, relations, page tags and automation scope.":"Verificações de dias ausentes, diferenças de totais, relações, tags de página e escopo da automação."
 });
+Object.assign(UI_TRANSLATIONS.fr,{
+  "CRM tracking gap":"Écart de suivi CRM",
+  "Facebook-ads leads recorded in the CRM versus registrations reported by Meta for the same period. A gap usually means the browser pixel is missing part of the confirmations.":"Leads Facebook Ads enregistrés dans le CRM comparés aux inscriptions rapportées par Meta sur la même période. Un écart signifie généralement que le pixel du navigateur manque une partie des confirmations.",
+  "No CRM data synced for this period.":"Aucune donnée CRM synchronisée pour cette période.",
+  "Facebook-ads leads (CRM)":"Leads Facebook Ads (CRM)",
+  "Registrations reported by Meta":"Inscriptions rapportées par Meta",
+  "Tracking gap":"Écart de suivi",
+  "Confirmed sales (CRM)":"Ventes confirmées (CRM)",
+  "Revenue collected":"Revenus encaissés",
+  "CAC (revenue collected / sale)":"CAC (revenus encaissés / vente)",
+  "CRM data synced at":"Données CRM synchronisées le"
+});
+Object.assign(UI_TRANSLATIONS.pt,{
+  "CRM tracking gap":"Gap de rastreamento do CRM",
+  "Facebook-ads leads recorded in the CRM versus registrations reported by Meta for the same period. A gap usually means the browser pixel is missing part of the confirmations.":"Leads do Facebook Ads registrados no CRM comparados aos registros reportados pela Meta no mesmo período. Um gap geralmente indica que o pixel do navegador está perdendo parte das confirmações.",
+  "No CRM data synced for this period.":"Nenhum dado de CRM sincronizado para este período.",
+  "Facebook-ads leads (CRM)":"Leads do Facebook Ads (CRM)",
+  "Registrations reported by Meta":"Registros reportados pela Meta",
+  "Tracking gap":"Gap de rastreamento",
+  "Confirmed sales (CRM)":"Vendas confirmadas (CRM)",
+  "Revenue collected":"Receita recebida",
+  "CAC (revenue collected / sale)":"CAC (receita recebida / venda)",
+  "CRM data synced at":"Dado do CRM sincronizado em"
+});
 
 const originalTextNodes=new WeakMap();
 const originalAttrs=new WeakMap();
@@ -2252,6 +2276,25 @@ function renderQuality(){
   const kpis=[["Checks",checks.length,"Automated controls"],["Passed",counts.pass,"No issue detected"],["Warnings",counts.warning,"Review recommended"],["Critical",counts.critical,"Fix before decisions"]];
   document.getElementById("qualityKpis").innerHTML=kpis.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${number(item[1])}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
   document.getElementById("qualityChecks").innerHTML=checks.map(check=>`<div class="quality-check ${check.status}"><span>${check.status==="pass"?"✓":check.status==="critical"?"!":check.status==="warning"?"△":"i"}</span><div><strong>${check.title}</strong><p>${check.detail}</p></div></div>`).join("");
+  safeRender("crm tracking gap",renderCrmGap);
+}
+
+function renderCrmGap(){
+  const panel=document.getElementById("crmGapPanel");if(!panel)return;
+  const gap=dashboard?.crm_gap;
+  if(!gap||!gap.available){panel.innerHTML=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;return}
+  const metaResults=safeNum(dashboard?.totals?.results);
+  const gapPct=metaResults>0?((gap.crm_leads-metaResults)/metaResults*100):null;
+  const cac=gap.sale_count>0?gap.revenue_net/gap.sale_count:null;
+  const rows=[
+    [t("Facebook-ads leads (CRM)"),number(gap.crm_leads)],
+    [t("Registrations reported by Meta"),number(metaResults)],
+    [t("Tracking gap"),gapPct==null?"—":`${gapPct>0?"+":""}${decimal(gapPct)}%`],
+    [t("Confirmed sales (CRM)"),number(gap.sale_count)],
+    [t("Revenue collected"),money(gap.revenue_net)],
+    [t("CAC (revenue collected / sale)"),cac==null?"—":money(cac)]
+  ];
+  panel.innerHTML=`<div class="table-wrap"><table><tbody>${rows.map(row=>`<tr><td>${row[0]}</td><td class="num"><strong>${row[1]}</strong></td></tr>`).join("")}</tbody></table></div>${gap.last_synced_at?`<p class="footnote">${t("CRM data synced at")} ${gap.last_synced_at}</p>`:""}`;
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
