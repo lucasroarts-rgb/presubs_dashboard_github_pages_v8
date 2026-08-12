@@ -198,6 +198,11 @@ def main() -> int:
         (STATIC_DIR / "student_profile_data.js").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
+    if (STATIC_DIR / "weekly-review.html").exists():
+        (DOCS_DIR / "weekly-review.html").write_text(
+            (STATIC_DIR / "weekly-review.html").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
     if (STATIC_DIR / "assets").exists():
         shutil.copytree(STATIC_DIR / "assets", DOCS_DIR / "assets")
 
