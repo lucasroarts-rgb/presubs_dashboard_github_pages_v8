@@ -342,7 +342,8 @@
   .nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .nav-btn:disabled{opacity:.35;cursor:default;}
   .nav-btn svg{width:16px;height:16px;}
-  .click-zone{position:absolute;top:0;bottom:64px;width:14%;z-index:4;cursor:pointer;background:transparent;}
+  .click-zone{position:absolute;top:0;bottom:64px;width:14%;z-index:4;cursor:pointer;background:transparent;border:none;padding:0;margin:0;-webkit-appearance:none;appearance:none;}
+  .click-zone:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
   .click-zone.left{left:0;}
   .click-zone.right{right:0;}
 
