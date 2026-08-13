@@ -427,6 +427,21 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
 """
 
 
+def render_pdf(html: str, pdf_path: Path) -> None:
+    """Render the deck to PDF (one slide per landscape A4 page) via headless Chromium."""
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        try:
+            page = browser.new_page()
+            page.set_content(html, wait_until="load")
+            page.emulate_media(media="print")
+            page.pdf(path=str(pdf_path), format="A4", landscape=True, print_background=True)
+        finally:
+            browser.close()
+
+
 def should_run_today(today: date | None = None) -> bool:
     return (today or date.today()).weekday() == CALL_WEEKDAY
 
@@ -458,17 +473,25 @@ def main(*, force: bool = False) -> int:
     html = build_deck(data, previous_crm_gap, annotations)
 
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    snapshot_name = f"{date.today().isoformat()}.html"
-    (ARCHIVE_DIR / snapshot_name).write_text(html, encoding="utf-8")
+    snapshot_stem = date.today().isoformat()
+    (ARCHIVE_DIR / f"{snapshot_stem}.html").write_text(html, encoding="utf-8")
     (STATIC_DIR / "weekly-review.html").write_text(html, encoding="utf-8")
 
+    pdf_path = ARCHIVE_DIR / f"{snapshot_stem}.pdf"
+    try:
+        render_pdf(html, pdf_path)
+    except Exception as pdf_error:
+        print(f"WARNING: PDF export skipped ({pdf_error})", file=sys.stderr)
+
     archives = sorted(
-        (p.name for p in ARCHIVE_DIR.glob("*.html") if p.name != "index.html"), reverse=True
+        (p.stem for p in ARCHIVE_DIR.glob("*.html") if p.stem != "index"), reverse=True
     )
     index_rows = "".join(
-        f'<tr><td>{name.removesuffix(".html")}</td>'
-        f'<td class="num"><a href="{name}">View</a> · <a href="{name}" download>Download</a></td></tr>'
-        for name in archives
+        f"<tr><td>{stem}</td>"
+        f'<td class="num"><a href="{stem}.html">View</a> · <a href="{stem}.html" download>Download HTML</a>'
+        + (f' · <a href="{stem}.pdf" download>Download PDF</a>' if (ARCHIVE_DIR / f"{stem}.pdf").exists() else "")
+        + "</td></tr>"
+        for stem in archives
     )
     index_html = f"""<meta charset="utf-8">
 <title>PreSubs — Weekly Review Archive</title>
@@ -486,7 +509,8 @@ def main(*, force: bool = False) -> int:
 """
     (ARCHIVE_DIR / "index.html").write_text(index_html, encoding="utf-8")
 
-    print(f"Weekly review generated: {snapshot_name} ({len(archives)} archived total).")
+    pdf_note = "with PDF" if pdf_path.exists() else "PDF skipped"
+    print(f"Weekly review generated: {snapshot_stem} ({pdf_note}, {len(archives)} archived total).")
     return 0
 
 
