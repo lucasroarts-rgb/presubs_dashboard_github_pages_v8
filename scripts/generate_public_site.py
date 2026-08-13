@@ -33,6 +33,7 @@ def build_public_index() -> str:
     html = html.replace('/static/student_profile_data.js?v=10.6.4.1', 'student_profile_data.js?v=10.6.4.1')
     html = html.replace('/static/assets/peasy-logo.png', 'assets/peasy-logo.png')
     html = html.replace('/static/weekly-review.html', 'weekly-review.html')
+    html = html.replace('/weekly-reviews/index.html', 'weekly-reviews/index.html')
     html = html.replace('<a class="btn" href="/admin">Weekly import</a>', '')
     html = html.replace(
         'No reporting period has been imported. Open <a href="/admin">Weekly import</a>.',
@@ -204,6 +205,9 @@ def main() -> int:
             (STATIC_DIR / "weekly-review.html").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
+    weekly_reviews_dir = ROOT / "weekly_reviews"
+    if weekly_reviews_dir.exists():
+        shutil.copytree(weekly_reviews_dir, DOCS_DIR / "weekly-reviews")
     if (STATIC_DIR / "assets").exists():
         shutil.copytree(STATIC_DIR / "assets", DOCS_DIR / "assets")
 

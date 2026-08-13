@@ -378,7 +378,8 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Revenue collected":"Revenus encaissés",
   "CAC (revenue collected / sale)":"CAC (revenus encaissés / vente)",
   "CRM data synced at":"Données CRM synchronisées le",
-  "Weekly slides":"Diaporama hebdomadaire"
+  "Weekly slides":"Diaporama hebdomadaire",
+  "Archive":"Archives"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -391,7 +392,8 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Revenue collected":"Receita recebida",
   "CAC (revenue collected / sale)":"CAC (receita recebida / venda)",
   "CRM data synced at":"Dado do CRM sincronizado em",
-  "Weekly slides":"Slides da semana"
+  "Weekly slides":"Slides da semana",
+  "Archive":"Histórico"
 });
 
 const originalTextNodes=new WeakMap();

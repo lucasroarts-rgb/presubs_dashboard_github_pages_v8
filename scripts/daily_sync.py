@@ -24,6 +24,7 @@ from scripts.automate_meta import (  # noqa: E402
     save_exports,
 )
 from scripts.generate_public_site import main as generate_public_site  # noqa: E402
+from scripts.generate_weekly_review import main as generate_weekly_review  # noqa: E402
 from scripts.sync_crm import main as sync_crm  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
@@ -82,7 +83,7 @@ def prepare_git() -> None:
 
 
 def publish_docs(message: str) -> dict[str, object]:
-    run_git(["add", "docs", ".gitignore", "README.md"])
+    run_git(["add", "docs", "weekly_reviews", "static/weekly-review.html", ".gitignore", "README.md"])
     diff = run_git(["diff", "--cached", "--quiet"], check=False)
     if diff.returncode == 0:
         return {"changed": False, "pushed": False}
@@ -295,6 +296,14 @@ def main() -> int:
             crm_sync_status = f"skipped: {crm_error}"
             print(f"WARNING: CRM sync skipped ({crm_error})", file=sys.stderr)
 
+        weekly_review_status = "not the call day"
+        try:
+            generate_weekly_review()
+            weekly_review_status = "ok"
+        except Exception as weekly_review_error:
+            weekly_review_status = f"skipped: {weekly_review_error}"
+            print(f"WARNING: Weekly review generation skipped ({weekly_review_error})", file=sys.stderr)
+
         print("Generating the GitHub Pages site...")
         if generate_public_site() != 0:
             raise AutomationError("The public site generator failed.")
@@ -322,6 +331,7 @@ def main() -> int:
                     },
                     "qa_warnings": len(qa.get("warnings", [])),
                     "crm_sync": crm_sync_status,
+                    "weekly_review": weekly_review_status,
                     "git": result,
                 },
                 ensure_ascii=False,

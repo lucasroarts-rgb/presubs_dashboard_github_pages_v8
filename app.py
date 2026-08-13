@@ -125,6 +125,9 @@ def has_valid_admin_credentials(request: Request) -> bool:
 
 app = FastAPI(title="PreSubs Weekly Dashboard")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+WEEKLY_REVIEWS_DIR = BASE_DIR / "weekly_reviews"
+WEEKLY_REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/weekly-reviews", StaticFiles(directory=WEEKLY_REVIEWS_DIR), name="weekly-reviews")
 
 
 @app.middleware("http")
