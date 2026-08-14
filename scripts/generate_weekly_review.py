@@ -446,13 +446,15 @@ def should_run_today(today: date | None = None) -> bool:
     return (today or date.today()).weekday() == CALL_WEEKDAY
 
 
-def main(*, force: bool = False) -> int:
-    if not force and not should_run_today():
+def main(
+    *, force: bool = False, week_id: int | None = None, snapshot_date: date | None = None
+) -> int:
+    if week_id is None and not force and not should_run_today():
         print("Not the weekly call day (Wednesday) - skipping weekly review generation.")
         return 0
 
     dashboard_app.init_db()
-    data = dashboard_app.dashboard()
+    data = dashboard_app.dashboard(week_id)
     if not data.get("current_week"):
         print("No reporting week available yet - skipping weekly review generation.")
         return 0
@@ -473,9 +475,10 @@ def main(*, force: bool = False) -> int:
     html = build_deck(data, previous_crm_gap, annotations)
 
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    snapshot_stem = date.today().isoformat()
+    snapshot_stem = (snapshot_date or date.today()).isoformat()
     (ARCHIVE_DIR / f"{snapshot_stem}.html").write_text(html, encoding="utf-8")
-    (STATIC_DIR / "weekly-review.html").write_text(html, encoding="utf-8")
+    if week_id is None:
+        (STATIC_DIR / "weekly-review.html").write_text(html, encoding="utf-8")
 
     pdf_path = ARCHIVE_DIR / f"{snapshot_stem}.pdf"
     try:
