@@ -143,6 +143,40 @@ def fetch_country_counts(connection) -> list[tuple[str, str, str, int]]:
     return [(d, c, b, n) for (d, c, b), n in aggregated.items()]
 
 
+CORE_MARKET_COUNTRIES = {"France", "Belgium", "Switzerland"}
+
+
+def fetch_organic_foreign_by_channel(connection) -> list[tuple[str, str, int]]:
+    """(report_date, channel, lead_count) for organic leads whose phone-prefix
+    country is outside France/Belgium/Switzerland - which acquisition channel
+    (Instagram bio, Facebook bio, TikTok, etc) brought them in."""
+    campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
+    query = f"""
+        SELECT data AS report_date, SUBSTRING(phone,1,5) AS prefix, COALESCE(Source,'') AS source,
+               COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
+        FROM leads
+        WHERE data IS NOT NULL AND data <> '0000-00-00'
+          AND Location = 'Organic'
+          AND phone IS NOT NULL AND phone <> '' AND phone <> '+'
+          AND ({campaign_clause})
+          AND LOWER(utm_campaign) NOT LIKE %s
+        GROUP BY data, prefix, source
+    """
+    params = [*PRESUBS_CAMPAIGN_PATTERNS, QUIZ_EXCLUDE_PATTERN]
+    cursor = connection.cursor()
+    cursor.execute(query, params)
+
+    aggregated: dict[tuple[str, str], int] = {}
+    for report_date, prefix, source, count in cursor.fetchall():
+        country = resolve_country(prefix)
+        if country in CORE_MARKET_COUNTRIES:
+            continue
+        channel = normalize_channel(source)
+        key = (str(report_date), channel)
+        aggregated[key] = aggregated.get(key, 0) + int(count)
+    return [(d, c, n) for (d, c), n in aggregated.items()]
+
+
 def fetch_channel_counts(connection) -> list[tuple[str, str, int]]:
     campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
     query = f"""
@@ -284,6 +318,19 @@ def store_channel_counts(rows: list[tuple[str, str, int]]) -> None:
         )
 
 
+def store_organic_foreign_by_channel(rows: list[tuple[str, str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO crm_organic_foreign_by_channel_daily (report_date, channel, lead_count)
+            VALUES (?, ?, ?)
+            ON CONFLICT(report_date, channel) DO UPDATE SET
+                lead_count = excluded.lead_count
+            """,
+            rows,
+        )
+
+
 def main() -> int:
     env = load_env_file()
     dashboard_app.init_db()
@@ -295,6 +342,7 @@ def main() -> int:
         countries = fetch_country_counts(connection)
         channels = fetch_channel_counts(connection)
         organic_breakdown = fetch_organic_breakdown(connection)
+        organic_foreign_by_channel = fetch_organic_foreign_by_channel(connection)
         sales = fetch_sale_counts(connection)
     finally:
         connection.close()
@@ -304,12 +352,14 @@ def main() -> int:
     store_country_counts(countries)
     store_channel_counts(channels)
     store_organic_breakdown(organic_breakdown)
+    store_organic_foreign_by_channel(organic_foreign_by_channel)
     store_sale_counts(sales)
 
     print(
         f"CRM sync complete: {len(leads)} facebook-ads lead-days, "
         f"{len(organic_leads)} organic lead-days, {len(countries)} country-day rows, "
         f"{len(channels)} channel-day rows, {len(organic_breakdown)} organic-breakdown rows, "
+        f"{len(organic_foreign_by_channel)} organic-foreign-channel rows, "
         f"{len(sales)} sale-days."
     )
     return 0

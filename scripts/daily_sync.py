@@ -27,6 +27,8 @@ from scripts.generate_public_site import main as generate_public_site  # noqa: E
 from scripts.generate_weekly_review import main as generate_weekly_review  # noqa: E402
 from scripts.sync_crm import main as sync_crm  # noqa: E402
 from scripts.sync_ga4 import main as sync_ga4  # noqa: E402
+from scripts.sync_gsc import main as sync_gsc  # noqa: E402
+from scripts.sync_google_ads import main as sync_google_ads  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -305,6 +307,22 @@ def main() -> int:
             ga4_sync_status = f"skipped: {ga4_error}"
             print(f"WARNING: GA4 sync skipped ({ga4_error})", file=sys.stderr)
 
+        print("Syncing Search Console data...")
+        gsc_sync_status = "ok"
+        try:
+            sync_gsc()
+        except Exception as gsc_error:
+            gsc_sync_status = f"skipped: {gsc_error}"
+            print(f"WARNING: Search Console sync skipped ({gsc_error})", file=sys.stderr)
+
+        print("Syncing Google Ads data...")
+        google_ads_sync_status = "ok"
+        try:
+            sync_google_ads()
+        except Exception as google_ads_error:
+            google_ads_sync_status = f"skipped: {google_ads_error}"
+            print(f"WARNING: Google Ads sync skipped ({google_ads_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -341,6 +359,8 @@ def main() -> int:
                     "qa_warnings": len(qa.get("warnings", [])),
                     "crm_sync": crm_sync_status,
                     "ga4_sync": ga4_sync_status,
+                    "gsc_sync": gsc_sync_status,
+                    "google_ads_sync": google_ads_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },

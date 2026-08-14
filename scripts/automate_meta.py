@@ -376,6 +376,20 @@ class MetaClient:
             {"fields": fields, "limit": 500},
         )
 
+    def creatives_for_ads(self, ad_ids: list[str]) -> dict[str, dict[str, Any]]:
+        """Batch-fetch just the creative image for a small, specific set of ad
+        IDs (the ads actually shown as highlights) - fetching this field for
+        every ad ever created is heavy enough to trigger Meta's "reduce the
+        amount of data you're asking for" error."""
+        result: dict[str, dict[str, Any]] = {}
+        for i in range(0, len(ad_ids), 50):
+            chunk = ad_ids[i : i + 50]
+            payload = self.get(
+                "", {"ids": ",".join(chunk), "fields": "creative{image_url,thumbnail_url}"}
+            )
+            result.update(payload)
+        return result
+
     def insights(
         self,
         *,
@@ -935,6 +949,38 @@ def import_into_database(
     return {"week_id": week_id, "counts": counts}
 
 
+def sync_top_ad_creatives(client: "MetaClient", week_id: int, limit: int = 15) -> int:
+    """Fetch and store the creative image only for the top-performing ads of
+    the given week (the ones actually shown as highlights in the dashboard
+    and the weekly slide) - not the full ad history."""
+    with dashboard_app.db() as con:
+        rows = con.execute(
+            """
+            SELECT entity_key FROM ad_metrics
+            WHERE week_id=? AND results>0 AND entity_key IS NOT NULL AND entity_key<>''
+            ORDER BY results DESC LIMIT ?
+            """,
+            (week_id, limit),
+        ).fetchall()
+        ad_ids = [row["entity_key"] for row in rows]
+        if not ad_ids:
+            return 0
+
+        creatives = client.creatives_for_ads(ad_ids)
+        updates = []
+        for ad_id in ad_ids:
+            creative = (creatives.get(ad_id) or {}).get("creative") or {}
+            image_url = creative.get("image_url") or creative.get("thumbnail_url")
+            if image_url:
+                updates.append((image_url, week_id, ad_id))
+
+        con.executemany(
+            "UPDATE ad_metrics SET creative_image_url=? WHERE week_id=? AND entity_key=?",
+            updates,
+        )
+        return len(updates)
+
+
 def run_git(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
         ["git", "-C", str(ROOT), *args],
@@ -1241,6 +1287,12 @@ def sync(
     print("")
     print(f"Database updated. Week ID: {imported['week_id']}")
     print(f"Local audit exports: {export_folder}")
+
+    try:
+        creative_count = sync_top_ad_creatives(client, imported["week_id"])
+        print(f"Fetched creative images for {creative_count} top ad(s).")
+    except Exception as creative_error:
+        print(f"WARNING: Creative image fetch skipped ({creative_error})", file=sys.stderr)
 
     print("Generating the public GitHub Pages files...")
     result = generate_public_site()

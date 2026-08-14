@@ -197,6 +197,38 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         reverse=True,
     )[:10]
 
+    foreign_channel_rows = [
+        {"value": row.get("channel"), "lead_count": float(row.get("lead_count") or 0)}
+        for row in (organic_breakdown.get("foreign_channels") or [])[:10]
+    ]
+
+    google_ads = data.get("google_ads") or {}
+    google_ads_campaign_rows = [
+        {"value": row.get("campaign_name"), "lead_count": float(row.get("spend") or 0)}
+        for row in (google_ads.get("campaigns") or [])[:8]
+    ]
+    if google_ads.get("available"):
+        google_ads_sub = (
+            f"{money(google_ads.get('spend'))} spend, {number(google_ads.get('clicks'))} clicks, "
+            f"{number(google_ads.get('conversions'))} conversions, {google_ads.get('ctr')}% CTR."
+        )
+    else:
+        google_ads_sub = "No Google Ads data synced for this period yet."
+
+    search_console = data.get("search_console") or {}
+    search_console_query_rows = [
+        {"query": row.get("query"), "clicks": float(row.get("clicks") or 0)}
+        for row in (search_console.get("top_queries") or [])[:8]
+    ]
+    if search_console.get("available"):
+        search_console_sub = (
+            f"{number(search_console.get('clicks'))} clicks, "
+            f"{number(search_console.get('impressions'))} impressions, "
+            f"{search_console.get('ctr')}% CTR, avg. position {search_console.get('position')}. Google Search Console."
+        )
+    else:
+        search_console_sub = "No Search Console data synced for this period yet."
+
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
     reg_days = len(daily) or 1
@@ -275,9 +307,11 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
 
     top_rows = ""
     for i, ad in enumerate(ads, start=1):
+        image_url = ad.get("creative_image_url")
+        thumb_html = f'<img src="{escape(image_url)}" class="creative-thumb-slide" alt="" />' if image_url else ""
         top_rows += (
             "<tr>"
-            f'<td class="name"><span class="rank-pill">{i}</span>{escape(ad.get("entity_name") or "")}</td>'
+            f'<td class="name">{thumb_html}<span class="rank-pill">{i}</span>{escape(ad.get("entity_name") or "")}</td>'
             f'<td class="num">{money(ad.get("spend"))}</td>'
             f'<td class="num">{number(ad.get("results"))}</td>'
             f'<td class="num">{money(ad.get("cost_per_result"))}</td>'
@@ -462,13 +496,56 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     <h2 class="slide-title">Where the foreigners come from</h2>
     <p class="slide-sub">{number(foreign_total)} organic leads this period from outside France, Belgium and Switzerland.</p>
     <div class="slide-body">
-      <div class="chart-wrap">
-        {abar_rows(foreign_country_rows, "lead_count", "value")}
+      <div class="audience-panels">
+        <div class="audience-panel">
+          <h3>By country</h3>
+          {abar_rows(foreign_country_rows, "lead_count", "value")}
+        </div>
+        <div class="audience-panel">
+          <h3>By acquisition channel</h3>
+          {abar_rows(foreign_channel_rows, "lead_count", "value")}
+        </div>
       </div>
     </div>
   </section>
 
   <section class="slide" data-index="9">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Search performance</h2>
+    <p class="slide-sub">{escape(search_console_sub)}</p>
+    <div class="slide-body">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="label">Search clicks</div><div class="value">{number(search_console.get("clicks") or 0)}</div><div class="note">Google Search Console</div></div>
+        <div class="kpi-card"><div class="label">Search impressions</div><div class="value">{number(search_console.get("impressions") or 0)}</div><div class="note">Google Search Console</div></div>
+        <div class="kpi-card"><div class="label">Search CTR</div><div class="value">{search_console.get("ctr") or 0}%</div><div class="note">Google Search Console</div></div>
+        <div class="kpi-card"><div class="label">Avg. position</div><div class="value">{search_console.get("position") or 0}</div><div class="note">Google Search Console</div></div>
+      </div>
+      <div class="chart-wrap" style="margin-top:18px">
+        <h3>Top search queries</h3>
+        {abar_rows(search_console_query_rows, "clicks", "query")}
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="10">
+    <p class="eyebrow">Google</p>
+    <h2 class="slide-title">Google Ads performance</h2>
+    <p class="slide-sub">{escape(google_ads_sub)}</p>
+    <div class="slide-body">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="label">Spend</div><div class="value">{money(google_ads.get("spend") or 0)}</div><div class="note">Google Ads</div></div>
+        <div class="kpi-card"><div class="label">Clicks</div><div class="value">{number(google_ads.get("clicks") or 0)}</div><div class="note">Google Ads</div></div>
+        <div class="kpi-card"><div class="label">Conversions</div><div class="value">{number(google_ads.get("conversions") or 0)}</div><div class="note">Google Ads</div></div>
+        <div class="kpi-card"><div class="label">CTR</div><div class="value">{google_ads.get("ctr") or 0}%</div><div class="note">Google Ads</div></div>
+      </div>
+      <div class="chart-wrap" style="margin-top:18px">
+        <h3>Spend by campaign</h3>
+        {abar_rows(google_ads_campaign_rows, "lead_count", "value")}
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="11">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>

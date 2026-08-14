@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>PreSubs Performance Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css?v=10.6.4.1" />
+  <link rel="stylesheet" href="/static/styles.css?v=10.6.4.2" />
 </head>
 <body data-active-view="auditOverview">
 
@@ -17,22 +17,21 @@
     </div>
     <nav class="sidebar-nav">
       <button class="tab active" data-view="auditOverview" title="Audit overview"><svg viewBox="0 0 24 24"><path d="M12 2 20 6v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.1L6 8v4c0 3.6 2.2 6.1 6 7.5 3.8-1.4 6-3.9 6-7.5V8l-6-2.9Zm-4 8.4 2.2-2.2 1.6 1.6 3.6-3.6 1.4 1.4-5 5-3.8-3.8Z"/></svg><span>Audit overview</span></button>
-      <button class="tab" data-view="overview" title="Overview"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg><span>Overview</span></button>
 <button class="tab" data-view="dailyBrief" title="Daily briefing"><svg viewBox="0 0 24 24"><path d="M7 3h10v2h3v16H4V5h3V3Zm2 2h6V4H9v1Zm-3 4v10h12V9H6Zm2 2h3v3H8v-3Zm5 0h3v2h-3v-2Zm0 4h3v2h-3v-2Z"/></svg><span>Daily briefing</span></button>
-<button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
 <button class="tab" data-view="strategy" title="Management"><svg viewBox="0 0 24 24"><path d="M4 19V9h3v10H4Zm6 0V5h3v14h-3Zm6 0v-7h3v7h-3ZM3 21h18v-2H3v2Z"/></svg><span>Management</span></button>
+<button class="tab" data-view="audience" title="Audience"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.9 9h-3.4c-.1-2-.5-3.8-1.1-5.3A8 8 0 0 1 19.9 11ZM12 4c.7 1 1.5 3 1.7 7h-3.4c.2-4 1-6 1.7-7Zm-2.4.7C8.9 6.2 8.5 8 8.4 10H5A8 8 0 0 1 9.6 4.7ZM5 13h3.4c.1 2 .5 3.8 1.1 5.3A8 8 0 0 1 5 13Zm7 9.3c-.7-1-1.5-3-1.7-7h3.4c-.2 4-1 6-1.7 7Zm2.4-.7c.7-1.5 1-3.3 1.1-5.3h3.4a8 8 0 0 1-4.5 5.3Z"/></svg><span>Audience</span></button>
+<button class="tab" data-view="organic" title="Organic"><svg viewBox="0 0 24 24"><path d="M12 2c4 3 6 6.6 6 10.5A6 6 0 0 1 6 12.5C6 8.6 8 5 12 2Zm0 3.4c-2.5 2.3-3.7 4.6-3.7 6.9a3.7 3.7 0 0 0 7.4 .2c.1-2.4-1.2-4.8-3.7-7.1ZM11 22v-6h2v6h-2Z"/></svg><span>Organic</span></button>
+<button class="tab" data-view="googleAds" title="Google Ads"><svg viewBox="0 0 24 24"><path d="M12 3 4 8v8l8 5 8-5V8l-8-5Zm0 2.3 6 3.7-6 3.7-6-3.7 6-3.7ZM6 10l5 3.1v6L6 16V10Zm7 9.1v-6l5-3.1v6l-5 3.1Z"/></svg><span>Google Ads</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
-<button class="tab" data-view="comparison" title="Weekly comparison"><svg viewBox="0 0 24 24"><path d="M7 3h2v14h3l-4 4-4-4h3V3Zm10 18h-2V7h-3l4-4 4 4h-3v14Z"/></svg><span>Weekly comparison</span></button>
-<button class="tab" data-view="dateAnalysis" title="Date analysis"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h3v3H8v-3Z"/></svg><span>Date analysis</span></button>
 <button class="tab" data-view="hierarchy" title="Campaign structure"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Campaign structure</span></button>
 <button class="tab" data-view="campaigns" title="Campaigns"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm2 2v10h14V7H5Zm2 7 3-3 2 2 4-4 2 2-6 6-2-2-1.5 1.5L7 14Z"/></svg><span>Campaigns</span></button>
 <button class="tab" data-view="adsets" title="Ad sets"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7ZM6 6v3h3V6H6Zm9 0v3h3V6h-3ZM6 15v3h3v-3H6Zm9 0v3h3v-3h-3Z"/></svg><span>Ad sets</span></button>
 <button class="tab" data-view="ads" title="Ads"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6Zm2 2v8h14V8H5Zm2 2h5v2H7v-2Zm0 3h8v2H7v-2Zm10-3h1v4h-1v-4Z"/></svg><span>Ads</span></button>
 <button class="tab" data-view="daily" title="Daily performance"><svg viewBox="0 0 24 24"><path d="M5 19V9h3v10H5Zm5 0V5h3v14h-3Zm5 0v-7h3v7h-3Z"/></svg><span>Daily performance</span></button>
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
+<button class="tab" data-view="dateAnalysis" title="Date analysis"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h3v3H8v-3Z"/></svg><span>Date analysis</span></button>
+<button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
 <button class="tab" data-view="quality" title="Data quality"><svg viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.2L6 8v4c0 3.7 2.3 6.2 6 7.6 3.7-1.4 6-3.9 6-7.6V8l-6-2.8Zm-1 9.3-2.5-2.5 1.4-1.4 1.1 1.1 3.1-3.1 1.4 1.4-4.5 4.5Z"/></svg><span>Data quality</span></button>
-<button class="tab" data-view="audience" title="Audience"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.9 9h-3.4c-.1-2-.5-3.8-1.1-5.3A8 8 0 0 1 19.9 11ZM12 4c.7 1 1.5 3 1.7 7h-3.4c.2-4 1-6 1.7-7Zm-2.4.7C8.9 6.2 8.5 8 8.4 10H5A8 8 0 0 1 9.6 4.7ZM5 13h3.4c.1 2 .5 3.8 1.1 5.3A8 8 0 0 1 5 13Zm7 9.3c-.7-1-1.5-3-1.7-7h3.4c-.2 4-1 6-1.7 7Zm2.4-.7c.7-1.5 1-3.3 1.1-5.3h3.4a8 8 0 0 1-4.5 5.3Z"/></svg><span>Audience</span></button>
-<button class="tab" data-view="organic" title="Organic"><svg viewBox="0 0 24 24"><path d="M12 2c4 3 6 6.6 6 10.5A6 6 0 0 1 6 12.5C6 8.6 8 5 12 2Zm0 3.4c-2.5 2.3-3.7 4.6-3.7 6.9a3.7 3.7 0 0 0 7.4 .2c.1-2.4-1.2-4.8-3.7-7.1ZM11 22v-6h2v6h-2Z"/></svg><span>Organic</span></button>
     </nav>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -79,6 +78,10 @@
           <button class="btn btn-primary hero-apply-btn" type="button" id="applyGlobalRange">Apply</button>
         </div>
       </div>
+    </div>
+
+    <div id="emptyState" class="card empty hidden">
+      No reporting period has been imported. Open <a href="/admin">Weekly import</a>.
     </div>
 
     <section class="hero">
@@ -227,70 +230,6 @@
       </article>
     </section>
 
-    <section id="overview" class="view">
-      <div id="emptyState" class="card empty hidden">
-        No reporting period has been imported. Open <a href="/admin">Weekly import</a>.
-      </div>
-      <div class="kpi-grid" id="kpis"></div>
-
-      <div class="overview-intelligence-grid">
-        <article class="card panel executive-card">
-          <div class="section-head"><div><h2>Executive summary</h2><p>Automatic interpretation of the selected period.</p></div><span class="pill info">Auto-generated</span></div>
-          <div id="executiveSummary" class="executive-summary"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Priority alerts</h2><p>Items that deserve a traffic-management decision.</p></div><span class="pill warn" id="overviewAlertCount">0 alerts</span></div>
-          <div id="overviewAlerts" class="alert-list"></div>
-        </article>
-      </div>
-
-      <article class="card panel goal-overview-card">
-        <div class="section-head"><div><h2>Monthly pacing</h2><p>Budget, registrations and projected outcome against the goal saved for the selected month.</p></div><a class="btn" href="/admin">Edit goals</a></div>
-        <div id="overviewGoalProgress" class="goal-progress-grid"></div>
-        <div class="goal-chart-grid compact-goal-charts">
-          <div class="goal-chart-panel"><div class="chart-title"><strong>Cumulative spend</strong><span>Actual versus monthly target</span></div><div id="overviewSpendPacingChart" class="svg-chart"></div></div>
-          <div class="goal-chart-panel"><div class="chart-title"><strong>Cumulative registrations</strong><span>Actual versus monthly target</span></div><div id="overviewRegistrationPacingChart" class="svg-chart"></div></div>
-        </div>
-      </article>
-
-      <div style="margin-bottom:18px">
-        <article class="card panel">
-          <div class="section-head">
-            <div>
-              <h2>Campaign comparison</h2>
-              <p>Current selected reporting period.</p>
-            </div>
-            <span class="pill info" id="campaignCount"></span>
-          </div>
-          <div class="campaign-compare" id="campaignCards"></div>
-        </article>
-      </div>
-
-      <div style="margin-bottom:18px">
-        <article class="card panel">
-          <div class="section-head">
-            <div>
-              <h2>Cost per registration by ad set</h2>
-              <p>Lower is better. Current account average: <span id="accountCpl">—</span>.</p>
-            </div>
-          </div>
-          <div class="bar-list" id="adsetBars"></div>
-        </article>
-      </div>
-
-      <article class="card panel">
-        <div class="section-head">
-          <div>
-            <h2>Top ads</h2>
-            <p>Ranked using both registration volume and cost efficiency.</p>
-          </div>
-          <span class="pill good">Strongest current signals</span>
-        </div>
-        <div class="top-ads" id="topAds"></div>
-      </article>
-    </section>
-
-
     <section id="dailyBrief" class="view">
       <div class="section-head" style="margin-top:6px">
         <div>
@@ -395,45 +334,6 @@
           <div><strong>Placement-test respondents</strong><p>This describes students who completed the supplied Academy or Fluency Club placement tests, not every lead.</p></div>
           <div><strong>Refresh manually</strong><p>The daily Meta automation updates media performance. Student-profile data changes only when new placement-test exports are added to a future dashboard version.</p></div>
         </div>
-      </article>
-    </section>
-
-    <section id="comparison" class="view">
-      <article class="card panel">
-        <div class="section-head">
-          <div>
-            <h2>Weekly comparison</h2>
-            <p>Choose any two imported reporting periods.</p>
-          </div>
-        </div>
-        <div class="compare-controls">
-          <label>Previous week<select id="comparePrevious"></select></label>
-          <label>Current week<select id="compareCurrent"></select></label>
-          <label class="toggle-label"><input type="checkbox" id="hideZeroDelivery" checked /> Hide zero-delivery rows</label>
-          <button class="btn btn-primary" id="runComparison">Compare weeks</button>
-        </div>
-      </article>
-
-      <div id="comparisonKpis" class="kpi-grid"></div>
-
-      <article class="card panel">
-        <div class="section-head"><div><h2>Campaign comparison</h2><p>Spend, registrations, clicks, CPL, CPC and CTR.</p></div></div>
-        <div id="campaignComparisonTable"></div>
-      </article>
-
-      <article class="card panel">
-        <div class="section-head"><div><h2>Ad-set comparison</h2><p>Matched by ID when available, otherwise by name.</p></div></div>
-        <div id="adsetComparisonTable"></div>
-      </article>
-
-      <article class="card panel">
-        <div class="section-head"><div><h2>Ad comparison</h2><p>Fallback key: ad-set name + ad name.</p></div></div>
-        <div id="adComparisonTable"></div>
-      </article>
-
-      <article class="card panel">
-        <div class="section-head"><div><h2>Conversion-page comparison</h2><p>Pages are identified from [LP-A], [LP-B], etc. Ads without a tag are grouped under Main page.</p></div></div>
-        <div id="pageComparisonTable"></div>
       </article>
     </section>
 
@@ -647,6 +547,16 @@
       </article>
 
       <article class="card panel">
+        <div class="section-head"><div><h2>Ad-set comparison</h2><p>Current date range versus the selected comparison range.</p></div></div>
+        <div id="rangeAdsetComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
+        <div class="section-head"><div><h2>Ad comparison</h2><p>Current date range versus the selected comparison range.</p></div></div>
+        <div id="rangeAdComparisonTable"></div>
+      </article>
+
+      <article class="card panel">
         <div class="section-head"><div><h2>Conversion-page performance for the range</h2><p>Main page and [LP-...] variants based on the ad name.</p></div></div>
         <div id="rangePageTable"></div>
       </article>
@@ -820,12 +730,36 @@
           <div class="section-head"><div><h2>Where the foreigners come from</h2><p>Organic leads outside France, Belgium and Switzerland, by country.</p></div></div>
           <div id="organicForeignCountries"></div>
         </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>How the foreigners found us</h2><p>Organic leads outside France, Belgium and Switzerland, by acquisition channel (Instagram bio, Facebook bio, TikTok, etc).</p></div></div>
+          <div id="organicForeignChannels"></div>
+        </article>
+      </div>
+
+      <div class="section-head" style="margin-top:22px"><div><h2>Search performance</h2><p>Google Search Console: how the site shows up in Google search results.</p></div></div>
+      <div id="searchConsoleKpis" class="kpi-grid"></div>
+      <div class="audience-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Top search queries</h2><p>What people typed on Google before landing on the site.</p></div></div>
+          <div id="searchConsoleQueries"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="googleAds" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Google Ads</h2><p>Google Ads campaign performance.</p></div></div>
+      <div id="googleAdsKpis" class="kpi-grid"></div>
+      <div class="audience-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Campaigns</h2><p>Spend by campaign, this period.</p></div></div>
+          <div id="googleAdsCampaigns"></div>
+        </article>
       </div>
     </section>
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="/static/student_profile_data.js?v=10.6.4.1"></script>
-  <script src="/static/dashboard.js?v=10.6.4.1"></script>
+  <script src="/static/student_profile_data.js?v=10.6.4.2"></script>
+  <script src="/static/dashboard.js?v=10.6.4.2"></script>
 </body>
 </html>

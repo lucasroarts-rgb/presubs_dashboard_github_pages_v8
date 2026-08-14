@@ -28,9 +28,9 @@ def clean_json(value: Any) -> Any:
 
 def build_public_index() -> str:
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    html = html.replace('/static/styles.css?v=10.6.4.1', 'styles.css?v=10.6.4.1')
-    html = html.replace('/static/dashboard.js?v=10.6.4.1', 'dashboard.js?v=10.6.4.1')
-    html = html.replace('/static/student_profile_data.js?v=10.6.4.1', 'student_profile_data.js?v=10.6.4.1')
+    html = html.replace('/static/styles.css?v=10.6.4.2', 'styles.css?v=10.6.4.2')
+    html = html.replace('/static/dashboard.js?v=10.6.4.2', 'dashboard.js?v=10.6.4.2')
+    html = html.replace('/static/student_profile_data.js?v=10.6.4.2', 'student_profile_data.js?v=10.6.4.2')
     html = html.replace('/static/assets/peasy-logo.png', 'assets/peasy-logo.png')
     html = html.replace('/static/weekly-review.html', 'weekly-review.html')
     html = html.replace('/weekly-reviews/index.html', 'weekly-reviews/index.html')
@@ -47,8 +47,8 @@ def build_public_index() -> str:
     html = html.replace('<a class="btn" href="/admin">Edit goals</a>', '')
     html = html.replace('<a class="btn" href="/admin">Configure goals and events</a>', '')
     html = html.replace(
-        '<script src="dashboard.js?v=10.6.4.1"></script>',
-        '<script src="data.js?v=10.6.4.1"></script>\n  <script src="dashboard.js?v=10.6.4.1"></script>',
+        '<script src="dashboard.js?v=10.6.4.2"></script>',
+        '<script src="data.js?v=10.6.4.2"></script>\n  <script src="dashboard.js?v=10.6.4.2"></script>',
     )
     return html
 
@@ -100,37 +100,6 @@ def build_public_javascript() -> str:
     if old_hierarchy_button not in js:
         raise RuntimeError("Could not patch hierarchy preview button.")
     js = js.replace(old_hierarchy_button, new_hierarchy_button, 1)
-
-    old_comparison = """  let data;
-  try{
-    const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-    data=await response.json();
-    if(!response.ok){alert(data.detail||"Could not load comparison.");return}
-  }catch(error){
-    console.error("Dashboard render error in loadComparison:",error);
-    alert("Could not load comparison.");
-    return;
-  }
-  comparisonData=data;"""
-    new_comparison = """  let data;
-  if(IS_STATIC){
-    data=buildClientComparison(currentId,previousId);
-    if(!data){alert("The selected reporting periods are not available in this export.");return}
-  }else{
-    try{
-      const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-      data=await response.json();
-      if(!response.ok){alert(data.detail||"Could not load comparison.");return}
-    }catch(error){
-      console.error("Dashboard render error in loadComparison:",error);
-      alert("Could not load comparison.");
-      return;
-    }
-  }
-  comparisonData=data;"""
-    if old_comparison not in js:
-        raise RuntimeError("Could not patch loadComparison.")
-    js = js.replace(old_comparison, new_comparison, 1)
 
     old_dashboard = """  document.body.dataset.periodMode="week";
   const url=weekId?`/api/dashboard?week_id=${weekId}`:"/api/dashboard";

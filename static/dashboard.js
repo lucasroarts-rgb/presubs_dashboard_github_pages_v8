@@ -7,6 +7,14 @@ const number = value => new Intl.NumberFormat(localeForLang(),{maximumFractionDi
 const decimal = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:2}).format(Number(value));
 const percent = value => value == null ? "—" : `${decimal(value)}%`;
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+function creativeImageFor(entityKey){
+  const ad=(dashboard?.ads||[]).find(a=>a.entity_key===entityKey);
+  return ad?.creative_image_url||null;
+}
+function creativeThumb(entityKey){
+  const url=creativeImageFor(entityKey);
+  return url?`<img src="${escapeHtml(url)}" alt="" class="creative-thumb" loading="lazy" onerror="this.remove()" />`:"";
+}
 const formatDate = value => value ? new Intl.DateTimeFormat(dateLocaleForLang(),{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)) : "—";
 
 const UI_TRANSLATIONS={
@@ -413,7 +421,34 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "France, Belgium, Switzerland":"France, Belgique, Suisse",
   "Foreign":"Étranger",
   "Where the foreigners come from":"D’où viennent les étrangers",
-  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads organiques hors France, Belgique et Suisse, par pays."
+  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads organiques hors France, Belgique et Suisse, par pays.",
+  "How the foreigners found us":"Comment les étrangers nous ont trouvés",
+  "Organic leads outside France, Belgium and Switzerland, by acquisition channel (Instagram bio, Facebook bio, TikTok, etc).":"Leads organiques hors France, Belgique et Suisse, par canal d’acquisition (bio Instagram, bio Facebook, TikTok, etc).",
+  "Search performance":"Performance de recherche",
+  "Google Search Console: how the site shows up in Google search results.":"Google Search Console : comment le site apparaît dans les résultats de recherche Google.",
+  "Top search queries":"Principales requêtes de recherche",
+  "What people typed on Google before landing on the site.":"Ce que les gens ont tapé sur Google avant d’arriver sur le site.",
+  "Search clicks":"Clics de recherche",
+  "Search impressions":"Impressions de recherche",
+  "Search CTR":"CTR de recherche",
+  "Avg. position":"Position moy.",
+  "Google Search, this period":"Google Search, cette période",
+  "No Search Console data synced for this period.":"Aucune donnée Search Console synchronisée pour cette période.",
+  "impressions":"impressions",
+  "CTR":"CTR",
+  "pos.":"pos.",
+  "Google Ads":"Google Ads",
+  "Google Ads campaign performance.":"Performance des campagnes Google Ads.",
+  "Google Ads spend":"Dépenses Google Ads",
+  "Clicks":"Clics",
+  "Impressions":"Impressions",
+  "Conversions":"Conversions",
+  "CPC":"CPC",
+  "This period":"Cette période",
+  "Spend by campaign, this period.":"Dépenses par campagne, cette période.",
+  "No Google Ads data synced for this period.":"Aucune donnée Google Ads synchronisée pour cette période.",
+  "clicks":"clics",
+  "conversions":"conversions"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -460,7 +495,34 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "France, Belgium, Switzerland":"França, Bélgica, Suíça",
   "Foreign":"Estrangeiro",
   "Where the foreigners come from":"De onde vêm os estrangeiros",
-  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads orgânicos fora de França, Bélgica e Suíça, por país."
+  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads orgânicos fora de França, Bélgica e Suíça, por país.",
+  "How the foreigners found us":"Como os estrangeiros nos encontraram",
+  "Organic leads outside France, Belgium and Switzerland, by acquisition channel (Instagram bio, Facebook bio, TikTok, etc).":"Leads orgânicos fora de França, Bélgica e Suíça, por canal de aquisição (bio do Instagram, bio do Facebook, TikTok, etc).",
+  "Search performance":"Desempenho de busca",
+  "Google Search Console: how the site shows up in Google search results.":"Google Search Console: como o site aparece nos resultados de busca do Google.",
+  "Top search queries":"Principais termos de busca",
+  "What people typed on Google before landing on the site.":"O que as pessoas digitaram no Google antes de chegar no site.",
+  "Search clicks":"Cliques de busca",
+  "Search impressions":"Impressões de busca",
+  "Search CTR":"CTR de busca",
+  "Avg. position":"Posição média",
+  "Google Search, this period":"Google Search, este período",
+  "No Search Console data synced for this period.":"Nenhum dado do Search Console sincronizado para este período.",
+  "impressions":"impressões",
+  "CTR":"CTR",
+  "pos.":"pos.",
+  "Google Ads":"Google Ads",
+  "Google Ads campaign performance.":"Desempenho das campanhas do Google Ads.",
+  "Google Ads spend":"Investimento em Google Ads",
+  "Clicks":"Cliques",
+  "Impressions":"Impressões",
+  "Conversions":"Conversões",
+  "CPC":"CPC",
+  "This period":"Este período",
+  "Spend by campaign, this period.":"Investimento por campanha, este período.",
+  "No Google Ads data synced for this period.":"Nenhum dado do Google Ads sincronizado para este período.",
+  "clicks":"cliques",
+  "conversions":"conversões"
 });
 
 const originalTextNodes=new WeakMap();
@@ -498,7 +560,6 @@ function applyTranslations(root=document){
 
 let weeks=[];
 let dashboard=null;
-let comparisonData=null;
 
 document.querySelectorAll(".tab").forEach(button=>{
   button.addEventListener("click",()=>{
@@ -633,89 +694,15 @@ async function loadWeeks(){
     weeks=[];
   }
   const main=document.getElementById("weekSelect");
-  const current=document.getElementById("compareCurrent");
-  const previous=document.getElementById("comparePrevious");
   const options=weeks.map(w=>`<option value="${w.id}">${dateRangeLabel(w.week_start,w.week_end)}</option>`).join("");
   main.innerHTML=options||`<option>No reporting periods</option>`;
-  current.innerHTML=options;
-  previous.innerHTML=options;
   main.disabled=!weeks.length;
-  current.disabled=!weeks.length;
-  previous.disabled=!weeks.length;
-  if(weeks[0]) current.value=weeks[0].id;
-  if(weeks[1]) previous.value=weeks[1].id;
-  else if(weeks[0]) previous.value=weeks[0].id;
   main.addEventListener("change",()=>{if((document.getElementById("periodMode")?.value||"week")==="week")loadDashboard(main.value)});
   document.getElementById("periodMode")?.addEventListener("change",handleGlobalPeriodMode);
   document.getElementById("applyGlobalRange")?.addEventListener("click",applyGlobalCustomRange);
-  document.getElementById("runComparison").addEventListener("click",loadComparison);
-  document.getElementById("hideZeroDelivery").addEventListener("change",()=>{
-    if(comparisonData) renderDetailedComparison(comparisonData);
-  });
   await loadDashboard(weeks[0]?.id);
-  if(weeks.length>1) await loadComparison();
 }
 
-function renderKpis(data){
-  const t=data.totals||{};
-  document.getElementById("accountCpl").textContent=money(t.cpl);
-  const lpvAvailable=Number(t.landing_page_views)>0;
-  const items=[
-    ["Spend",money(t.spend),"Total across all campaigns"],
-    ["Registrations",number(t.results),"Primary acquisition result"],
-    ["Cost / registration",money(t.cpl),"Blended CPL"],
-    ["Link clicks",number(t.link_clicks),`Blended CPC ${money(t.cpc)}`],
-    ["Landing-page views",lpvAvailable?number(t.landing_page_views):"—",lpvAvailable?`Cost / LPV ${money(t.cost_per_lpv)}`:"Not included in this export"],
-    ["Link CTR",percent(t.ctr),`${number(t.impressions)} impressions`]
-  ];
-  document.getElementById("kpis").innerHTML=items.map(x=>`<article class="card kpi"><div class="kpi-label">${x[0]}</div><div><div class="kpi-value">${x[1]}</div><div class="kpi-note">${x[2]}</div></div></article>`).join("");
-}
-
-function renderCampaignCards(items){
-  document.getElementById("campaignCount").textContent=`${items.length} campaign${items.length===1?"":"s"}`;
-  document.getElementById("campaignCards").innerHTML=items.length?items.map(item=>`
-    <div class="compare-card">
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <div class="compare-title">${item.entity_name}</div>${statusPill(item.status)}
-      </div>
-      <div class="compare-metrics">
-        <div class="mini-metric"><span>Spend</span><strong>${money(item.spend)}</strong></div>
-        <div class="mini-metric"><span>Results</span><strong>${number(item.results)}</strong></div>
-        <div class="mini-metric"><span>CPL</span><strong>${money(calculatedCpl(item))}</strong></div>
-      </div>
-      <div class="entity-sub">Started ${formatDate(item.effective_start_date)} · ${startSourceLabel(item.start_date_source)}</div>
-    </div>`).join(""):`<div class="empty">No campaigns in this period.</div>`;
-}
-
-function renderAdsetBars(items){
-  const rows=[...items].filter(x=>Number(x.results)>0).sort((a,b)=>calculatedCpl(a)-calculatedCpl(b));
-  if(!rows.length){document.getElementById("adsetBars").innerHTML=`<div class="empty">No ad sets with registrations.</div>`;return}
-  const max=Math.max(...rows.map(calculatedCpl));
-  document.getElementById("adsetBars").innerHTML=rows.map(x=>`
-    <div class="bar-row">
-      <div class="bar-label" title="${x.entity_name}">${x.entity_name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,calculatedCpl(x)/max*100)}%"></div></div>
-      <div class="bar-value">${money(calculatedCpl(x))}</div>
-    </div>`).join("");
-}
-
-function adScore(ad){
-  if(!Number(ad.results)) return -1;
-  const cpl=calculatedCpl(ad)||99999;
-  return Number(ad.results)*1000-cpl;
-}
-
-function renderTopAds(items){
-  const rows=[...items].filter(x=>Number(x.results)>0).sort((a,b)=>adScore(b)-adScore(a)).slice(0,3);
-  document.getElementById("topAds").innerHTML=rows.length?rows.map((ad,index)=>`
-    <div class="ad-highlight">
-      <div style="display:flex;justify-content:space-between;gap:8px"><div class="rank">#${index+1}</div>${performancePill(ad)}</div>
-      <h4>${ad.entity_name}</h4>
-      <p>${ad.adset_name||"Ad-set relation not included"}</p>
-      <div class="metric-line"><span>Registrations <strong>${number(ad.results)}</strong></span><span>CPL <strong>${money(calculatedCpl(ad))}</strong></span></div>
-      <div class="entity-sub">Started ${formatDate(ad.effective_start_date)} · ${pageBadge(ad)} ${ad.page_name||"Main page"}</div>
-    </div>`).join(""):`<div class="empty">No ads with registrations.</div>`;
-}
 
 function table(container,columns,rows,emptyMessage="No data for this period."){
   document.getElementById(container).innerHTML=`<div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${c.label}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${columns.map(c=>`<td class="${c.numeric?"numeric":""} ${c.name?"name-cell":""}">${c.render?c.render(row):(row[c.key]??"—")}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${columns.length}" class="empty">${emptyMessage}</td></tr>`}</tbody></table></div>`;
@@ -1259,7 +1246,7 @@ function renderDailyBrief(){
     return (a.cpl||999999)-(b.cpl||999999);
   });
   table("dailyBriefTopAds",[
-    {label:"Ad",name:true,render:r=>r.entity_name},
+    {label:"Ad",name:true,render:r=>`${creativeThumb(r.entity_key)}<span>${escapeHtml(r.entity_name)}</span>`},
     {label:"Page",render:r=>r.page_name||"Main page"},
     {label:"Spend",numeric:true,render:r=>money(r.spend)},
     {label:"Registrations",numeric:true,render:r=>number(r.results)},
@@ -1434,7 +1421,7 @@ function deliveryBadge(row){
 }
 
 function filteredComparisonRows(rows){
-  if(!document.getElementById("hideZeroDelivery").checked) return rows;
+  if(!(document.getElementById("rangeHideZero")?.checked ?? true)) return rows;
   return rows.filter(row=>(Number(row.current.spend)||0)>0 || (Number(row.previous.spend)||0)>0);
 }
 
@@ -1487,56 +1474,14 @@ function renderPageComparisonTable(container,rows){
   ],filteredComparisonRows(rows),"No page comparison is available for the selected periods.");
 }
 
-function renderComparisonKpis(data){
-  const c=data.current_totals,p=data.previous_totals;
-  const items=[
-    ["Spend",money(c.spend),`Previous ${money(p.spend)}`,change(c.spend,p.spend,true)],
-    ["Registrations",number(c.results),`Previous ${number(p.results)}`,change(c.results,p.results)],
-    ["CPL",money(c.cpl),`Previous ${money(p.cpl)}`,change(c.cpl,p.cpl,true)],
-    ["Link clicks",number(c.link_clicks),`Previous ${number(p.link_clicks)}`,change(c.link_clicks,p.link_clicks)],
-    ["CPC",money(c.cpc),`Previous ${money(p.cpc)}`,change(c.cpc,p.cpc,true)],
-    ["CTR",percent(c.ctr),`Previous ${percent(p.ctr)}`,change(c.ctr,p.ctr)]
-  ];
-  document.getElementById("comparisonKpis").innerHTML=items.map(x=>`<article class="card kpi"><div class="kpi-label">${x[0]}</div><div><div class="kpi-value">${x[1]}</div><div class="kpi-note">${x[2]}</div>${deltaHtml(x[3])}</div></article>`).join("");
-}
-
-function renderDetailedComparison(data){
-  renderComparisonKpis(data);
-  renderComparisonTable("campaignComparisonTable",data.campaigns);
-  renderComparisonTable("adsetComparisonTable",data.adsets);
-  renderComparisonTable("adComparisonTable",data.ads);
-  renderPageComparisonTable("pageComparisonTable",data.pages||[]);
-}
-
-async function loadComparison(){
-  const currentId=document.getElementById("compareCurrent").value;
-  const previousId=document.getElementById("comparePrevious").value;
-  if(!currentId || !previousId || currentId===previousId) return;
-  let data;
-  try{
-    const response=await fetch(`/api/comparison?current_week_id=${currentId}&previous_week_id=${previousId}`);
-    data=await response.json();
-    if(!response.ok){alert(data.detail||"Could not load comparison.");return}
-  }catch(error){
-    console.error("Dashboard render error in loadComparison:",error);
-    alert("Could not load comparison.");
-    return;
-  }
-  comparisonData=data;
-  renderDetailedComparison(data);
-}
 
 function renderLoadedDashboard(){
   const empty=!dashboard?.current_week;
   document.getElementById("emptyState").classList.toggle("hidden",!empty);
-  if(empty){document.getElementById("kpis").innerHTML="";return}
+  if(empty){return}
   document.getElementById("heroPeriod").textContent=dashboard.current_week.label;
   document.getElementById("heroComparison").textContent=dashboard.previous_week?dashboard.previous_week.label:"No earlier period";
   const safe=safeRender;
-  safe("overview KPIs",()=>renderKpis(dashboard));
-  safe("campaign cards",()=>renderCampaignCards(dashboard.campaigns));
-  safe("ad-set bars",()=>renderAdsetBars(dashboard.adsets));
-  safe("top ads",()=>renderTopAds(dashboard.ads));
   safe("page conversion",()=>renderConversion(dashboard));
   safe("performance tables",()=>renderPerformanceTables(dashboard));
   safe("daily performance",()=>renderDaily());
@@ -1981,11 +1926,14 @@ function renderRangeEntityTables(currentRows,previousRows){
   table("rangeAdTable",rangeTableColumns([{label:"Ad",name:true,render:r=>`<span>${r.label}</span><span class="sub-cell">${r.adset_name||""}</span><span class="sub-cell">${r.campaign_name||""}</span>`},{label:"Page",render:r=>r.page_name||"Main page"}]),ads.slice(0,150),"No ad delivery exists for this range.");
   if(previousRows){
     renderComparisonTable("rangeCampaignComparisonTable",buildRangeComparison(campaigns,rangeEntityGroups(previousRows,"campaign"),"campaign"));
+    renderComparisonTable("rangeAdsetComparisonTable",buildRangeComparison(adsets,rangeEntityGroups(previousRows,"adset"),"adset"));
+    renderComparisonTable("rangeAdComparisonTable",buildRangeComparison(ads,rangeEntityGroups(previousRows,"ad"),"ad"));
     const pageRows=buildRangeComparison(pages,rangeEntityGroups(previousRows,"page"),"page").map(r=>({...r,page_name:r.entity_name,page_code:r.page_code||"MAIN"}));
     renderPageComparisonTable("rangePageComparisonTable",pageRows);
   }else{
-    document.getElementById("rangeCampaignComparisonTable").innerHTML='<div class="empty">Comparison disabled.</div>';
-    document.getElementById("rangePageComparisonTable").innerHTML='<div class="empty">Comparison disabled.</div>';
+    ["rangeCampaignComparisonTable","rangeAdsetComparisonTable","rangeAdComparisonTable","rangePageComparisonTable"].forEach(id=>{
+      document.getElementById(id).innerHTML='<div class="empty">Comparison disabled.</div>';
+    });
   }
 }
 function exportRangeCsv(rows,start,end){
@@ -2026,31 +1974,6 @@ async function initializeDateAnalysis(){
   toggleCustom();await renderDateAnalysis();
 }
 
-function metricSnapshot(row){
-  const spend=Number(row?.spend)||0,results=Number(row?.results)||0,impressions=Number(row?.impressions)||0,link_clicks=Number(row?.link_clicks)||0;
-  return {spend,results,cpl:results?spend/results:null,impressions,link_clicks,cpc:link_clicks?spend/link_clicks:null,ctr:impressions?link_clicks*100/impressions:null,reach:Number(row?.reach)||0,frequency:Number(row?.frequency)||0};
-}
-function clientEntityComparison(currentRows,previousRows,relationField){
-  const cMap=new Map((currentRows||[]).map(r=>[r.entity_key,r])),pMap=new Map((previousRows||[]).map(r=>[r.entity_key,r]));
-  return [...new Set([...cMap.keys(),...pMap.keys()])].map(key=>{
-    const c=cMap.get(key),p=pMap.get(key),sample=c||p,current=metricSnapshot(c),previous=metricSnapshot(p);
-    return {entity_key:key,entity_name:sample?.entity_name||key,relation_name:sample?.[relationField]||null,delivery_status:c&&p?"continued":c?"new":"not_in_current_week",current_status:c?.status||null,previous_status:p?.status||null,current,previous,change:{spend:change(current.spend,previous.spend)?.value??null,results:change(current.results,previous.results)?.value??null,cpl:change(current.cpl,previous.cpl)?.value??null,link_clicks:change(current.link_clicks,previous.link_clicks)?.value??null,cpc:change(current.cpc,previous.cpc)?.value??null,ctr:change(current.ctr,previous.ctr)?.value??null}};
-  });
-}
-function clientPageComparison(currentRows,previousRows){
-  const cMap=new Map((currentRows||[]).map(r=>[r.page_key,r])),pMap=new Map((previousRows||[]).map(r=>[r.page_key,r]));
-  return [...new Set([...cMap.keys(),...pMap.keys()])].map(key=>{
-    const c=cMap.get(key),p=pMap.get(key),sample=c||p;
-    const shape=x=>({spend:Number(x?.spend)||0,results:Number(x?.results)||0,cpl:x?.cpl??null,conversion_rate:x?.conversion_rate??null,link_clicks:Number(x?.link_clicks)||0,landing_page_views:Number(x?.landing_page_views)||0,ad_count:Number(x?.ad_count)||0});
-    const current=shape(c),previous=shape(p);
-    return {page_key:key,page_name:sample?.page_name||"Main page",page_code:sample?.page_code||"MAIN",delivery_status:c&&p?"continued":c?"new":"not_in_current_week",effective_start_date:sample?.effective_start_date||null,current,previous,change:{spend:change(current.spend,previous.spend)?.value??null,results:change(current.results,previous.results)?.value??null,cpl:change(current.cpl,previous.cpl)?.value??null,conversion_rate:change(current.conversion_rate,previous.conversion_rate)?.value??null}};
-  });
-}
-function buildClientComparison(currentId,previousId){
-  const currentData=STATIC_DATA.dashboards?.[String(currentId)],previousData=STATIC_DATA.dashboards?.[String(previousId)];
-  if(!currentData||!previousData) return null;
-  return {current_week:currentData.current_week,previous_week:previousData.current_week,current_totals:currentData.totals,previous_totals:previousData.totals,campaigns:clientEntityComparison(currentData.campaigns,previousData.campaigns,"none"),adsets:clientEntityComparison(currentData.adsets,previousData.adsets,"campaign_name"),ads:clientEntityComparison(currentData.ads,previousData.ads,"adset_name"),pages:clientPageComparison(currentData.page_groups,previousData.page_groups)};
-}
 
 
 /* v10 management intelligence, creative health and data quality */
@@ -2230,25 +2153,6 @@ function renderAlerts(){
   labels.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=`${actionable.length} alert${actionable.length===1?"":"s"}`});
 }
 
-function bestEntity(rows){return [...(rows||[])].filter(row=>safeNum(row.results)>0).sort((a,b)=>(calculatedCpl(a)||Infinity)-(calculatedCpl(b)||Infinity))[0]||null}
-function renderExecutiveSummary(){
-  const current=dashboard?.totals||{},previous=dashboard?.previous_totals||{};
-  const spendDelta=metricChange(current.spend,previous.spend),resultDelta=metricChange(current.results,previous.results),cplDelta=metricChange(current.cpl,previous.cpl);
-  const bestCampaign=bestEntity(dashboard?.campaigns),bestPage=[...(dashboard?.page_groups||[])].filter(row=>safeNum(row.results)>0).sort((a,b)=>safeNum(b.conversion_rate)-safeNum(a.conversion_rate))[0];
-  const actionable=advancedState.alerts.filter(item=>item.severity!=="good");
-  const sentences=[];
-  const monthly=buildGoalProjection();
-  if(monthly.goalConfigured) sentences.push(`${monthly.monthLabel} is at ${decimal(monthly.budgetProgress)}% of budget and ${decimal(monthly.registrationProgress)}% of the registration target.`);
-  else sentences.push(`No monthly goal is configured for ${monthly.monthLabel}.`);
-  if(spendDelta!=null)sentences.push(`Spend ${spendDelta>=0?"increased":"decreased"} ${decimal(Math.abs(spendDelta))}% versus the previous imported week.`);
-  if(resultDelta!=null)sentences.push(`Registrations ${resultDelta>=0?"increased":"decreased"} ${decimal(Math.abs(resultDelta))}%.`);
-  if(cplDelta!=null)sentences.push(`CPL ${cplDelta<=0?"improved":"worsened"} ${decimal(Math.abs(cplDelta))}% to ${money(current.cpl)}.`);
-  if(bestCampaign)sentences.push(`${bestCampaign.entity_name} had the strongest campaign CPL at ${money(calculatedCpl(bestCampaign))}.`);
-  if(bestPage)sentences.push(`${bestPage.page_name} led page conversion at ${percent(bestPage.conversion_rate)}.`);
-  sentences.push(actionable.length?`${actionable.length} management alert${actionable.length===1?" requires":"s require"} attention.`:"No configured alert threshold was breached.");
-  const el=document.getElementById("executiveSummary");if(el)el.innerHTML=`<p>${sentences.join(" ")}</p><div class="summary-facts"><span>${dashboard?.current_week?.label||""}</span></div>`;
-}
-
 function renderTimeline(containerId,start=null,end=null){
   const rows=[...(advancedConfig.annotations||[])].filter(item=>(!start||item.event_date>=start)&&(!end||item.event_date<=end)).sort((a,b)=>String(b.event_date).localeCompare(String(a.event_date)));
   const container=document.getElementById(containerId);if(!container)return;
@@ -2426,19 +2330,25 @@ function renderOrganic(){
     content:document.getElementById("organicContent"),
     term:document.getElementById("organicTerm"),
     temperature:document.getElementById("organicTemperature"),
-    foreignCountries:document.getElementById("organicForeignCountries")
+    foreignCountries:document.getElementById("organicForeignCountries"),
+    foreignChannels:document.getElementById("organicForeignChannels")
   };
   if(!panels.source)return;
   const breakdown=dashboard?.organic_breakdown;
   const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
   if(!breakdown||!breakdown.available){
     panels.source.innerHTML=empty;panels.content.innerHTML=empty;panels.term.innerHTML=empty;
+    if(panels.foreignChannels)panels.foreignChannels.innerHTML=empty;
   }else{
     ["source","content","term"].forEach(key=>{
       const panel=panels[key];if(!panel)return;
       const rows=(breakdown[key]||[]).slice(0,10);
       panel.innerHTML=audienceBarList(rows,row=>row.lead_count,row=>escapeHtml(row.value));
     });
+    if(panels.foreignChannels){
+      const foreignChannels=(breakdown.foreign_channels||[]).slice(0,10);
+      panels.foreignChannels.innerHTML=audienceBarList(foreignChannels,row=>row.lead_count,row=>escapeHtml(row.channel));
+    }
   }
   const countries=dashboard?.audience?.countries||[];
   if(!panels.temperature)return;
@@ -2465,6 +2375,61 @@ function renderOrganic(){
       .slice(0,10);
     panels.foreignCountries.innerHTML=audienceBarList(foreignRows,row=>row.value,row=>escapeHtml(row.country));
   }
+  renderSearchConsole();
+}
+
+function renderSearchConsole(){
+  const kpis=document.getElementById("searchConsoleKpis");
+  const queriesPanel=document.getElementById("searchConsoleQueries");
+  if(!kpis||!queriesPanel)return;
+  const gsc=dashboard?.search_console;
+  const empty=`<div class="empty">${t("No Search Console data synced for this period.")}</div>`;
+  if(!gsc||!gsc.available){
+    kpis.innerHTML="";queriesPanel.innerHTML=empty;
+    return;
+  }
+  const items=[
+    [t("Search clicks"),gsc.clicks,t("Google Search, this period")],
+    [t("Search impressions"),gsc.impressions,t("Google Search, this period")],
+    [t("Search CTR"),null,t("Google Search, this period"),`${gsc.ctr}%`],
+    [t("Avg. position"),null,t("Google Search, this period"),`${gsc.position}`]
+  ];
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[3]!==undefined?item[3]:number(item[1])}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+  const queries=(gsc.top_queries||[]).slice(0,10);
+  queriesPanel.innerHTML=audienceBarList(
+    queries,
+    row=>row.clicks,
+    row=>escapeHtml(row.query),
+    row=>`${number(row.impressions)} ${t("impressions")} · ${row.ctr}% ${t("CTR")} · ${t("pos.")} ${row.position}`
+  );
+}
+
+function renderGoogleAds(){
+  const kpis=document.getElementById("googleAdsKpis");
+  const campaignsPanel=document.getElementById("googleAdsCampaigns");
+  if(!kpis||!campaignsPanel)return;
+  const ga=dashboard?.google_ads;
+  const empty=`<div class="empty">${t("No Google Ads data synced for this period.")}</div>`;
+  if(!ga||!ga.available){
+    kpis.innerHTML="";campaignsPanel.innerHTML=empty;
+    return;
+  }
+  const items=[
+    [t("Google Ads spend"),money(ga.spend),t("This period")],
+    [t("Clicks"),number(ga.clicks),t("This period")],
+    [t("Impressions"),number(ga.impressions),t("This period")],
+    [t("Conversions"),number(ga.conversions),t("This period")],
+    [t("CTR"),`${ga.ctr}%`,t("This period")],
+    [t("CPC"),money(ga.cpc),t("This period")]
+  ];
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+  const campaigns=(ga.campaigns||[]).slice(0,10);
+  campaignsPanel.innerHTML=audienceBarList(
+    campaigns,
+    row=>row.spend,
+    row=>escapeHtml(row.campaign_name),
+    row=>`${number(row.clicks)} ${t("clicks")} · ${number(row.conversions)} ${t("conversions")}`
+  );
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
@@ -2850,7 +2815,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("googleAds",renderGoogleAds);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
@@ -2958,7 +2923,7 @@ function renderStudentProfile(){
 document.querySelectorAll(".profile-filter-btn").forEach(btn=>btn.addEventListener("click",()=>{studentProfileState.selected=btn.dataset.profile;renderStudentProfile()}));
 
 function refreshWeekLabels(){
-  const ids=["weekSelect","compareCurrent","comparePrevious"];ids.forEach(id=>{const select=document.getElementById(id);if(!select)return;const value=select.value;select.innerHTML=(weeks||[]).map(w=>`<option value="${w.id}">${dateRangeLabel(w.week_start,w.week_end)}</option>`).join("");if([...select.options].some(o=>o.value===value))select.value=value});
+  const ids=["weekSelect"];ids.forEach(id=>{const select=document.getElementById(id);if(!select)return;const value=select.value;select.innerHTML=(weeks||[]).map(w=>`<option value="${w.id}">${dateRangeLabel(w.week_start,w.week_end)}</option>`).join("");if([...select.options].some(o=>o.value===value))select.value=value});
 }
 function rerenderLanguage(){
   refreshWeekLabels();

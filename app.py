@@ -272,6 +272,7 @@ def init_db() -> None:
         engagement_ranking TEXT,
         conversion_ranking TEXT,
         preview_url TEXT,
+        creative_image_url TEXT,
         UNIQUE(week_id, entity_key)
     );
 
@@ -388,6 +389,50 @@ def init_db() -> None:
         lead_count INTEGER NOT NULL DEFAULT 0,
         UNIQUE(report_date, dimension_type, dimension_value)
     );
+
+    CREATE TABLE IF NOT EXISTS crm_organic_foreign_by_channel_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        channel TEXT NOT NULL,
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(report_date, channel)
+    );
+
+    CREATE TABLE IF NOT EXISTS google_ads_campaign_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        campaign_id TEXT NOT NULL,
+        campaign_name TEXT NOT NULL,
+        status TEXT,
+        spend REAL NOT NULL DEFAULT 0,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        conversions REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date, campaign_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS search_console_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        ctr REAL NOT NULL DEFAULT 0,
+        position REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS search_console_queries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        query TEXT NOT NULL,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        ctr REAL NOT NULL DEFAULT 0,
+        position REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(query)
+    );
     """
     with db() as con:
         con.executescript(schema)
@@ -398,6 +443,11 @@ def init_db() -> None:
             con.execute("ALTER TABLE landing_pages ADD COLUMN start_date TEXT")
         if "page_code" not in columns:
             con.execute("ALTER TABLE landing_pages ADD COLUMN page_code TEXT")
+        ad_columns = {
+            row["name"] for row in con.execute("PRAGMA table_info(ad_metrics)").fetchall()
+        }
+        if "creative_image_url" not in ad_columns:
+            con.execute("ALTER TABLE ad_metrics ADD COLUMN creative_image_url TEXT")
 
 
 
@@ -1078,6 +1128,7 @@ def import_ads(con: sqlite3.Connection, week_id: int, frame: pd.DataFrame) -> in
             (key,),
         ).fetchone()
         preview_url = old_link["preview_url"] if old_link else None
+        creative_image_url = clean_text(col(row, "URL da imagem do criativo", "Creative image URL")) or None
         con.execute(
             """
             INSERT INTO ad_metrics (
@@ -1085,13 +1136,13 @@ def import_ads(con: sqlite3.Connection, week_id: int, frame: pd.DataFrame) -> in
                 adset_key, adset_name, status, created_date, spend, results, reach,
                 frequency, impressions, link_clicks, cpc, ctr, landing_page_views,
                 cost_per_lpv, cost_per_result, quality_ranking, engagement_ranking,
-                conversion_ranking, preview_url
+                conversion_ranking, preview_url, creative_image_url
             ) VALUES (
                 :week_id, :entity_key, :entity_name, :campaign_key, :campaign_name,
                 :adset_key, :adset_name, :status, :created_date, :spend, :results, :reach,
                 :frequency, :impressions, :link_clicks, :cpc, :ctr, :landing_page_views,
                 :cost_per_lpv, :cost_per_result, :quality_ranking, :engagement_ranking,
-                :conversion_ranking, :preview_url
+                :conversion_ranking, :preview_url, :creative_image_url
             )
             ON CONFLICT(week_id, entity_key) DO UPDATE SET
                 entity_name=excluded.entity_name,
@@ -1117,7 +1168,8 @@ def import_ads(con: sqlite3.Connection, week_id: int, frame: pd.DataFrame) -> in
                 quality_ranking=excluded.quality_ranking,
                 engagement_ranking=excluded.engagement_ranking,
                 conversion_ranking=excluded.conversion_ranking,
-                preview_url=COALESCE(ad_metrics.preview_url, excluded.preview_url)
+                preview_url=COALESCE(ad_metrics.preview_url, excluded.preview_url),
+                creative_image_url=COALESCE(excluded.creative_image_url, ad_metrics.creative_image_url)
             """,
             {
                 "week_id": week_id,
@@ -1131,6 +1183,7 @@ def import_ads(con: sqlite3.Connection, week_id: int, frame: pd.DataFrame) -> in
                 "engagement_ranking": clean_text(col(row, "Classificação da taxa de engajamento", "Engagement rate ranking")),
                 "conversion_ranking": clean_text(col(row, "Classificação da taxa de conversão", "Conversion rate ranking")),
                 "preview_url": preview_url,
+                "creative_image_url": creative_image_url,
                 **metrics,
             },
         )
@@ -1798,12 +1851,136 @@ def organic_breakdown_summary(con: sqlite3.Connection, start_date: str, end_date
     for key in by_type:
         by_type[key].sort(key=lambda row: row["lead_count"], reverse=True)
 
+    foreign_channel_rows = con.execute(
+        "SELECT channel, SUM(lead_count) FROM crm_organic_foreign_by_channel_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY channel ORDER BY SUM(lead_count) DESC",
+        (start_date, end_date),
+    ).fetchall()
+    foreign_channels = [
+        {"channel": row[0], "lead_count": int(row[1] or 0)} for row in foreign_channel_rows
+    ]
+
     return {
         "available": any(by_type.values()),
         "source": by_type["source"],
         "content": by_type["content"],
         "term": by_type["term"],
         "temperature": by_type["temperature"],
+        "foreign_channels": foreign_channels,
+    }
+
+
+def google_ads_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Google Ads campaign performance, for the given range."""
+    totals_row = con.execute(
+        "SELECT COALESCE(SUM(spend),0), COALESCE(SUM(clicks),0), COALESCE(SUM(impressions),0), "
+        "COALESCE(SUM(conversions),0), MAX(synced_at) FROM google_ads_campaign_daily "
+        "WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    spend, clicks, impressions, conversions, last_synced_at = (
+        float(totals_row[0] or 0),
+        int(totals_row[1] or 0),
+        int(totals_row[2] or 0),
+        float(totals_row[3] or 0),
+        totals_row[4],
+    )
+    ctr = round((clicks / impressions) * 100, 2) if impressions else 0.0
+    cpc = round(spend / clicks, 2) if clicks else 0.0
+
+    daily_rows = con.execute(
+        "SELECT report_date, SUM(spend), SUM(clicks), SUM(conversions) FROM google_ads_campaign_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY report_date ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [
+        {"report_date": row[0], "spend": float(row[1] or 0), "clicks": int(row[2] or 0), "conversions": float(row[3] or 0)}
+        for row in daily_rows
+    ]
+
+    campaign_rows = con.execute(
+        "SELECT campaign_name, MAX(status), SUM(spend), SUM(clicks), SUM(impressions), SUM(conversions) "
+        "FROM google_ads_campaign_daily WHERE report_date BETWEEN ? AND ? "
+        "GROUP BY campaign_name ORDER BY SUM(spend) DESC",
+        (start_date, end_date),
+    ).fetchall()
+    campaigns = [
+        {
+            "campaign_name": row[0],
+            "status": row[1],
+            "spend": float(row[2] or 0),
+            "clicks": int(row[3] or 0),
+            "impressions": int(row[4] or 0),
+            "conversions": float(row[5] or 0),
+        }
+        for row in campaign_rows
+    ]
+
+    return {
+        "available": spend > 0 or clicks > 0 or impressions > 0,
+        "spend": spend,
+        "clicks": clicks,
+        "impressions": impressions,
+        "conversions": conversions,
+        "ctr": ctr,
+        "cpc": cpc,
+        "daily": daily,
+        "campaigns": campaigns,
+        "last_synced_at": last_synced_at,
+    }
+
+
+def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Organic search performance from Google Search Console, for the given range."""
+    totals_row = con.execute(
+        "SELECT COALESCE(SUM(clicks),0), COALESCE(SUM(impressions),0), "
+        "COALESCE(SUM(position*impressions),0), MAX(synced_at) "
+        "FROM search_console_daily WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    clicks, impressions, position_weighted, last_synced_at = (
+        int(totals_row[0] or 0),
+        int(totals_row[1] or 0),
+        float(totals_row[2] or 0),
+        totals_row[3],
+    )
+    ctr = round((clicks / impressions) * 100, 2) if impressions else 0.0
+    position = round(position_weighted / impressions, 1) if impressions else 0.0
+
+    daily_rows = con.execute(
+        "SELECT report_date, clicks, impressions FROM search_console_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [
+        {"report_date": row[0], "clicks": int(row[1] or 0), "impressions": int(row[2] or 0)}
+        for row in daily_rows
+    ]
+
+    query_rows = con.execute(
+        "SELECT query, clicks, impressions, ctr, position FROM search_console_queries "
+        "ORDER BY clicks DESC LIMIT 10"
+    ).fetchall()
+    top_queries = [
+        {
+            "query": row[0],
+            "clicks": int(row[1] or 0),
+            "impressions": int(row[2] or 0),
+            "ctr": float(row[3] or 0),
+            "position": float(row[4] or 0),
+        }
+        for row in query_rows
+    ]
+
+    return {
+        "available": impressions > 0,
+        "clicks": clicks,
+        "impressions": impressions,
+        "ctr": ctr,
+        "position": position,
+        "daily": daily,
+        "top_queries": top_queries,
+        "last_synced_at": last_synced_at,
     }
 
 
@@ -1841,6 +2018,8 @@ def dashboard(week_id: int | None = None):
                 "audience": None,
                 "site_traffic": None,
                 "organic_breakdown": None,
+                "search_console": None,
+                "google_ads": None,
             }
 
         previous = con.execute(
@@ -1973,6 +2152,8 @@ def dashboard(week_id: int | None = None):
         audience = audience_summary(con, current["week_start"], current["week_end"])
         site_traffic = site_traffic_summary(con, current["week_start"], current["week_end"])
         organic_breakdown = organic_breakdown_summary(con, current["week_start"], current["week_end"])
+        search_console = search_console_summary(con, current["week_start"], current["week_end"])
+        google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -1997,6 +2178,8 @@ def dashboard(week_id: int | None = None):
         "audience": audience,
         "site_traffic": site_traffic,
         "organic_breakdown": organic_breakdown,
+        "search_console": search_console,
+        "google_ads": google_ads,
     }
 
 
