@@ -388,7 +388,13 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Leads by channel":"Leads par canal",
   "Where the lead came from, from the CRM's own source field.":"D’où vient le lead, selon le champ source du CRM.",
   "organic":"organique",
-  "paid":"payant"
+  "paid":"payant",
+  "Site visitors":"Visiteurs du site",
+  "Sessions":"Sessions",
+  "New visitors":"Nouveaux visiteurs",
+  "Home page, GA4":"Page d’accueil, GA4",
+  "Site visitors by channel":"Visiteurs du site par canal",
+  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Trafic de la page d’accueil depuis Google Analytics (GA4), tous les visiteurs, pas seulement les leads."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -410,7 +416,13 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Leads by channel":"Leads por canal",
   "Where the lead came from, from the CRM's own source field.":"De onde veio o lead, segundo o campo de origem do CRM.",
   "organic":"orgânico",
-  "paid":"pago"
+  "paid":"pago",
+  "Site visitors":"Visitantes do site",
+  "Sessions":"Sessões",
+  "New visitors":"Novos visitantes",
+  "Home page, GA4":"Página inicial, GA4",
+  "Site visitors by channel":"Visitantes do site por canal",
+  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Tráfego da página inicial via Google Analytics (GA4), todos os visitantes, não só os leads."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2329,6 +2341,26 @@ function renderAudience(){
   );
   const channels=(audience.channels||[]).slice(0,8);
   channelsPanel.innerHTML=audienceBarList(channels,row=>row.lead_count,row=>escapeHtml(row.channel));
+  renderSiteTraffic();
+}
+
+function renderSiteTraffic(){
+  const kpis=document.getElementById("siteTrafficKpis");
+  const channelsPanel=document.getElementById("siteTrafficChannels");
+  if(!kpis||!channelsPanel)return;
+  const traffic=dashboard?.site_traffic;
+  if(!traffic||!traffic.available){
+    kpis.innerHTML="";
+    channelsPanel.innerHTML=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+    return;
+  }
+  const items=[
+    [t("Site visitors"),traffic.active_users,t("Home page, GA4")],
+    [t("Sessions"),traffic.sessions,t("Home page, GA4")],
+    [t("New visitors"),traffic.new_users,t("Home page, GA4")]
+  ];
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${number(item[1])}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+  channelsPanel.innerHTML=audienceBarList((traffic.channels||[]).slice(0,8),row=>row.sessions,row=>escapeHtml(row.channel_group));
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){

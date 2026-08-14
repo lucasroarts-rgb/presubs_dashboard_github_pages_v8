@@ -6,3 +6,4 @@ python-multipart>=0.0.9,<1
 requests>=2.32,<3
 pymysql>=1.1,<2
 playwright>=1.47,<2
+google-analytics-data>=0.18,<1

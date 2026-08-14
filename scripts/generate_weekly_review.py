@@ -167,6 +167,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     audience = data.get("audience") or {}
     top_countries = (audience.get("countries") or [])[:6]
     top_channels = (audience.get("channels") or [])[:6]
+    site_traffic = data.get("site_traffic") or {}
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -216,6 +217,11 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
                 "CRM vs Meta gap",
                 signed_pct(gap_now) if gap_now is not None else "—",
                 f'<div class="note">{f"was {signed_pct(gap_prev)}" if gap_prev is not None else "no CRM data for prior week"}</div>',
+            ),
+            kpi_card(
+                "Site visitors",
+                number(site_traffic.get("active_users")) if site_traffic.get("available") else "—",
+                '<div class="note">Home page, GA4</div>',
             ),
         ]
     )

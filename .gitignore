@@ -10,6 +10,7 @@ data/*-error.log
 *.xlsx
 *.xls
 .env
+google_service_account.json
 exports/
 logs/
 

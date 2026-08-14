@@ -26,6 +26,7 @@ from scripts.automate_meta import (  # noqa: E402
 from scripts.generate_public_site import main as generate_public_site  # noqa: E402
 from scripts.generate_weekly_review import main as generate_weekly_review  # noqa: E402
 from scripts.sync_crm import main as sync_crm  # noqa: E402
+from scripts.sync_ga4 import main as sync_ga4  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -296,6 +297,14 @@ def main() -> int:
             crm_sync_status = f"skipped: {crm_error}"
             print(f"WARNING: CRM sync skipped ({crm_error})", file=sys.stderr)
 
+        print("Syncing GA4 site traffic...")
+        ga4_sync_status = "ok"
+        try:
+            sync_ga4()
+        except Exception as ga4_error:
+            ga4_sync_status = f"skipped: {ga4_error}"
+            print(f"WARNING: GA4 sync skipped ({ga4_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -331,6 +340,7 @@ def main() -> int:
                     },
                     "qa_warnings": len(qa.get("warnings", [])),
                     "crm_sync": crm_sync_status,
+                    "ga4_sync": ga4_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },

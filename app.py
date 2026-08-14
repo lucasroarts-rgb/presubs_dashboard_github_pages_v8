@@ -360,6 +360,25 @@ def init_db() -> None:
         lead_count INTEGER NOT NULL DEFAULT 0,
         UNIQUE(report_date, channel)
     );
+
+    CREATE TABLE IF NOT EXISTS site_traffic_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        active_users INTEGER NOT NULL DEFAULT 0,
+        new_users INTEGER NOT NULL DEFAULT 0,
+        sessions INTEGER NOT NULL DEFAULT 0,
+        engaged_sessions INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS site_traffic_by_channel_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        channel_group TEXT NOT NULL,
+        sessions INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(report_date, channel_group)
+    );
     """
     with db() as con:
         con.executescript(schema)
@@ -1710,6 +1729,51 @@ def audience_summary(con: sqlite3.Connection, start_date: str, end_date: str) ->
     }
 
 
+def site_traffic_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Site-wide visitor counts from Google Analytics (GA4), for the given range."""
+    totals_row = con.execute(
+        "SELECT COALESCE(SUM(active_users),0), COALESCE(SUM(new_users),0), "
+        "COALESCE(SUM(sessions),0), COALESCE(SUM(engaged_sessions),0), MAX(synced_at) "
+        "FROM site_traffic_daily WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    active_users, new_users, sessions, engaged_sessions, last_synced_at = (
+        int(totals_row[0] or 0),
+        int(totals_row[1] or 0),
+        int(totals_row[2] or 0),
+        int(totals_row[3] or 0),
+        totals_row[4],
+    )
+
+    daily_rows = con.execute(
+        "SELECT report_date, active_users, sessions FROM site_traffic_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [
+        {"report_date": row[0], "active_users": int(row[1] or 0), "sessions": int(row[2] or 0)}
+        for row in daily_rows
+    ]
+
+    channel_rows = con.execute(
+        "SELECT channel_group, SUM(sessions) FROM site_traffic_by_channel_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY channel_group ORDER BY SUM(sessions) DESC",
+        (start_date, end_date),
+    ).fetchall()
+    channels = [{"channel_group": row[0], "sessions": int(row[1] or 0)} for row in channel_rows]
+
+    return {
+        "available": sessions > 0,
+        "active_users": active_users,
+        "new_users": new_users,
+        "sessions": sessions,
+        "engaged_sessions": engaged_sessions,
+        "daily": daily,
+        "channels": channels,
+        "last_synced_at": last_synced_at,
+    }
+
+
 @app.get("/api/dashboard")
 def dashboard(week_id: int | None = None):
     with db() as con:
@@ -1742,6 +1806,7 @@ def dashboard(week_id: int | None = None):
                 "daily_available": False,
                 "crm_gap": None,
                 "audience": None,
+                "site_traffic": None,
             }
 
         previous = con.execute(
@@ -1872,6 +1937,7 @@ def dashboard(week_id: int | None = None):
 
         crm_gap = crm_gap_summary(con, current["week_start"], current["week_end"])
         audience = audience_summary(con, current["week_start"], current["week_end"])
+        site_traffic = site_traffic_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -1894,6 +1960,7 @@ def dashboard(week_id: int | None = None):
         "daily_available": bool(daily_ads),
         "crm_gap": crm_gap,
         "audience": audience,
+        "site_traffic": site_traffic,
     }
 
 
