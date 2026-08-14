@@ -274,6 +274,8 @@
 
   /* ---- Audience bars ---- */
   .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .audience-panels-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .audience-panels-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
   .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
   .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
   .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
@@ -366,6 +368,7 @@
     .steps{grid-template-columns:1fr;}
     .tl-item{grid-template-columns:86px 16px 1fr;}
     .audience-panels{grid-template-columns:1fr;}
+    .audience-panels-3,.audience-panels-4{grid-template-columns:1fr;}
   }
 
   @media print{
@@ -514,6 +517,43 @@
   </section>
 
   <section class="slide" data-index="7">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Organic leads, in detail</h2>
+    <p class="slide-sub">29 organic leads this period (31.18% of all CRM leads). From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
+    <div class="slide-body">
+      <div class="audience-panels-4">
+        <div class="audience-panel">
+          <h3>Source</h3>
+          <div class="abar-row"><div class="abar-label">visit</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">14</div></div><div class="abar-row"><div class="abar-label">instagram</div><div class="abar-track"><span style="width:21%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:21%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">youtube</div><div class="abar-track"><span style="width:21%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">facebook</div><div class="abar-track"><span style="width:14%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">whatsapp</div><div class="abar-track"><span style="width:14%"></span></div><div class="abar-value">2</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Content</h3>
+          <div class="abar-row"><div class="abar-label">homepage</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">14</div></div><div class="abar-row"><div class="abar-label">unic</div><div class="abar-track"><span style="width:36%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">ccm</div><div class="abar-track"><span style="width:29%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">bio</div><div class="abar-track"><span style="width:21%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">cpf</div><div class="abar-track"><span style="width:14%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">programme-complet</div><div class="abar-track"><span style="width:7%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Term</h3>
+          <div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">17</div></div><div class="abar-row"><div class="abar-label">direct-chat</div><div class="abar-track"><span style="width:24%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">bio</div><div class="abar-track"><span style="width:18%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">event</div><div class="abar-track"><span style="width:18%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">downsell</div><div class="abar-track"><span style="width:6%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">organic</div><div class="abar-track"><span style="width:6%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Core market vs foreign</h3>
+          <div class="abar-row"><div class="abar-label">France, Belgium, Switzerland</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">20</div></div><div class="abar-row"><div class="abar-label">Foreign</div><div class="abar-track"><span style="width:45%"></span></div><div class="abar-value">9</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="8">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Where the foreigners come from</h2>
+    <p class="slide-sub">9 organic leads this period from outside France, Belgium and Switzerland.</p>
+    <div class="slide-body">
+      <div class="chart-wrap">
+        <div class="abar-row"><div class="abar-label">Guinea</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">Hong Kong</div><div class="abar-track"><span style="width:67%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">Burundi</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Haiti</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Ivory Coast</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Mali</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">1</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="9">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -533,13 +573,13 @@
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 8</span>
+      <span class="slide-count" id="slideCount">1 / 10</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
 </div>
 
-<!-- generated 2026-08-14 14:20 UTC -->
+<!-- generated 2026-08-14 16:13 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

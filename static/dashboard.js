@@ -411,7 +411,9 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Core market vs foreign":"Marché principal vs étranger",
   "France, Belgium and Switzerland versus every other country, organic leads.":"France, Belgique et Suisse face à tous les autres pays, leads organiques.",
   "France, Belgium, Switzerland":"France, Belgique, Suisse",
-  "Foreign":"Étranger"
+  "Foreign":"Étranger",
+  "Where the foreigners come from":"D’où viennent les étrangers",
+  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads organiques hors France, Belgique et Suisse, par pays."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -456,7 +458,9 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Core market vs foreign":"Mercado principal vs estrangeiro",
   "France, Belgium and Switzerland versus every other country, organic leads.":"França, Bélgica e Suíça contra todos os outros países, leads orgânicos.",
   "France, Belgium, Switzerland":"França, Bélgica, Suíça",
-  "Foreign":"Estrangeiro"
+  "Foreign":"Estrangeiro",
+  "Where the foreigners come from":"De onde vêm os estrangeiros",
+  "Organic leads outside France, Belgium and Switzerland, by country.":"Leads orgânicos fora de França, Bélgica e Suíça, por país."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2421,7 +2425,8 @@ function renderOrganic(){
     source:document.getElementById("organicSource"),
     content:document.getElementById("organicContent"),
     term:document.getElementById("organicTerm"),
-    temperature:document.getElementById("organicTemperature")
+    temperature:document.getElementById("organicTemperature"),
+    foreignCountries:document.getElementById("organicForeignCountries")
   };
   if(!panels.source)return;
   const breakdown=dashboard?.organic_breakdown;
@@ -2437,7 +2442,11 @@ function renderOrganic(){
   }
   const countries=dashboard?.audience?.countries||[];
   if(!panels.temperature)return;
-  if(!countries.length){panels.temperature.innerHTML=empty;return}
+  if(!countries.length){
+    panels.temperature.innerHTML=empty;
+    if(panels.foreignCountries)panels.foreignCountries.innerHTML=empty;
+    return;
+  }
   let coreTotal=0,foreignTotal=0;
   countries.forEach(row=>{
     const organic=safeNum(row.organic);
@@ -2448,6 +2457,14 @@ function renderOrganic(){
     row=>row.value,
     row=>row.label
   );
+  if(panels.foreignCountries){
+    const foreignRows=countries
+      .filter(row=>!CORE_MARKET_COUNTRIES.includes(row.country)&&safeNum(row.organic)>0)
+      .map(row=>({country:row.country,value:safeNum(row.organic)}))
+      .sort((a,b)=>b.value-a.value)
+      .slice(0,10);
+    panels.foreignCountries.innerHTML=audienceBarList(foreignRows,row=>row.value,row=>escapeHtml(row.country));
+  }
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){

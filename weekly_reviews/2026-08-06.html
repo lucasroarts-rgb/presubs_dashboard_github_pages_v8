@@ -272,6 +272,19 @@
   .campaign-strip .cs-figs{display:flex;gap:22px;font-size:13px;color:var(--ink-muted);}
   .campaign-strip .cs-figs b{color:var(--ink);font-variant-numeric:tabular-nums;}
 
+  /* ---- Audience bars ---- */
+  .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .audience-panels-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .audience-panels-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
+  .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
+  .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
+  .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
+  .abar-label{font-size:13px;color:var(--ink);}
+  .abar-label small{display:block;font-size:11px;color:var(--ink-muted);font-weight:400;}
+  .abar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .abar-track span{display:block;height:100%;background:var(--chart-meta);border-radius:6px;}
+  .abar-value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:13px;}
+
   /* ---- Timeline ---- */
   .timeline{display:flex;flex-direction:column;gap:0;position:relative;}
   .tl-item{
@@ -354,6 +367,8 @@
     .stat-compare{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .tl-item{grid-template-columns:86px 16px 1fr;}
+    .audience-panels{grid-template-columns:1fr;}
+    .audience-panels-3,.audience-panels-4{grid-template-columns:1fr;}
   }
 
   @media print{
@@ -400,7 +415,7 @@
     <h2 class="slide-title">This week vs 24 Jul 2026 – 30 Jul 2026</h2>
     <p class="slide-sub">31 Jul 2026 – 06 Aug 2026, data through Aug 6.</p>
     <div class="slide-body">
-      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,876.63</div><div class="note">31 Jul 2026 – 06 Aug 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">32</div><div class="delta crit">▼ 4.6/day (was 5.6/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€58.64</div><div class="delta crit">▲ +3%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">69.90%</div><div class="note">was 75.88%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">2.00%</div><div class="note">was 2.15%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-37%</div><div class="note">was -48%</div></div></div>
+      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,876.63</div><div class="note">31 Jul 2026 – 06 Aug 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">32</div><div class="delta crit">▼ 4.6/day (was 5.6/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€58.64</div><div class="delta crit">▲ +3%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">69.90%</div><div class="note">was 75.88%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">2.00%</div><div class="note">was 2.15%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-37%</div><div class="note">was -48%</div></div><div class="kpi-card"><div class="label">Site visitors</div><div class="value">818</div><div class="note">Home page, GA4</div></div><div class="kpi-card"><div class="label">Organic leads</div><div class="value">72</div><div class="note">58.54% of all CRM leads</div></div></div>
     </div>
   </section>
 
@@ -484,6 +499,61 @@
   </section>
 
   <section class="slide" data-index="6">
+    <p class="eyebrow">Audience</p>
+    <h2 class="slide-title">Where leads come from</h2>
+    <p class="slide-sub">31 Jul 2026 – 06 Aug 2026. Country from the phone number's calling code - the number itself is never stored or shown.</p>
+    <div class="slide-body">
+      <div class="audience-panels">
+        <div class="audience-panel">
+          <h3>Top countries</h3>
+          <div class="abar-row"><div class="abar-label">France<small>46 organic · 48 paid</small></div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">94</div></div><div class="abar-row"><div class="abar-label">Belgium<small>1 organic · 4 paid</small></div><div class="abar-track"><span style="width:5%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">DR Congo<small>5 organic · 0 paid</small></div><div class="abar-track"><span style="width:5%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">USA / Canada<small>5 organic · 0 paid</small></div><div class="abar-track"><span style="width:5%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">Brazil<small>3 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">Senegal<small>2 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">2</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Top channels</h3>
+          <div class="abar-row"><div class="abar-label">Facebook Ads</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">44</div></div><div class="abar-row"><div class="abar-label">Direct/Other</div><div class="abar-track"><span style="width:57%"></span></div><div class="abar-value">25</div></div><div class="abar-row"><div class="abar-label">Instagram</div><div class="abar-track"><span style="width:43%"></span></div><div class="abar-value">19</div></div><div class="abar-row"><div class="abar-label">Facebook (organic)</div><div class="abar-track"><span style="width:23%"></span></div><div class="abar-value">10</div></div><div class="abar-row"><div class="abar-label">Direct/Redirect</div><div class="abar-track"><span style="width:18%"></span></div><div class="abar-value">8</div></div><div class="abar-row"><div class="abar-label">Website</div><div class="abar-track"><span style="width:14%"></span></div><div class="abar-value">6</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="7">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Organic leads, in detail</h2>
+    <p class="slide-sub">72 organic leads this period (58.54% of all CRM leads). From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
+    <div class="slide-body">
+      <div class="audience-panels-4">
+        <div class="audience-panel">
+          <h3>Source</h3>
+          <div class="abar-row"><div class="abar-label">instagram</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">25</div></div><div class="abar-row"><div class="abar-label">facebook</div><div class="abar-track"><span style="width:48%"></span></div><div class="abar-value">12</div></div><div class="abar-row"><div class="abar-label">redirect</div><div class="abar-track"><span style="width:48%"></span></div><div class="abar-value">12</div></div><div class="abar-row"><div class="abar-label">visit</div><div class="abar-track"><span style="width:40%"></span></div><div class="abar-value">10</div></div><div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:28%"></span></div><div class="abar-value">7</div></div><div class="abar-row"><div class="abar-label">whatsapp</div><div class="abar-track"><span style="width:12%"></span></div><div class="abar-value">3</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Content</h3>
+          <div class="abar-row"><div class="abar-label">unic</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">48</div></div><div class="abar-row"><div class="abar-label">homepage</div><div class="abar-track"><span style="width:21%"></span></div><div class="abar-value">10</div></div><div class="abar-row"><div class="abar-label">ccm</div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">programme-complet</div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">newsletteraugust5th</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">15expressionspart2</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Term</h3>
+          <div class="abar-row"><div class="abar-label">bio</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">36</div></div><div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:47%"></span></div><div class="abar-value">17</div></div><div class="abar-row"><div class="abar-label">organic</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">12</div></div><div class="abar-row"><div class="abar-label">direct-chat</div><div class="abar-track"><span style="width:11%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">email</div><div class="abar-track"><span style="width:6%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">videos</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Core market vs foreign</h3>
+          <div class="abar-row"><div class="abar-label">France, Belgium, Switzerland</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">48</div></div><div class="abar-row"><div class="abar-label">Foreign</div><div class="abar-track"><span style="width:50%"></span></div><div class="abar-value">24</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="8">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Where the foreigners come from</h2>
+    <p class="slide-sub">24 organic leads this period from outside France, Belgium and Switzerland.</p>
+    <div class="slide-body">
+      <div class="chart-wrap">
+        <div class="abar-row"><div class="abar-label">DR Congo</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">USA / Canada</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">Brazil</div><div class="abar-track"><span style="width:60%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">Senegal</div><div class="abar-track"><span style="width:40%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">Benin</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">China</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Germany</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Guadeloupe</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Guinea</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Haiti</div><div class="abar-track"><span style="width:20%"></span></div><div class="abar-value">1</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="9">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -503,13 +573,13 @@
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 7</span>
+      <span class="slide-count" id="slideCount">1 / 10</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
 </div>
 
-<!-- generated 2026-08-14 11:21 UTC -->
+<!-- generated 2026-08-14 16:13 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

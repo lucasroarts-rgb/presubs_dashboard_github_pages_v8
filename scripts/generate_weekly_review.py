@@ -187,6 +187,15 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         {"value": "France, Belgium, Switzerland", "lead_count": core_market_total},
         {"value": "Foreign", "lead_count": foreign_total},
     ]
+    foreign_country_rows = sorted(
+        (
+            {"value": row.get("country"), "lead_count": float(row.get("organic") or 0)}
+            for row in (audience.get("countries") or [])
+            if row.get("country") not in core_market_countries and float(row.get("organic") or 0) > 0
+        ),
+        key=lambda row: row["lead_count"],
+        reverse=True,
+    )[:10]
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -449,6 +458,17 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   </section>
 
   <section class="slide" data-index="8">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Where the foreigners come from</h2>
+    <p class="slide-sub">{number(foreign_total)} organic leads this period from outside France, Belgium and Switzerland.</p>
+    <div class="slide-body">
+      <div class="chart-wrap">
+        {abar_rows(foreign_country_rows, "lead_count", "value")}
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="9">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -468,7 +488,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 9</span>
+      <span class="slide-count" id="slideCount">1 / 10</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
