@@ -272,6 +272,17 @@
   .campaign-strip .cs-figs{display:flex;gap:22px;font-size:13px;color:var(--ink-muted);}
   .campaign-strip .cs-figs b{color:var(--ink);font-variant-numeric:tabular-nums;}
 
+  /* ---- Audience bars ---- */
+  .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
+  .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
+  .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
+  .abar-label{font-size:13px;color:var(--ink);}
+  .abar-label small{display:block;font-size:11px;color:var(--ink-muted);font-weight:400;}
+  .abar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .abar-track span{display:block;height:100%;background:var(--chart-meta);border-radius:6px;}
+  .abar-value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:13px;}
+
   /* ---- Timeline ---- */
   .timeline{display:flex;flex-direction:column;gap:0;position:relative;}
   .tl-item{
@@ -354,6 +365,7 @@
     .stat-compare{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .tl-item{grid-template-columns:86px 16px 1fr;}
+    .audience-panels{grid-template-columns:1fr;}
   }
 
   @media print{
@@ -400,7 +412,7 @@
     <h2 class="slide-title">This week vs 31 Jul 2026 – 06 Aug 2026</h2>
     <p class="slide-sub">07 Aug 2026 – 13 Aug 2026, data through Aug 12.</p>
     <div class="slide-body">
-      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,653.14</div><div class="note">07 Aug 2026 – 13 Aug 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">52</div><div class="delta good">▲ 8.7/day (was 4.6/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€31.79</div><div class="delta good">▼ -46%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">74.09%</div><div class="note">was 69.90%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">3.58%</div><div class="note">was 2.00%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-2%</div><div class="note">was -37%</div></div></div>
+      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,653.14</div><div class="note">07 Aug 2026 – 13 Aug 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">52</div><div class="delta good">▲ 8.7/day (was 4.6/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€31.79</div><div class="delta good">▼ -46%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">74.09%</div><div class="note">was 69.90%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">3.58%</div><div class="note">was 2.00%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-4%</div><div class="note">was -37%</div></div></div>
     </div>
   </section>
 
@@ -438,8 +450,8 @@
         <div class="gap-block">
           <div class="gap-eyebrow">07 Aug 2026 – 13 Aug 2026</div>
           <div class="gap-row"><span class="k">Meta registrations</span><span class="v">52</span></div>
-          <div class="gap-row"><span class="k">CRM leads</span><span class="v">53</span></div>
-          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--good)">-2%</span></div>
+          <div class="gap-row"><span class="k">CRM leads</span><span class="v">54</span></div>
+          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--good)">-4%</span></div>
         </div>
       </div>
     </div>
@@ -484,6 +496,24 @@
   </section>
 
   <section class="slide" data-index="6">
+    <p class="eyebrow">Audience</p>
+    <h2 class="slide-title">Where leads come from</h2>
+    <p class="slide-sub">07 Aug 2026 – 13 Aug 2026. Country from the phone number's calling code - the number itself is never stored or shown.</p>
+    <div class="slide-body">
+      <div class="audience-panels">
+        <div class="audience-panel">
+          <h3>Top countries</h3>
+          <div class="abar-row"><div class="abar-label">France<small>43 organic · 54 paid</small></div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">97</div></div><div class="abar-row"><div class="abar-label">DR Congo<small>10 organic · 0 paid</small></div><div class="abar-track"><span style="width:10%"></span></div><div class="abar-value">10</div></div><div class="abar-row"><div class="abar-label">Madagascar<small>8 organic · 0 paid</small></div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">8</div></div><div class="abar-row"><div class="abar-label">Burkina Faso<small>4 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">Belgium<small>2 organic · 1 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">Ivory Coast<small>3 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">3</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Top channels</h3>
+          <div class="abar-row"><div class="abar-label">Facebook Ads</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">55</div></div><div class="abar-row"><div class="abar-label">Facebook (organic)</div><div class="abar-track"><span style="width:62%"></span></div><div class="abar-value">34</div></div><div class="abar-row"><div class="abar-label">Instagram</div><div class="abar-track"><span style="width:44%"></span></div><div class="abar-value">24</div></div><div class="abar-row"><div class="abar-label">Email</div><div class="abar-track"><span style="width:11%"></span></div><div class="abar-value">6</div></div><div class="abar-row"><div class="abar-label">Direct/Other</div><div class="abar-track"><span style="width:11%"></span></div><div class="abar-value">6</div></div><div class="abar-row"><div class="abar-label">Direct/Redirect</div><div class="abar-track"><span style="width:9%"></span></div><div class="abar-value">5</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="7">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -503,13 +533,13 @@
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 7</span>
+      <span class="slide-count" id="slideCount">1 / 8</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
 </div>
 
-<!-- generated 2026-08-13 18:28 UTC -->
+<!-- generated 2026-08-14 11:35 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

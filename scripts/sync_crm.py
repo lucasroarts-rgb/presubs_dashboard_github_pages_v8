@@ -19,9 +19,31 @@ sys.path.insert(0, str(ROOT))
 
 import app as dashboard_app  # noqa: E402
 from scripts.automate_meta import load_env_file  # noqa: E402
+from scripts.geo_codes import resolve_country  # noqa: E402
 
 PRESUBS_CAMPAIGN_PATTERNS = ["%presubs%", "%pre-subs%", "%pre subs%"]
 QUIZ_EXCLUDE_PATTERN = "%quiz%"
+
+CHANNEL_LABELS = {
+    "facebook-ads": "Facebook Ads",
+    "facebbok-ads": "Facebook Ads",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "youtube": "YouTube",
+    "adwords": "Google Ads",
+    "facebook": "Facebook (organic)",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "redirect": "Direct/Redirect",
+    "visit": "Direct/Other",
+}
+
+
+def normalize_channel(raw: str | None) -> str:
+    if not raw or not raw.strip():
+        return "Direct/Other"
+    key = raw.strip().lower()
+    return CHANNEL_LABELS.get(key, raw.strip().title())
 
 
 class CrmSyncError(RuntimeError):
@@ -72,6 +94,78 @@ def fetch_lead_counts(connection) -> list[tuple[str, int]]:
     return [(str(row[0]), int(row[1])) for row in cursor.fetchall()]
 
 
+def fetch_organic_lead_counts(connection) -> list[tuple[str, int]]:
+    """Organic PreSubs leads - Location='Organic' in the CRM, not paid traffic."""
+    campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
+    query = f"""
+        SELECT data AS report_date, COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
+        FROM leads
+        WHERE data IS NOT NULL AND data <> '0000-00-00'
+          AND Location = 'Organic'
+          AND ({campaign_clause})
+          AND LOWER(utm_campaign) NOT LIKE %s
+        GROUP BY data
+        ORDER BY data
+    """
+    params = [*PRESUBS_CAMPAIGN_PATTERNS, QUIZ_EXCLUDE_PATTERN]
+    cursor = connection.cursor()
+    cursor.execute(query, params)
+    return [(str(row[0]), int(row[1])) for row in cursor.fetchall()]
+
+
+def fetch_country_counts(connection) -> list[tuple[str, str, str, int]]:
+    """(report_date, country, source_bucket['organic'|'paid'], lead_count).
+
+    Country comes from the phone number's calling-code prefix only (5 chars
+    max fetched) - the full phone number is never pulled or stored.
+    """
+    campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
+    query = f"""
+        SELECT data AS report_date, SUBSTRING(phone,1,5) AS prefix, Location,
+               COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
+        FROM leads
+        WHERE data IS NOT NULL AND data <> '0000-00-00'
+          AND phone IS NOT NULL AND phone <> '' AND phone <> '+'
+          AND ({campaign_clause})
+          AND LOWER(utm_campaign) NOT LIKE %s
+        GROUP BY data, prefix, Location
+    """
+    params = [*PRESUBS_CAMPAIGN_PATTERNS, QUIZ_EXCLUDE_PATTERN]
+    cursor = connection.cursor()
+    cursor.execute(query, params)
+
+    aggregated: dict[tuple[str, str, str], int] = {}
+    for report_date, prefix, location, count in cursor.fetchall():
+        country = resolve_country(prefix)
+        bucket = "organic" if location == "Organic" else "paid"
+        key = (str(report_date), country, bucket)
+        aggregated[key] = aggregated.get(key, 0) + int(count)
+    return [(d, c, b, n) for (d, c, b), n in aggregated.items()]
+
+
+def fetch_channel_counts(connection) -> list[tuple[str, str, int]]:
+    campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
+    query = f"""
+        SELECT data AS report_date, COALESCE(Source,'') AS source,
+               COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
+        FROM leads
+        WHERE data IS NOT NULL AND data <> '0000-00-00'
+          AND ({campaign_clause})
+          AND LOWER(utm_campaign) NOT LIKE %s
+        GROUP BY data, source
+    """
+    params = [*PRESUBS_CAMPAIGN_PATTERNS, QUIZ_EXCLUDE_PATTERN]
+    cursor = connection.cursor()
+    cursor.execute(query, params)
+
+    aggregated: dict[tuple[str, str], int] = {}
+    for report_date, source, count in cursor.fetchall():
+        channel = normalize_channel(source)
+        key = (str(report_date), channel)
+        aggregated[key] = aggregated.get(key, 0) + int(count)
+    return [(d, c, n) for (d, c), n in aggregated.items()]
+
+
 def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
     query = """
         SELECT sale_date AS report_date,
@@ -90,17 +184,17 @@ def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
     return [(str(row[0]), int(row[1]), float(row[2]), float(row[3])) for row in cursor.fetchall()]
 
 
-def store_lead_counts(rows: list[tuple[str, int]]) -> None:
+def store_lead_counts(rows: list[tuple[str, int]], *, source_bucket: str = "facebook-ads") -> None:
     with dashboard_app.db() as con:
         con.executemany(
             """
             INSERT INTO crm_leads_daily (report_date, source_bucket, lead_count, synced_at)
-            VALUES (?, 'facebook-ads', ?, CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(report_date, source_bucket) DO UPDATE SET
                 lead_count = excluded.lead_count,
                 synced_at = CURRENT_TIMESTAMP
             """,
-            rows,
+            [(report_date, source_bucket, lead_count) for report_date, lead_count in rows],
         )
 
 
@@ -119,6 +213,32 @@ def store_sale_counts(rows: list[tuple[str, int, float, float]]) -> None:
         )
 
 
+def store_country_counts(rows: list[tuple[str, str, str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO crm_leads_by_country (report_date, country, source_bucket, lead_count)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(report_date, country, source_bucket) DO UPDATE SET
+                lead_count = excluded.lead_count
+            """,
+            rows,
+        )
+
+
+def store_channel_counts(rows: list[tuple[str, str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO crm_leads_by_channel (report_date, channel, lead_count)
+            VALUES (?, ?, ?)
+            ON CONFLICT(report_date, channel) DO UPDATE SET
+                lead_count = excluded.lead_count
+            """,
+            rows,
+        )
+
+
 def main() -> int:
     env = load_env_file()
     dashboard_app.init_db()
@@ -126,14 +246,24 @@ def main() -> int:
     connection = _connect(env)
     try:
         leads = fetch_lead_counts(connection)
+        organic_leads = fetch_organic_lead_counts(connection)
+        countries = fetch_country_counts(connection)
+        channels = fetch_channel_counts(connection)
         sales = fetch_sale_counts(connection)
     finally:
         connection.close()
 
-    store_lead_counts(leads)
+    store_lead_counts(leads, source_bucket="facebook-ads")
+    store_lead_counts(organic_leads, source_bucket="organic")
+    store_country_counts(countries)
+    store_channel_counts(channels)
     store_sale_counts(sales)
 
-    print(f"CRM sync complete: {len(leads)} lead-days, {len(sales)} sale-days.")
+    print(
+        f"CRM sync complete: {len(leads)} facebook-ads lead-days, "
+        f"{len(organic_leads)} organic lead-days, {len(countries)} country-day rows, "
+        f"{len(channels)} channel-day rows, {len(sales)} sale-days."
+    )
     return 0
 
 

@@ -132,6 +132,25 @@ def kpi_card(label: str, value: str, note_html: str) -> str:
     )
 
 
+def abar_rows(rows: list[dict[str, Any]], value_key: str, label_key: str, note: Any = None) -> str:
+    if not rows:
+        return '<p class="empty-note">No CRM data for this period yet.</p>'
+    top = max(float(r.get(value_key) or 0) for r in rows) or 1
+    out = []
+    for row in rows:
+        value = float(row.get(value_key) or 0)
+        pct_width = max(4.0, value / top * 100)
+        note_html = f"<small>{escape(note(row))}</small>" if note else ""
+        out.append(
+            '<div class="abar-row">'
+            f'<div class="abar-label">{escape(row.get(label_key) or "")}{note_html}</div>'
+            f'<div class="abar-track"><span style="width:{pct_width:.0f}%"></span></div>'
+            f'<div class="abar-value">{number(value)}</div>'
+            "</div>"
+        )
+    return "".join(out)
+
+
 def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotations: list[dict[str, Any]]) -> str:
     current = data["current_week"]
     previous = data.get("previous_week")
@@ -145,6 +164,9 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     ads = sorted(ads, key=lambda a: float(a.get("results") or 0), reverse=True)[:4]
     campaigns = sorted(data.get("campaigns", []), key=lambda c: float(c.get("spend") or 0), reverse=True)
     top_campaign = campaigns[0] if campaigns else None
+    audience = data.get("audience") or {}
+    top_countries = (audience.get("countries") or [])[:6]
+    top_channels = (audience.get("channels") or [])[:6]
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -353,6 +375,24 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   </section>
 
   <section class="slide" data-index="6">
+    <p class="eyebrow">Audience</p>
+    <h2 class="slide-title">Where leads come from</h2>
+    <p class="slide-sub">{escape(current["label"])}. Country from the phone number's calling code - the number itself is never stored or shown.</p>
+    <div class="slide-body">
+      <div class="audience-panels">
+        <div class="audience-panel">
+          <h3>Top countries</h3>
+          {abar_rows(top_countries, "total", "country", note=lambda r: f"{number(r.get('organic'))} organic · {number(r.get('paid'))} paid")}
+        </div>
+        <div class="audience-panel">
+          <h3>Top channels</h3>
+          {abar_rows(top_channels, "lead_count", "channel")}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="7">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -372,7 +412,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 7</span>
+      <span class="slide-count" id="slideCount">1 / 8</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>

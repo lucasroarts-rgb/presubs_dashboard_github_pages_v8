@@ -343,6 +343,23 @@ def init_db() -> None:
         revenue_net REAL NOT NULL DEFAULT 0,
         UNIQUE(report_date, sale_campaign)
     );
+
+    CREATE TABLE IF NOT EXISTS crm_leads_by_country (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        country TEXT NOT NULL,
+        source_bucket TEXT NOT NULL DEFAULT 'facebook-ads',
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(report_date, country, source_bucket)
+    );
+
+    CREATE TABLE IF NOT EXISTS crm_leads_by_channel (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        channel TEXT NOT NULL,
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(report_date, channel)
+    );
     """
     with db() as con:
         con.executescript(schema)
@@ -1631,7 +1648,7 @@ def crm_gap_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     """
     leads_row = con.execute(
         "SELECT COALESCE(SUM(lead_count), 0), MAX(synced_at) FROM crm_leads_daily "
-        "WHERE report_date BETWEEN ? AND ?",
+        "WHERE report_date BETWEEN ? AND ? AND source_bucket = 'facebook-ads'",
         (start_date, end_date),
     ).fetchone()
     crm_leads, last_synced_at = int(leads_row[0] or 0), leads_row[1]
@@ -1652,6 +1669,44 @@ def crm_gap_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         "revenue_full": revenue_full,
         "revenue_net": revenue_net,
         "last_synced_at": last_synced_at,
+    }
+
+
+def audience_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """CRM leads for the range, broken down by country and by acquisition channel.
+
+    Country comes from the phone number's calling code (never the number
+    itself); channel comes from the CRM's own Source field. Both are
+    aggregated counts only.
+    """
+    country_rows = con.execute(
+        "SELECT country, source_bucket, SUM(lead_count) FROM crm_leads_by_country "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY country, source_bucket",
+        (start_date, end_date),
+    ).fetchall()
+    countries: dict[str, dict[str, int]] = {}
+    for country, bucket, count in country_rows:
+        entry = countries.setdefault(country, {"organic": 0, "paid": 0, "total": 0})
+        key = "organic" if bucket == "organic" else "paid"
+        entry[key] += int(count or 0)
+        entry["total"] += int(count or 0)
+    top_countries = sorted(
+        ({"country": k, **v} for k, v in countries.items()),
+        key=lambda row: row["total"],
+        reverse=True,
+    )
+
+    channel_rows = con.execute(
+        "SELECT channel, SUM(lead_count) FROM crm_leads_by_channel "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY channel ORDER BY SUM(lead_count) DESC",
+        (start_date, end_date),
+    ).fetchall()
+    channels = [{"channel": row[0], "lead_count": int(row[1] or 0)} for row in channel_rows]
+
+    return {
+        "available": bool(top_countries) or bool(channels),
+        "countries": top_countries,
+        "channels": channels,
     }
 
 
@@ -1686,6 +1741,7 @@ def dashboard(week_id: int | None = None):
                 "daily_summary": [],
                 "daily_available": False,
                 "crm_gap": None,
+                "audience": None,
             }
 
         previous = con.execute(
@@ -1815,6 +1871,7 @@ def dashboard(week_id: int | None = None):
         )
 
         crm_gap = crm_gap_summary(con, current["week_start"], current["week_end"])
+        audience = audience_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -1836,6 +1893,7 @@ def dashboard(week_id: int | None = None):
         "daily_summary": aggregate_daily_performance(daily_ads),
         "daily_available": bool(daily_ads),
         "crm_gap": crm_gap,
+        "audience": audience,
     }
 
 

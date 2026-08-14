@@ -9,6 +9,7 @@ const money = value => value == null ? "—" : new Intl.NumberFormat(localeForLa
 const number = value => new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:0}).format(Number(value)||0);
 const decimal = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:2}).format(Number(value));
 const percent = value => value == null ? "—" : `${decimal(value)}%`;
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const formatDate = value => value ? new Intl.DateTimeFormat(dateLocaleForLang(),{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)) : "—";
 
 const UI_TRANSLATIONS={
@@ -382,7 +383,15 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "CAC (revenue collected / sale)":"CAC (revenus encaissés / vente)",
   "CRM data synced at":"Données CRM synchronisées le",
   "Weekly slides":"Diaporama hebdomadaire",
-  "Archive":"Archives"
+  "Archive":"Archives",
+  "Audience":"Audience",
+  "Where PreSubs leads come from: country and acquisition channel, from the CRM.":"D’où viennent les leads PreSubs : pays et canal d’acquisition, depuis le CRM.",
+  "Leads by country":"Leads par pays",
+  "From the phone number's country code. Never shows or stores the number itself.":"À partir de l’indicatif téléphonique. Le numéro lui-même n’est jamais affiché ni stocké.",
+  "Leads by channel":"Leads par canal",
+  "Where the lead came from, from the CRM's own source field.":"D’où vient le lead, selon le champ source du CRM.",
+  "organic":"organique",
+  "paid":"payant"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -396,7 +405,15 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "CAC (revenue collected / sale)":"CAC (receita recebida / venda)",
   "CRM data synced at":"Dado do CRM sincronizado em",
   "Weekly slides":"Slides da semana",
-  "Archive":"Histórico"
+  "Archive":"Histórico",
+  "Audience":"Audiência",
+  "Where PreSubs leads come from: country and acquisition channel, from the CRM.":"De onde vêm os leads do PreSubs: país e canal de aquisição, direto do CRM.",
+  "Leads by country":"Leads por país",
+  "From the phone number's country code. Never shows or stores the number itself.":"A partir do DDI do telefone. O número em si nunca é exibido ou armazenado.",
+  "Leads by channel":"Leads por canal",
+  "Where the lead came from, from the CRM's own source field.":"De onde veio o lead, segundo o campo de origem do CRM.",
+  "organic":"orgânico",
+  "paid":"pago"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2301,6 +2318,36 @@ function renderCrmGap(){
   panel.innerHTML=`<div class="table-wrap"><table><tbody>${rows.map(row=>`<tr><td>${row[0]}</td><td class="num"><strong>${row[1]}</strong></td></tr>`).join("")}</tbody></table></div>${gap.last_synced_at?`<p class="footnote">${t("CRM data synced at")} ${gap.last_synced_at}</p>`:""}`;
 }
 
+function audienceBarList(rows,valueFn,labelFn,noteFn){
+  if(!rows.length)return `<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+  const max=Math.max(...rows.map(valueFn))||1;
+  return `<div class="audience-bar-list">${rows.map(row=>{
+    const value=valueFn(row),pct=Math.max(4,value/max*100);
+    return `<div class="audit-hbar-row"><span class="audit-hbar-label">${labelFn(row)}${noteFn?`<br><small class="footnote">${noteFn(row)}</small>`:""}</span><span class="audit-hbar-track"><span class="blue" style="width:${pct}%"></span></span><strong>${number(value)}</strong></div>`;
+  }).join("")}</div>`;
+}
+
+function renderAudience(){
+  const countriesPanel=document.getElementById("audienceCountries");
+  const channelsPanel=document.getElementById("audienceChannels");
+  if(!countriesPanel||!channelsPanel)return;
+  const audience=dashboard?.audience;
+  if(!audience||!audience.available){
+    const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+    countriesPanel.innerHTML=empty;channelsPanel.innerHTML=empty;
+    return;
+  }
+  const countries=(audience.countries||[]).slice(0,8);
+  countriesPanel.innerHTML=audienceBarList(
+    countries,
+    row=>row.total,
+    row=>escapeHtml(row.country),
+    row=>`${number(row.organic)} ${t("organic")} · ${number(row.paid)} ${t("paid")}`
+  );
+  const channels=(audience.channels||[]).slice(0,8);
+  channelsPanel.innerHTML=audienceBarList(channels,row=>row.lead_count,row=>escapeHtml(row.channel));
+}
+
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
   const target=document.getElementById("pageFunnels");if(!target)return;
   target.innerHTML=groups.length?groups.map(page=>{
@@ -2684,7 +2731,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
