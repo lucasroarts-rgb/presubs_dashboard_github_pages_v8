@@ -369,6 +369,24 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   </section>
 
   <section class="slide" data-index="2">
+    <p class="eyebrow">Overview</p>
+    <h2 class="slide-title">Where every lead came from</h2>
+    <p class="slide-sub">{escape(current["label"])}. {number(leads_total)} total CRM leads this period. The pages that follow break each source down in detail: Meta, Organic, Google.</p>
+    <div class="slide-body">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="label">Total CRM leads</div><div class="value">{number(leads_total)}</div><div class="note">Meta paid + organic</div></div>
+        <div class="kpi-card"><div class="label">Meta (Facebook Ads)</div><div class="value">{number(paid_leads_total)}</div><div class="note">{pct(100 - organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
+        <div class="kpi-card"><div class="label">Organic</div><div class="value">{number(organic_leads_total)}</div><div class="note">{pct(organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
+        <div class="kpi-card"><div class="label">Google Ads conversions</div><div class="value">{number(google_ads.get("conversions") or 0) if google_ads.get("available") else "—"}</div><div class="note">Platform-reported, not yet CRM-verified</div></div>
+      </div>
+      <div class="chart-wrap" style="margin-top:18px">
+        <h3>Meta vs Organic (CRM leads)</h3>
+        {abar_rows([{"value": "Meta (Facebook Ads)", "lead_count": paid_leads_total}, {"value": "Organic", "lead_count": organic_leads_total}], "lead_count", "value")}
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="3">
     <p class="eyebrow">Daily trend</p>
     <h2 class="slide-title">Registrations per day</h2>
     <p class="slide-sub">{escape(current["label"])}.</p>
@@ -383,7 +401,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="3">
+  <section class="slide" data-index="4">
     <p class="eyebrow">Tracking health</p>
     <h2 class="slide-title">CRM leads vs Meta-reported registrations</h2>
     <p class="slide-sub">Same scope both sides: PreSubs, Facebook Ads.</p>
@@ -409,7 +427,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="4">
+  <section class="slide" data-index="5">
     <p class="eyebrow">Landing page</p>
     <h2 class="slide-title">Page conversion, this week vs last</h2>
     <p class="slide-sub">Correlation with the timeline on the next slide, not an isolated cause.</p>
@@ -434,7 +452,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="5">
+  <section class="slide" data-index="6">
     <p class="eyebrow">Where spend performed best</p>
     <h2 class="slide-title">Top creatives this week</h2>
     <p class="slide-sub">{escape(current["label"])}, data through {format_date_short(data_through)}.</p>
@@ -447,7 +465,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="6">
+  <section class="slide" data-index="7">
     <p class="eyebrow">Audience</p>
     <h2 class="slide-title">Where leads come from</h2>
     <p class="slide-sub">{escape(current["label"])}. Country from the phone number's calling code - the number itself is never stored or shown.</p>
@@ -465,7 +483,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="7">
+  <section class="slide" data-index="8">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Organic leads, in detail</h2>
     <p class="slide-sub">{number(organic_leads_total)} organic leads this period{f" ({pct(organic_pct_of_total)} of all CRM leads)" if organic_pct_of_total is not None else ""}. From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
@@ -491,7 +509,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="8">
+  <section class="slide" data-index="9">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Where the foreigners come from</h2>
     <p class="slide-sub">{number(foreign_total)} organic leads this period from outside France, Belgium and Switzerland.</p>
@@ -509,7 +527,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="9">
+  <section class="slide" data-index="10">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Search performance</h2>
     <p class="slide-sub">{escape(search_console_sub)}</p>
@@ -527,7 +545,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="10">
+  <section class="slide" data-index="11">
     <p class="eyebrow">Google</p>
     <h2 class="slide-title">Google Ads performance</h2>
     <p class="slide-sub">{escape(google_ads_sub)}</p>
@@ -545,7 +563,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="11">
+  <section class="slide" data-index="12">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
