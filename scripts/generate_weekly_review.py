@@ -172,6 +172,10 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     paid_leads_total = float(crm_gap.get("crm_leads") or 0)
     leads_total = organic_leads_total + paid_leads_total
     organic_pct_of_total = (organic_leads_total / leads_total * 100) if leads_total else None
+    organic_breakdown = data.get("organic_breakdown") or {}
+    top_organic_source = (organic_breakdown.get("source") or [])[:6]
+    top_organic_content = (organic_breakdown.get("content") or [])[:6]
+    top_organic_term = (organic_breakdown.get("term") or [])[:6]
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -408,6 +412,28 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   </section>
 
   <section class="slide" data-index="7">
+    <p class="eyebrow">Organic</p>
+    <h2 class="slide-title">Organic leads, in detail</h2>
+    <p class="slide-sub">{number(organic_leads_total)} organic leads this period{f" ({pct(organic_pct_of_total)} of all CRM leads)" if organic_pct_of_total is not None else ""}. From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
+    <div class="slide-body">
+      <div class="audience-panels-3">
+        <div class="audience-panel">
+          <h3>Source</h3>
+          {abar_rows(top_organic_source, "lead_count", "value")}
+        </div>
+        <div class="audience-panel">
+          <h3>Content</h3>
+          {abar_rows(top_organic_content, "lead_count", "value")}
+        </div>
+        <div class="audience-panel">
+          <h3>Term</h3>
+          {abar_rows(top_organic_term, "lead_count", "value")}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="8">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -427,7 +453,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 8</span>
+      <span class="slide-count" id="slideCount">1 / 9</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>

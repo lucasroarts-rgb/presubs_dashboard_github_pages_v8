@@ -166,6 +166,51 @@ def fetch_channel_counts(connection) -> list[tuple[str, str, int]]:
     return [(d, c, n) for (d, c), n in aggregated.items()]
 
 
+ORGANIC_BREAKDOWN_FIELDS = {
+    "source": "utm_source",
+    "content": "utm_content",
+    "term": "utm_term",
+    "temperature": "Temperature",
+}
+
+
+def fetch_organic_breakdown(connection) -> list[tuple[str, str, str, int]]:
+    """(report_date, dimension_type, dimension_value, lead_count) for organic
+    PreSubs leads, one pass per utm_source/utm_content/utm_term/Temperature."""
+    campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
+    rows: list[tuple[str, str, str, int]] = []
+    for dimension_type, column in ORGANIC_BREAKDOWN_FIELDS.items():
+        query = f"""
+            SELECT data AS report_date, COALESCE(NULLIF(TRIM({column}), ''), '(not set)') AS value,
+                   COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
+            FROM leads
+            WHERE data IS NOT NULL AND data <> '0000-00-00'
+              AND Location = 'Organic'
+              AND ({campaign_clause})
+              AND LOWER(utm_campaign) NOT LIKE %s
+            GROUP BY data, value
+        """
+        params = [*PRESUBS_CAMPAIGN_PATTERNS, QUIZ_EXCLUDE_PATTERN]
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        for report_date, value, count in cursor.fetchall():
+            rows.append((str(report_date), dimension_type, str(value)[:120], int(count)))
+    return rows
+
+
+def store_organic_breakdown(rows: list[tuple[str, str, str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO crm_organic_breakdown_daily (report_date, dimension_type, dimension_value, lead_count)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(report_date, dimension_type, dimension_value) DO UPDATE SET
+                lead_count = excluded.lead_count
+            """,
+            rows,
+        )
+
+
 def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
     query = """
         SELECT sale_date AS report_date,
@@ -249,6 +294,7 @@ def main() -> int:
         organic_leads = fetch_organic_lead_counts(connection)
         countries = fetch_country_counts(connection)
         channels = fetch_channel_counts(connection)
+        organic_breakdown = fetch_organic_breakdown(connection)
         sales = fetch_sale_counts(connection)
     finally:
         connection.close()
@@ -257,12 +303,14 @@ def main() -> int:
     store_lead_counts(organic_leads, source_bucket="organic")
     store_country_counts(countries)
     store_channel_counts(channels)
+    store_organic_breakdown(organic_breakdown)
     store_sale_counts(sales)
 
     print(
         f"CRM sync complete: {len(leads)} facebook-ads lead-days, "
         f"{len(organic_leads)} organic lead-days, {len(countries)} country-day rows, "
-        f"{len(channels)} channel-day rows, {len(sales)} sale-days."
+        f"{len(channels)} channel-day rows, {len(organic_breakdown)} organic-breakdown rows, "
+        f"{len(sales)} sale-days."
     )
     return 0
 

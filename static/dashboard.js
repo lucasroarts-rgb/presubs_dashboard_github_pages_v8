@@ -397,7 +397,17 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Trafic de la page d’accueil depuis Google Analytics (GA4), tous les visiteurs, pas seulement les leads.",
   "of all CRM leads":"de tous les leads CRM",
   "Total CRM leads":"Total des leads CRM",
-  "CRM, this period":"CRM, cette période"
+  "CRM, this period":"CRM, cette période",
+  "Organic":"Organique",
+  "Organic PreSubs leads, broken down by UTM source, content, term and lead quality, from the CRM.":"Leads organiques PreSubs, répartis par source UTM, contenu, terme et qualité du lead, depuis le CRM.",
+  "Source":"Source",
+  "utm_source on organic leads.":"utm_source des leads organiques.",
+  "Content":"Contenu",
+  "utm_content on organic leads.":"utm_content des leads organiques.",
+  "Term":"Terme",
+  "utm_term on organic leads.":"utm_term des leads organiques.",
+  "Lead quality":"Qualité du lead",
+  "CRM temperature rating on organic leads.":"Note de température CRM des leads organiques."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -428,7 +438,17 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Tráfego da página inicial via Google Analytics (GA4), todos os visitantes, não só os leads.",
   "of all CRM leads":"de todos os leads do CRM",
   "Total CRM leads":"Total de leads do CRM",
-  "CRM, this period":"CRM, este período"
+  "CRM, this period":"CRM, este período",
+  "Organic":"Orgânico",
+  "Organic PreSubs leads, broken down by UTM source, content, term and lead quality, from the CRM.":"Leads orgânicos do PreSubs, separados por UTM source, content, term e qualidade do lead, direto do CRM.",
+  "Source":"Origem",
+  "utm_source on organic leads.":"utm_source dos leads orgânicos.",
+  "Content":"Conteúdo",
+  "utm_content on organic leads.":"utm_content dos leads orgânicos.",
+  "Term":"Termo",
+  "utm_term on organic leads.":"utm_term dos leads orgânicos.",
+  "Lead quality":"Qualidade do lead",
+  "CRM temperature rating on organic leads.":"Classificação de temperatura do CRM dos leads orgânicos."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2386,6 +2406,27 @@ function renderSiteTraffic(){
   channelsPanel.innerHTML=audienceBarList((traffic.channels||[]).slice(0,8),row=>row.sessions,row=>escapeHtml(row.channel_group));
 }
 
+function renderOrganic(){
+  const panels={
+    source:document.getElementById("organicSource"),
+    content:document.getElementById("organicContent"),
+    term:document.getElementById("organicTerm"),
+    temperature:document.getElementById("organicTemperature")
+  };
+  if(!panels.source)return;
+  const breakdown=dashboard?.organic_breakdown;
+  const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+  if(!breakdown||!breakdown.available){
+    Object.values(panels).forEach(panel=>{if(panel)panel.innerHTML=empty});
+    return;
+  }
+  Object.keys(panels).forEach(key=>{
+    const panel=panels[key];if(!panel)return;
+    const rows=(breakdown[key]||[]).slice(0,10);
+    panel.innerHTML=audienceBarList(rows,row=>row.lead_count,row=>escapeHtml(row.value));
+  });
+}
+
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
   const target=document.getElementById("pageFunnels");if(!target)return;
   target.innerHTML=groups.length?groups.map(page=>{
@@ -2769,7 +2810,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderExecutiveSummary();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

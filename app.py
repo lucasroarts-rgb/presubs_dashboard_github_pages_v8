@@ -379,6 +379,15 @@ def init_db() -> None:
         sessions INTEGER NOT NULL DEFAULT 0,
         UNIQUE(report_date, channel_group)
     );
+
+    CREATE TABLE IF NOT EXISTS crm_organic_breakdown_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        dimension_type TEXT NOT NULL,
+        dimension_value TEXT NOT NULL,
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(report_date, dimension_type, dimension_value)
+    );
     """
     with db() as con:
         con.executescript(schema)
@@ -1774,6 +1783,30 @@ def site_traffic_summary(con: sqlite3.Connection, start_date: str, end_date: str
     }
 
 
+def organic_breakdown_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Organic PreSubs leads broken down by utm_source / utm_content / utm_term
+    and CRM Temperature, aggregated counts only."""
+    rows = con.execute(
+        "SELECT dimension_type, dimension_value, SUM(lead_count) FROM crm_organic_breakdown_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY dimension_type, dimension_value",
+        (start_date, end_date),
+    ).fetchall()
+    by_type: dict[str, list[dict[str, Any]]] = {"source": [], "content": [], "term": [], "temperature": []}
+    for dimension_type, dimension_value, count in rows:
+        if dimension_type in by_type:
+            by_type[dimension_type].append({"value": dimension_value, "lead_count": int(count or 0)})
+    for key in by_type:
+        by_type[key].sort(key=lambda row: row["lead_count"], reverse=True)
+
+    return {
+        "available": any(by_type.values()),
+        "source": by_type["source"],
+        "content": by_type["content"],
+        "term": by_type["term"],
+        "temperature": by_type["temperature"],
+    }
+
+
 @app.get("/api/dashboard")
 def dashboard(week_id: int | None = None):
     with db() as con:
@@ -1807,6 +1840,7 @@ def dashboard(week_id: int | None = None):
                 "crm_gap": None,
                 "audience": None,
                 "site_traffic": None,
+                "organic_breakdown": None,
             }
 
         previous = con.execute(
@@ -1938,6 +1972,7 @@ def dashboard(week_id: int | None = None):
         crm_gap = crm_gap_summary(con, current["week_start"], current["week_end"])
         audience = audience_summary(con, current["week_start"], current["week_end"])
         site_traffic = site_traffic_summary(con, current["week_start"], current["week_end"])
+        organic_breakdown = organic_breakdown_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -1961,6 +1996,7 @@ def dashboard(week_id: int | None = None):
         "crm_gap": crm_gap,
         "audience": audience,
         "site_traffic": site_traffic,
+        "organic_breakdown": organic_breakdown,
     }
 
 
