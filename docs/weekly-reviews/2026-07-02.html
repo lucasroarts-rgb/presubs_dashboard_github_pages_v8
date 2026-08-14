@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="google" content="notranslate">
-<title>PreSubs — Weekly Review — 07 Aug 2026 – 13 Aug 2026</title>
+<title>PreSubs — Weekly Review — 26 Jun 2026 – 02 Jul 2026</title>
 <style>
   :root{
     --bg:#f7f3ea;
@@ -272,6 +272,17 @@
   .campaign-strip .cs-figs{display:flex;gap:22px;font-size:13px;color:var(--ink-muted);}
   .campaign-strip .cs-figs b{color:var(--ink);font-variant-numeric:tabular-nums;}
 
+  /* ---- Audience bars ---- */
+  .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
+  .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
+  .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
+  .abar-label{font-size:13px;color:var(--ink);}
+  .abar-label small{display:block;font-size:11px;color:var(--ink-muted);font-weight:400;}
+  .abar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .abar-track span{display:block;height:100%;background:var(--chart-meta);border-radius:6px;}
+  .abar-value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:13px;}
+
   /* ---- Timeline ---- */
   .timeline{display:flex;flex-direction:column;gap:0;position:relative;}
   .tl-item{
@@ -354,6 +365,7 @@
     .stat-compare{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .tl-item{grid-template-columns:86px 16px 1fr;}
+    .audience-panels{grid-template-columns:1fr;}
   }
 
   @media print{
@@ -389,28 +401,28 @@
       <p class="cover-sub">Meta Ads, CRM tracking and page conversion — what changed, what improved, and what to watch next.</p>
     </div>
     <div class="cover-period">
-      <div>Period in focus<strong>Aug 7 – Aug 13, 2026</strong></div>
-      <div>Complete data through<strong>Aug 12, 2026</strong></div>
+      <div>Period in focus<strong>Jun 26 – Jul 2, 2026</strong></div>
+      <div>Complete data through<strong>Jul 2, 2026</strong></div>
       <div>Funnel<strong>PreSubs · Meta Ads</strong></div>
     </div>
   </section>
 
   <section class="slide" data-index="1">
     <p class="eyebrow">Week at a glance</p>
-    <h2 class="slide-title">This week vs 31 Jul 2026 – 06 Aug 2026</h2>
-    <p class="slide-sub">07 Aug 2026 – 13 Aug 2026, data through Aug 12.</p>
+    <h2 class="slide-title">This week vs 19 Jun 2026 – 25 Jun 2026</h2>
+    <p class="slide-sub">26 Jun 2026 – 02 Jul 2026, data through Jul 2.</p>
     <div class="slide-body">
-      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,653.14</div><div class="note">07 Aug 2026 – 13 Aug 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">52</div><div class="delta good">▲ 8.7/day (was 4.6/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€31.79</div><div class="delta good">▼ -46%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">74.09%</div><div class="note">was 69.90%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">3.58%</div><div class="note">was 2.00%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-2%</div><div class="note">was -37%</div></div></div>
+      <div class="kpi-grid"><div class="kpi-card"><div class="label">Spend</div><div class="value">€1,335.20</div><div class="note">26 Jun 2026 – 02 Jul 2026</div></div><div class="kpi-card"><div class="label">Registrations</div><div class="value">31</div><div class="delta good">▲ 4.4/day (was 4.4/day)</div></div><div class="kpi-card"><div class="label">Average CPL</div><div class="value">€43.07</div><div class="delta good">▼ -2%</div></div><div class="kpi-card"><div class="label">Click → LPV</div><div class="value">57.68%</div><div class="note">was 62.19%</div></div><div class="kpi-card"><div class="label">LPV → registration</div><div class="value">2.34%</div><div class="note">was 1.95%</div></div><div class="kpi-card"><div class="label">CRM vs Meta gap</div><div class="value">-14%</div><div class="note">was -33%</div></div><div class="kpi-card"><div class="label">Site visitors</div><div class="value">304</div><div class="note">Home page, GA4</div></div><div class="kpi-card"><div class="label">Organic leads</div><div class="value">67</div><div class="note">65.05% of all CRM leads</div></div></div>
     </div>
   </section>
 
   <section class="slide" data-index="2">
     <p class="eyebrow">Daily trend</p>
     <h2 class="slide-title">Registrations per day</h2>
-    <p class="slide-sub">07 Aug 2026 – 13 Aug 2026.</p>
+    <p class="slide-sub">26 Jun 2026 – 02 Jul 2026.</p>
     <div class="slide-body">
       <div class="chart-wrap">
-        <svg viewBox="0 0 940 300" width="100%" height="300" role="img" aria-label="Registrations per day"><line class="grid-line" x1="60" y1="250.0" x2="900" y2="250.0"/><line class="grid-line" x1="60" y1="197.5" x2="900" y2="197.5"/><line class="grid-line" x1="60" y1="145.0" x2="900" y2="145.0"/><line class="grid-line" x1="60" y1="92.5" x2="900" y2="92.5"/><line class="grid-line" x1="60" y1="40.0" x2="900" y2="40.0"/><text class="bar-axis-label" x="52" y="254.0" text-anchor="end">0</text><text class="bar-axis-label" x="52" y="201.5" text-anchor="end">4</text><text class="bar-axis-label" x="52" y="149.0" text-anchor="end">8</text><text class="bar-axis-label" x="52" y="96.5" text-anchor="end">11</text><text class="bar-axis-label" x="52" y="44.0" text-anchor="end">15</text><rect x="94.0" y="124.0" width="72.0" height="126.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="130.0" y="114.0" text-anchor="middle">9</text><text class="bar-axis-label" x="130.0" y="272.0" text-anchor="middle">Aug 7</text><rect x="234.0" y="208.0" width="72.0" height="42.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="270.0" y="198.0" text-anchor="middle">3</text><text class="bar-axis-label" x="270.0" y="272.0" text-anchor="middle">Aug 8</text><rect x="374.0" y="152.0" width="72.0" height="98.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="410.0" y="142.0" text-anchor="middle">7</text><text class="bar-axis-label" x="410.0" y="272.0" text-anchor="middle">Aug 9</text><rect x="514.0" y="54.0" width="72.0" height="196.0" rx="4" fill="var(--good)"/><text class="bar-val" x="550.0" y="44.0" text-anchor="middle" style="fill:var(--good);font-size:15px;">14</text><text class="bar-axis-label" x="550.0" y="272.0" text-anchor="middle" style="font-weight:700;">Aug 10</text><rect x="654.0" y="68.0" width="72.0" height="182.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="690.0" y="58.0" text-anchor="middle">13</text><text class="bar-axis-label" x="690.0" y="272.0" text-anchor="middle">Aug 11</text><rect x="794.0" y="166.0" width="72.0" height="84.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="830.0" y="156.0" text-anchor="middle">6</text><text class="bar-axis-label" x="830.0" y="272.0" text-anchor="middle">Aug 12</text></svg>
+        <svg viewBox="0 0 940 300" width="100%" height="300" role="img" aria-label="Registrations per day"><line class="grid-line" x1="60" y1="250.0" x2="900" y2="250.0"/><line class="grid-line" x1="60" y1="197.5" x2="900" y2="197.5"/><line class="grid-line" x1="60" y1="145.0" x2="900" y2="145.0"/><line class="grid-line" x1="60" y1="92.5" x2="900" y2="92.5"/><line class="grid-line" x1="60" y1="40.0" x2="900" y2="40.0"/><text class="bar-axis-label" x="52" y="254.0" text-anchor="end">0</text><text class="bar-axis-label" x="52" y="201.5" text-anchor="end">4</text><text class="bar-axis-label" x="52" y="149.0" text-anchor="end">8</text><text class="bar-axis-label" x="52" y="96.5" text-anchor="end">11</text><text class="bar-axis-label" x="52" y="44.0" text-anchor="end">15</text><rect x="84.0" y="194.0" width="72.0" height="56.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="120.0" y="184.0" text-anchor="middle">4</text><text class="bar-axis-label" x="120.0" y="272.0" text-anchor="middle">Jun 26</text><rect x="204.0" y="222.0" width="72.0" height="28.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="240.0" y="212.0" text-anchor="middle">2</text><text class="bar-axis-label" x="240.0" y="272.0" text-anchor="middle">Jun 27</text><rect x="324.0" y="194.0" width="72.0" height="56.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="360.0" y="184.0" text-anchor="middle">4</text><text class="bar-axis-label" x="360.0" y="272.0" text-anchor="middle">Jun 28</text><rect x="444.0" y="222.0" width="72.0" height="28.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="480.0" y="212.0" text-anchor="middle">2</text><text class="bar-axis-label" x="480.0" y="272.0" text-anchor="middle">Jun 29</text><rect x="564.0" y="110.0" width="72.0" height="140.0" rx="4" fill="var(--good)"/><text class="bar-val" x="600.0" y="100.0" text-anchor="middle" style="fill:var(--good);font-size:15px;">10</text><text class="bar-axis-label" x="600.0" y="272.0" text-anchor="middle" style="font-weight:700;">Jun 30</text><rect x="684.0" y="194.0" width="72.0" height="56.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="720.0" y="184.0" text-anchor="middle">4</text><text class="bar-axis-label" x="720.0" y="272.0" text-anchor="middle">Jul 1</text><rect x="804.0" y="180.0" width="72.0" height="70.0" rx="4" fill="var(--chart-meta)"/><text class="bar-val" x="840.0" y="170.0" text-anchor="middle">5</text><text class="bar-axis-label" x="840.0" y="272.0" text-anchor="middle">Jul 2</text></svg>
         <div class="chart-legend">
           <span><i style="background:var(--chart-meta)"></i>Registrations/day</span>
           <span><i style="background:var(--good)"></i>Best day</span>
@@ -426,20 +438,20 @@
     <div class="slide-body">
       <div class="gap-compare">
         <div class="gap-block">
-          <div class="gap-eyebrow">31 Jul 2026 – 06 Aug 2026</div>
-          <div class="gap-row"><span class="k">Meta registrations</span><span class="v">32</span></div>
-          <div class="gap-row"><span class="k">CRM leads</span><span class="v">51</span></div>
-          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--critical)">-37%</span></div>
+          <div class="gap-eyebrow">19 Jun 2026 – 25 Jun 2026</div>
+          <div class="gap-row"><span class="k">Meta registrations</span><span class="v">31</span></div>
+          <div class="gap-row"><span class="k">CRM leads</span><span class="v">46</span></div>
+          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--critical)">-33%</span></div>
         </div>
         <div class="gap-arrow">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>this week</span>
         </div>
         <div class="gap-block">
-          <div class="gap-eyebrow">07 Aug 2026 – 13 Aug 2026</div>
-          <div class="gap-row"><span class="k">Meta registrations</span><span class="v">52</span></div>
-          <div class="gap-row"><span class="k">CRM leads</span><span class="v">53</span></div>
-          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--good)">-2%</span></div>
+          <div class="gap-eyebrow">26 Jun 2026 – 02 Jul 2026</div>
+          <div class="gap-row"><span class="k">Meta registrations</span><span class="v">31</span></div>
+          <div class="gap-row"><span class="k">CRM leads</span><span class="v">36</span></div>
+          <div class="gap-result"><span class="k" style="font-size:13px;">Tracking gap</span><span class="v" style="color:var(--critical)">-14%</span></div>
         </div>
       </div>
     </div>
@@ -453,18 +465,18 @@
       <div class="stat-compare">
         <div class="sc-card">
           <div class="label">Registrations per day</div>
-          <div class="sc-track"><span class="sc-old">4.6</span><span class="sc-arrow-inline">→</span><span class="sc-new">8.7</span></div>
-          <div class="sc-delta">+90%</div>
+          <div class="sc-track"><span class="sc-old">4.4</span><span class="sc-arrow-inline">→</span><span class="sc-new">4.4</span></div>
+          <div class="sc-delta">0%</div>
         </div>
         <div class="sc-card">
           <div class="label">Click → LPV</div>
-          <div class="sc-track"><span class="sc-old">69.90%</span><span class="sc-arrow-inline">→</span><span class="sc-new">74.09%</span></div>
-          <div class="sc-delta">+4.2 pts</div>
+          <div class="sc-track"><span class="sc-old">62.19%</span><span class="sc-arrow-inline">→</span><span class="sc-new">57.68%</span></div>
+          <div class="sc-delta">-4.5 pts</div>
         </div>
         <div class="sc-card">
           <div class="label">LPV → registration</div>
-          <div class="sc-track"><span class="sc-old">2.00%</span><span class="sc-arrow-inline">→</span><span class="sc-new">3.58%</span></div>
-          <div class="sc-delta">+79%</div>
+          <div class="sc-track"><span class="sc-old">1.95%</span><span class="sc-arrow-inline">→</span><span class="sc-new">2.34%</span></div>
+          <div class="sc-delta">+20%</div>
         </div>
       </div>
     </div>
@@ -473,17 +485,35 @@
   <section class="slide" data-index="5">
     <p class="eyebrow">Where spend performed best</p>
     <h2 class="slide-title">Top creatives this week</h2>
-    <p class="slide-sub">07 Aug 2026 – 13 Aug 2026, data through Aug 12.</p>
+    <p class="slide-sub">26 Jun 2026 – 02 Jul 2026, data through Jul 2.</p>
     <div class="slide-body">
       <table class="top-table">
         <thead><tr><th>Ad</th><th style="text-align:right">Spend</th><th style="text-align:right">Registrations</th><th style="text-align:right">CPL</th></tr></thead>
-        <tbody><tr><td class="name"><span class="rank-pill">1</span>ad1629 — Cópia</td><td class="num">€236.77</td><td class="num">16</td><td class="num">€14.80</td></tr><tr><td class="name"><span class="rank-pill">2</span>AD1795_CONSEILLER_SAAS_LAL1QUALIFY</td><td class="num">€213.37</td><td class="num">9</td><td class="num">€23.71</td></tr><tr><td class="name"><span class="rank-pill">3</span>AD1795_CONSEILLER_SAAS_BROAD</td><td class="num">€263.46</td><td class="num">8</td><td class="num">€32.93</td></tr><tr><td class="name"><span class="rank-pill">4</span>AD1795_CONSEILLER_SAAS_LAL1</td><td class="num">€264.32</td><td class="num">6</td><td class="num">€44.05</td></tr></tbody>
+        <tbody><tr><td class="name"><span class="rank-pill">1</span>ad1629 — Cópia</td><td class="num">€333.39</td><td class="num">15</td><td class="num">€22.23</td></tr><tr><td class="name"><span class="rank-pill">2</span>ad1630</td><td class="num">€206.14</td><td class="num">6</td><td class="num">€34.36</td></tr><tr><td class="name"><span class="rank-pill">3</span>AD1613</td><td class="num">€292.73</td><td class="num">4</td><td class="num">€73.18</td></tr><tr><td class="name"><span class="rank-pill">4</span>Remarketing PreSubs 1b</td><td class="num">€401.14</td><td class="num">3</td><td class="num">€133.71</td></tr></tbody>
       </table>
-      <div class="campaign-strip"><div class="cs-name">Leading campaign: PRESUBS – CONVERSION – COLD – SCALE - LAL</div><div class="cs-figs"><span>Registrations <b>45</b></span><span>CPL <b>€28.30</b></span></div></div>
+      <div class="campaign-strip"><div class="cs-name">Leading campaign: PRESUBS – CONVERSION – COLD – SCALE - LAL</div><div class="cs-figs"><span>Registrations <b>27</b></span><span>CPL <b>€33.30</b></span></div></div>
     </div>
   </section>
 
   <section class="slide" data-index="6">
+    <p class="eyebrow">Audience</p>
+    <h2 class="slide-title">Where leads come from</h2>
+    <p class="slide-sub">26 Jun 2026 – 02 Jul 2026. Country from the phone number's calling code - the number itself is never stored or shown.</p>
+    <div class="slide-body">
+      <div class="audience-panels">
+        <div class="audience-panel">
+          <h3>Top countries</h3>
+          <div class="abar-row"><div class="abar-label">France<small>59 organic · 37 paid</small></div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">96</div></div><div class="abar-row"><div class="abar-label">Madagascar<small>3 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">3</div></div><div class="abar-row"><div class="abar-label">Belgium<small>1 organic · 1 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">Senegal<small>2 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">2</div></div><div class="abar-row"><div class="abar-label">Ivory Coast<small>1 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">1</div></div><div class="abar-row"><div class="abar-label">Switzerland<small>1 organic · 0 paid</small></div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Top channels</h3>
+          <div class="abar-row"><div class="abar-label">Direct/Other</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">38</div></div><div class="abar-row"><div class="abar-label">Facebook Ads</div><div class="abar-track"><span style="width:89%"></span></div><div class="abar-value">34</div></div><div class="abar-row"><div class="abar-label">Direct/Redirect</div><div class="abar-track"><span style="width:24%"></span></div><div class="abar-value">9</div></div><div class="abar-row"><div class="abar-label">YouTube</div><div class="abar-track"><span style="width:16%"></span></div><div class="abar-value">6</div></div><div class="abar-row"><div class="abar-label">Instagram</div><div class="abar-track"><span style="width:13%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">Facebook (organic)</div><div class="abar-track"><span style="width:13%"></span></div><div class="abar-value">5</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="7">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -503,13 +533,13 @@
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 7</span>
+      <span class="slide-count" id="slideCount">1 / 8</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
 </div>
 
-<!-- generated 2026-08-13 18:28 UTC -->
+<!-- generated 2026-08-14 14:20 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

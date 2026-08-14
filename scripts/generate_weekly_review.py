@@ -168,6 +168,10 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     top_countries = (audience.get("countries") or [])[:6]
     top_channels = (audience.get("channels") or [])[:6]
     site_traffic = data.get("site_traffic") or {}
+    organic_leads_total = sum(float(row.get("organic") or 0) for row in (audience.get("countries") or []))
+    paid_leads_total = float(crm_gap.get("crm_leads") or 0)
+    leads_total = organic_leads_total + paid_leads_total
+    organic_pct_of_total = (organic_leads_total / leads_total * 100) if leads_total else None
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -222,6 +226,11 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
                 "Site visitors",
                 number(site_traffic.get("active_users")) if site_traffic.get("available") else "—",
                 '<div class="note">Home page, GA4</div>',
+            ),
+            kpi_card(
+                "Organic leads",
+                number(organic_leads_total),
+                f'<div class="note">{pct(organic_pct_of_total)} of all CRM leads</div>' if organic_pct_of_total is not None else '<div class="note">CRM, this period</div>',
             ),
         ]
     )
