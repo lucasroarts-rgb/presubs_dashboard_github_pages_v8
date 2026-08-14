@@ -176,6 +176,17 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     top_organic_source = (organic_breakdown.get("source") or [])[:6]
     top_organic_content = (organic_breakdown.get("content") or [])[:6]
     top_organic_term = (organic_breakdown.get("term") or [])[:6]
+    core_market_countries = {"France", "Belgium", "Switzerland"}
+    core_market_total = sum(
+        float(row.get("organic") or 0)
+        for row in (audience.get("countries") or [])
+        if row.get("country") in core_market_countries
+    )
+    foreign_total = organic_leads_total - core_market_total
+    core_vs_foreign_rows = [
+        {"value": "France, Belgium, Switzerland", "lead_count": core_market_total},
+        {"value": "Foreign", "lead_count": foreign_total},
+    ]
 
     data_through = daily[-1]["report_date"] if daily else current["week_end"]
 
@@ -416,7 +427,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     <h2 class="slide-title">Organic leads, in detail</h2>
     <p class="slide-sub">{number(organic_leads_total)} organic leads this period{f" ({pct(organic_pct_of_total)} of all CRM leads)" if organic_pct_of_total is not None else ""}. From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
     <div class="slide-body">
-      <div class="audience-panels-3">
+      <div class="audience-panels-4">
         <div class="audience-panel">
           <h3>Source</h3>
           {abar_rows(top_organic_source, "lead_count", "value")}
@@ -428,6 +439,10 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         <div class="audience-panel">
           <h3>Term</h3>
           {abar_rows(top_organic_term, "lead_count", "value")}
+        </div>
+        <div class="audience-panel">
+          <h3>Core market vs foreign</h3>
+          {abar_rows(core_vs_foreign_rows, "lead_count", "value")}
         </div>
       </div>
     </div>

@@ -275,6 +275,7 @@
   /* ---- Audience bars ---- */
   .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .audience-panels-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .audience-panels-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
   .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
   .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
   .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
@@ -367,6 +368,7 @@
     .steps{grid-template-columns:1fr;}
     .tl-item{grid-template-columns:86px 16px 1fr;}
     .audience-panels{grid-template-columns:1fr;}
+    .audience-panels-3,.audience-panels-4{grid-template-columns:1fr;}
   }
 
   @media print{
@@ -519,7 +521,7 @@
     <h2 class="slide-title">Organic leads, in detail</h2>
     <p class="slide-sub">84 organic leads this period (60.87% of all CRM leads). From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
     <div class="slide-body">
-      <div class="audience-panels-3">
+      <div class="audience-panels-4">
         <div class="audience-panel">
           <h3>Source</h3>
           <div class="abar-row"><div class="abar-label">facebook</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">34</div></div><div class="abar-row"><div class="abar-label">instagram</div><div class="abar-track"><span style="width:79%"></span></div><div class="abar-value">27</div></div><div class="abar-row"><div class="abar-label">email</div><div class="abar-track"><span style="width:18%"></span></div><div class="abar-value">6</div></div><div class="abar-row"><div class="abar-label">redirect</div><div class="abar-track"><span style="width:15%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">visit</div><div class="abar-track"><span style="width:12%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:12%"></span></div><div class="abar-value">4</div></div>
@@ -531,6 +533,10 @@
         <div class="audience-panel">
           <h3>Term</h3>
           <div class="abar-row"><div class="abar-label">bio</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">60</div></div><div class="abar-row"><div class="abar-label">website</div><div class="abar-track"><span style="width:13%"></span></div><div class="abar-value">8</div></div><div class="abar-row"><div class="abar-label">email</div><div class="abar-track"><span style="width:10%"></span></div><div class="abar-value">6</div></div><div class="abar-row"><div class="abar-label">organic</div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">5</div></div><div class="abar-row"><div class="abar-label">direct-chat</div><div class="abar-track"><span style="width:7%"></span></div><div class="abar-value">4</div></div><div class="abar-row"><div class="abar-label">event</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">1</div></div>
+        </div>
+        <div class="audience-panel">
+          <h3>Core market vs foreign</h3>
+          <div class="abar-row"><div class="abar-label">France, Belgium, Switzerland</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">45</div></div><div class="abar-row"><div class="abar-label">Foreign</div><div class="abar-track"><span style="width:87%"></span></div><div class="abar-value">39</div></div>
         </div>
       </div>
     </div>
@@ -562,7 +568,7 @@
   </div>
 </div>
 
-<!-- generated 2026-08-14 14:34 UTC -->
+<!-- generated 2026-08-14 14:44 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

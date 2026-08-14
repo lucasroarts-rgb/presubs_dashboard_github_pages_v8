@@ -399,7 +399,7 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Total CRM leads":"Total des leads CRM",
   "CRM, this period":"CRM, cette période",
   "Organic":"Organique",
-  "Organic PreSubs leads, broken down by UTM source, content, term and lead quality, from the CRM.":"Leads organiques PreSubs, répartis par source UTM, contenu, terme et qualité du lead, depuis le CRM.",
+  "Organic PreSubs leads, broken down by UTM source, content, term and core-market vs foreign, from the CRM.":"Leads organiques PreSubs, répartis par source UTM, contenu, terme et marché principal vs étranger, depuis le CRM.",
   "Source":"Source",
   "utm_source on organic leads.":"utm_source des leads organiques.",
   "Content":"Contenu",
@@ -407,7 +407,11 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Term":"Terme",
   "utm_term on organic leads.":"utm_term des leads organiques.",
   "Lead quality":"Qualité du lead",
-  "CRM temperature rating on organic leads.":"Note de température CRM des leads organiques."
+  "CRM temperature rating on organic leads.":"Note de température CRM des leads organiques.",
+  "Core market vs foreign":"Marché principal vs étranger",
+  "France, Belgium and Switzerland versus every other country, organic leads.":"France, Belgique et Suisse face à tous les autres pays, leads organiques.",
+  "France, Belgium, Switzerland":"France, Belgique, Suisse",
+  "Foreign":"Étranger"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -440,7 +444,7 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Total CRM leads":"Total de leads do CRM",
   "CRM, this period":"CRM, este período",
   "Organic":"Orgânico",
-  "Organic PreSubs leads, broken down by UTM source, content, term and lead quality, from the CRM.":"Leads orgânicos do PreSubs, separados por UTM source, content, term e qualidade do lead, direto do CRM.",
+  "Organic PreSubs leads, broken down by UTM source, content, term and core-market vs foreign, from the CRM.":"Leads orgânicos do PreSubs, separados por UTM source, content, term e mercado principal vs estrangeiro, direto do CRM.",
   "Source":"Origem",
   "utm_source on organic leads.":"utm_source dos leads orgânicos.",
   "Content":"Conteúdo",
@@ -448,7 +452,11 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Term":"Termo",
   "utm_term on organic leads.":"utm_term dos leads orgânicos.",
   "Lead quality":"Qualidade do lead",
-  "CRM temperature rating on organic leads.":"Classificação de temperatura do CRM dos leads orgânicos."
+  "CRM temperature rating on organic leads.":"Classificação de temperatura do CRM dos leads orgânicos.",
+  "Core market vs foreign":"Mercado principal vs estrangeiro",
+  "France, Belgium and Switzerland versus every other country, organic leads.":"França, Bélgica e Suíça contra todos os outros países, leads orgânicos.",
+  "France, Belgium, Switzerland":"França, Bélgica, Suíça",
+  "Foreign":"Estrangeiro"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2406,6 +2414,8 @@ function renderSiteTraffic(){
   channelsPanel.innerHTML=audienceBarList((traffic.channels||[]).slice(0,8),row=>row.sessions,row=>escapeHtml(row.channel_group));
 }
 
+const CORE_MARKET_COUNTRIES=["France","Belgium","Switzerland"];
+
 function renderOrganic(){
   const panels={
     source:document.getElementById("organicSource"),
@@ -2417,14 +2427,27 @@ function renderOrganic(){
   const breakdown=dashboard?.organic_breakdown;
   const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
   if(!breakdown||!breakdown.available){
-    Object.values(panels).forEach(panel=>{if(panel)panel.innerHTML=empty});
-    return;
+    panels.source.innerHTML=empty;panels.content.innerHTML=empty;panels.term.innerHTML=empty;
+  }else{
+    ["source","content","term"].forEach(key=>{
+      const panel=panels[key];if(!panel)return;
+      const rows=(breakdown[key]||[]).slice(0,10);
+      panel.innerHTML=audienceBarList(rows,row=>row.lead_count,row=>escapeHtml(row.value));
+    });
   }
-  Object.keys(panels).forEach(key=>{
-    const panel=panels[key];if(!panel)return;
-    const rows=(breakdown[key]||[]).slice(0,10);
-    panel.innerHTML=audienceBarList(rows,row=>row.lead_count,row=>escapeHtml(row.value));
+  const countries=dashboard?.audience?.countries||[];
+  if(!panels.temperature)return;
+  if(!countries.length){panels.temperature.innerHTML=empty;return}
+  let coreTotal=0,foreignTotal=0;
+  countries.forEach(row=>{
+    const organic=safeNum(row.organic);
+    if(CORE_MARKET_COUNTRIES.includes(row.country))coreTotal+=organic;else foreignTotal+=organic;
   });
+  panels.temperature.innerHTML=audienceBarList(
+    [{label:t("France, Belgium, Switzerland"),value:coreTotal},{label:t("Foreign"),value:foreignTotal}],
+    row=>row.value,
+    row=>row.label
+  );
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
