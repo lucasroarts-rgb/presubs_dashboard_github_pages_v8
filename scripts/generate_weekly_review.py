@@ -202,6 +202,15 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         for row in (organic_breakdown.get("foreign_channels") or [])[:10]
     ]
 
+    google_ads_crm_leads = next(
+        (
+            float(row.get("lead_count") or 0)
+            for row in (audience.get("channels") or [])
+            if row.get("channel") == "Google Ads"
+        ),
+        0,
+    )
+
     google_ads = data.get("google_ads") or {}
     google_ads_campaign_rows = [
         {"value": row.get("campaign_name"), "lead_count": float(row.get("spend") or 0)}
@@ -377,11 +386,11 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         <div class="kpi-card"><div class="label">Total CRM leads</div><div class="value">{number(leads_total)}</div><div class="note">Meta paid + organic</div></div>
         <div class="kpi-card"><div class="label">Meta (Facebook Ads)</div><div class="value">{number(paid_leads_total)}</div><div class="note">{pct(100 - organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
         <div class="kpi-card"><div class="label">Organic</div><div class="value">{number(organic_leads_total)}</div><div class="note">{pct(organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
-        <div class="kpi-card"><div class="label">Google Ads conversions</div><div class="value">{number(google_ads.get("conversions") or 0) if google_ads.get("available") else "—"}</div><div class="note">Platform-reported, not yet CRM-verified</div></div>
+        <div class="kpi-card"><div class="label">Google Ads</div><div class="value">{number(google_ads_crm_leads)}</div><div class="note">CRM, channel = Google Ads/Adwords</div></div>
       </div>
       <div class="chart-wrap" style="margin-top:18px">
-        <h3>Meta vs Organic (CRM leads)</h3>
-        {abar_rows([{"value": "Meta (Facebook Ads)", "lead_count": paid_leads_total}, {"value": "Organic", "lead_count": organic_leads_total}], "lead_count", "value")}
+        <h3>Leads by source (CRM)</h3>
+        {abar_rows([{"value": "Meta (Facebook Ads)", "lead_count": paid_leads_total}, {"value": "Organic", "lead_count": organic_leads_total}, {"value": "Google Ads", "lead_count": google_ads_crm_leads}], "lead_count", "value")}
       </div>
     </div>
   </section>

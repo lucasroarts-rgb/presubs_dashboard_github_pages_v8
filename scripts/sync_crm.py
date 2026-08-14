@@ -31,6 +31,8 @@ CHANNEL_LABELS = {
     "tiktok": "TikTok",
     "youtube": "YouTube",
     "adwords": "Google Ads",
+    "google-ads": "Google Ads",
+    "google_ads": "Google Ads",
     "facebook": "Facebook (organic)",
     "email": "Email",
     "whatsapp": "WhatsApp",
