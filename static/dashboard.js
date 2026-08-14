@@ -394,7 +394,10 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "New visitors":"Nouveaux visiteurs",
   "Home page, GA4":"Page d’accueil, GA4",
   "Site visitors by channel":"Visiteurs du site par canal",
-  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Trafic de la page d’accueil depuis Google Analytics (GA4), tous les visiteurs, pas seulement les leads."
+  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Trafic de la page d’accueil depuis Google Analytics (GA4), tous les visiteurs, pas seulement les leads.",
+  "of all CRM leads":"de tous les leads CRM",
+  "Total CRM leads":"Total des leads CRM",
+  "CRM, this period":"CRM, cette période"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -422,7 +425,10 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "New visitors":"Novos visitantes",
   "Home page, GA4":"Página inicial, GA4",
   "Site visitors by channel":"Visitantes do site por canal",
-  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Tráfego da página inicial via Google Analytics (GA4), todos os visitantes, não só os leads."
+  "Home-page traffic from Google Analytics (GA4), all visitors, not just leads.":"Tráfego da página inicial via Google Analytics (GA4), todos os visitantes, não só os leads.",
+  "of all CRM leads":"de todos os leads do CRM",
+  "Total CRM leads":"Total de leads do CRM",
+  "CRM, this period":"CRM, este período"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2322,11 +2328,28 @@ function audienceBarList(rows,valueFn,labelFn,noteFn){
   }).join("")}</div>`;
 }
 
+function renderAudienceLeadsKpis(audience){
+  const kpis=document.getElementById("audienceLeadsKpis");if(!kpis)return;
+  if(!audience||!audience.available){kpis.innerHTML="";return}
+  const allCountries=audience.countries||[];
+  const organicTotal=allCountries.reduce((sum,row)=>sum+safeNum(row.organic),0);
+  const paidTotal=allCountries.reduce((sum,row)=>sum+safeNum(row.paid),0);
+  const leadsTotal=organicTotal+paidTotal;
+  const organicShare=leadsTotal?organicTotal/leadsTotal*100:null;
+  const items=[
+    [t("Organic leads"),organicTotal,organicShare==null?t("CRM, this period"):`${percent(organicShare)} ${t("of all CRM leads")}`],
+    [t("Facebook-ads leads (CRM)"),paidTotal,t("CRM, this period")],
+    [t("Total CRM leads"),leadsTotal,t("CRM, this period")]
+  ];
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${number(item[1])}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+}
+
 function renderAudience(){
   const countriesPanel=document.getElementById("audienceCountries");
   const channelsPanel=document.getElementById("audienceChannels");
   if(!countriesPanel||!channelsPanel)return;
   const audience=dashboard?.audience;
+  renderAudienceLeadsKpis(audience);
   if(!audience||!audience.available){
     const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
     countriesPanel.innerHTML=empty;channelsPanel.innerHTML=empty;
