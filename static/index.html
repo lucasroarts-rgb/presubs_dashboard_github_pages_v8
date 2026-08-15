@@ -24,11 +24,7 @@
 <button class="tab" data-view="seo" title="SEO"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5L20.5 19l-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/></svg><span>SEO</span></button>
 <button class="tab" data-view="googleAds" title="Google Ads"><svg viewBox="0 0 24 24"><path d="M12 3 4 8v8l8 5 8-5V8l-8-5Zm0 2.3 6 3.7-6 3.7-6-3.7 6-3.7ZM6 10l5 3.1v6L6 16V10Zm7 9.1v-6l5-3.1v6l-5 3.1Z"/></svg><span>Google Ads</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
-<button class="tab" data-view="hierarchy" title="Campaign structure"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Campaign structure</span></button>
-<button class="tab" data-view="campaigns" title="Campaigns"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm2 2v10h14V7H5Zm2 7 3-3 2 2 4-4 2 2-6 6-2-2-1.5 1.5L7 14Z"/></svg><span>Campaigns</span></button>
-<button class="tab" data-view="adsets" title="Ad sets"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7ZM6 6v3h3V6H6Zm9 0v3h3V6h-3ZM6 15v3h3v-3H6Zm9 0v3h3v-3h-3Z"/></svg><span>Ad sets</span></button>
-<button class="tab" data-view="ads" title="Ads"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6Zm2 2v8h14V8H5Zm2 2h5v2H7v-2Zm0 3h8v2H7v-2Zm10-3h1v4h-1v-4Z"/></svg><span>Ads</span></button>
-<button class="tab" data-view="daily" title="Daily performance"><svg viewBox="0 0 24 24"><path d="M5 19V9h3v10H5Zm5 0V5h3v14h-3Zm5 0v-7h3v7h-3Z"/></svg><span>Daily performance</span></button>
+<button class="tab" data-view="metaAds" title="Meta Ads"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Meta Ads</span></button>
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
 <button class="tab" data-view="dateAnalysis" title="Date analysis"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h3v3H8v-3Z"/></svg><span>Date analysis</span></button>
 <button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
@@ -338,117 +334,130 @@
       </article>
     </section>
 
-    <section id="hierarchy" class="view">
+    <section id="metaAds" class="view">
       <div class="section-head" style="margin-top:6px">
-        <div>
-          <h2>Campaign → Ad set → Ad</h2>
-          <p>Open each campaign to see the full structure, metrics and start dates.</p>
+        <div><h2>Meta Ads</h2><p>Account structure, campaign/ad-set/ad tables and daily detail.</p></div>
+      </div>
+      <div class="subtab-bar">
+        <button class="subtab-btn active" data-subview="hierarchy">Structure</button>
+        <button class="subtab-btn" data-subview="campaigns">Campaigns</button>
+        <button class="subtab-btn" data-subview="adsets">Ad sets</button>
+        <button class="subtab-btn" data-subview="ads">Ads</button>
+        <button class="subtab-btn" data-subview="daily">Daily</button>
+      </div>
+
+      <div id="hierarchy" class="subview active">
+        <div class="section-head" style="margin-top:6px">
+          <div>
+            <h2>Campaign → Ad set → Ad</h2>
+            <p>Open each campaign to see the full structure, metrics and start dates.</p>
+          </div>
         </div>
+        <div class="hierarchy" id="hierarchyTree"></div>
       </div>
-      <div class="hierarchy" id="hierarchyTree"></div>
-    </section>
 
-    <section id="campaigns" class="view">
-      <div class="section-head" style="margin-top:6px">
-        <div><h2>Campaign performance</h2><p>Complete delivery, conversion and start-date metrics.</p></div>
-      </div>
-      <div class="filterbar">
-        <input id="campaignSearch" placeholder="Search a campaign…" />
-        <select id="campaignStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-      </div>
-      <div id="campaignTable"></div>
-    </section>
-
-    <section id="adsets" class="view">
-      <div class="section-head" style="margin-top:6px">
-        <div><h2>Ad-set performance</h2><p>Budget, delivery, conversion volume, efficiency and start date.</p></div>
-      </div>
-      <div class="filterbar">
-        <input id="adsetSearch" placeholder="Search an ad set…" />
-        <select id="adsetCampaignFilter"><option value="">All campaigns</option></select>
-        <select id="adsetStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-      </div>
-      <div id="adsetTable"></div>
-    </section>
-
-    <section id="ads" class="view">
-      <div class="section-head" style="margin-top:6px">
-        <div><h2>Ad-level performance</h2><p>All available metrics, conversion-page classification, start date and Meta preview link.</p></div>
-        <span class="pill info">Links are saved in the database</span>
-      </div>
-      <div class="filterbar">
-        <input id="adSearch" placeholder="Search an ad…" />
-        <select id="adCampaignFilter"><option value="">All campaigns</option></select>
-        <select id="adAdsetFilter"><option value="">All ad sets</option></select>
-        <select id="adPageFilter"><option value="">All pages</option></select>
-        <select id="adStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-        <select id="adResultFilter"><option value="">All results</option><option value="with">With registrations</option><option value="without">Without registrations</option></select>
-      </div>
-      <div id="adTable"></div>
-    </section>
-
-    <section id="daily" class="view">
-      <div class="section-head" style="margin-top:6px">
-        <div>
-          <h2>Daily performance</h2>
-          <p>Ad-level evolution inside the selected reporting week.</p>
+      <div id="campaigns" class="subview">
+        <div class="section-head" style="margin-top:6px">
+          <div><h2>Campaign performance</h2><p>Complete delivery, conversion and start-date metrics.</p></div>
         </div>
-        <span class="pill info" id="dailyCoverageBadge">Ad-by-day export</span>
+        <div class="filterbar">
+          <input id="campaignSearch" placeholder="Search a campaign…" />
+          <select id="campaignStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        </div>
+        <div id="campaignTable"></div>
       </div>
 
-      <div id="dailyNotice" class="source-notice"></div>
-
-      <div class="filterbar">
-        <input id="dailyAdSearch" placeholder="Search an ad…" />
-        <select id="dailyCampaignFilter"><option value="">All campaigns</option></select>
-        <select id="dailyAdsetFilter"><option value="">All ad sets</option></select>
-        <select id="dailyPageFilter"><option value="">All pages</option></select>
-        <label class="toggle-label"><input type="checkbox" id="dailyHideZero" checked /> Hide zero-delivery rows</label>
+      <div id="adsets" class="subview">
+        <div class="section-head" style="margin-top:6px">
+          <div><h2>Ad-set performance</h2><p>Budget, delivery, conversion volume, efficiency and start date.</p></div>
+        </div>
+        <div class="filterbar">
+          <input id="adsetSearch" placeholder="Search an ad set…" />
+          <select id="adsetCampaignFilter"><option value="">All campaigns</option></select>
+          <select id="adsetStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        </div>
+        <div id="adsetTable"></div>
       </div>
 
-      <div id="dailyKpis" class="kpi-grid"></div>
+      <div id="ads" class="subview">
+        <div class="section-head" style="margin-top:6px">
+          <div><h2>Ad-level performance</h2><p>All available metrics, conversion-page classification, start date and Meta preview link.</p></div>
+          <span class="pill info">Links are saved in the database</span>
+        </div>
+        <div class="filterbar">
+          <input id="adSearch" placeholder="Search an ad…" />
+          <select id="adCampaignFilter"><option value="">All campaigns</option></select>
+          <select id="adAdsetFilter"><option value="">All ad sets</option></select>
+          <select id="adPageFilter"><option value="">All pages</option></select>
+          <select id="adStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          <select id="adResultFilter"><option value="">All results</option><option value="with">With registrations</option><option value="without">Without registrations</option></select>
+        </div>
+        <div id="adTable"></div>
+      </div>
 
-      <div class="daily-chart-grid">
+      <div id="daily" class="subview">
+        <div class="section-head" style="margin-top:6px">
+          <div>
+            <h2>Daily performance</h2>
+            <p>Ad-level evolution inside the selected reporting week.</p>
+          </div>
+          <span class="pill info" id="dailyCoverageBadge">Ad-by-day export</span>
+        </div>
+
+        <div id="dailyNotice" class="source-notice"></div>
+
+        <div class="filterbar">
+          <input id="dailyAdSearch" placeholder="Search an ad…" />
+          <select id="dailyCampaignFilter"><option value="">All campaigns</option></select>
+          <select id="dailyAdsetFilter"><option value="">All ad sets</option></select>
+          <select id="dailyPageFilter"><option value="">All pages</option></select>
+          <label class="toggle-label"><input type="checkbox" id="dailyHideZero" checked /> Hide zero-delivery rows</label>
+        </div>
+
+        <div id="dailyKpis" class="kpi-grid"></div>
+
+        <div class="daily-chart-grid">
+          <article class="card panel">
+            <div class="section-head">
+              <div>
+                <h2>Spend and registrations by day</h2>
+                <p>Daily movement based on the detailed ad export.</p>
+              </div>
+            </div>
+            <div id="dailySpendResultsChart" class="daily-trend"></div>
+          </article>
+
+          <article class="card panel">
+            <div class="section-head">
+              <div>
+                <h2>Cost per registration by day</h2>
+                <p>Lower is better. Days without registrations are clearly marked.</p>
+              </div>
+            </div>
+            <div id="dailyCplChart" class="bar-list"></div>
+          </article>
+        </div>
+
         <article class="card panel">
           <div class="section-head">
             <div>
-              <h2>Spend and registrations by day</h2>
-              <p>Daily movement based on the detailed ad export.</p>
+              <h2>Daily overview</h2>
+              <p>Aggregated from every ad delivered on each day.</p>
             </div>
           </div>
-          <div id="dailySpendResultsChart" class="daily-trend"></div>
+          <div id="dailySummaryTable"></div>
         </article>
 
         <article class="card panel">
           <div class="section-head">
             <div>
-              <h2>Cost per registration by day</h2>
-              <p>Lower is better. Days without registrations are clearly marked.</p>
+              <h2>Ad-by-day detail</h2>
+              <p>Campaign, ad set, page, spend, registrations and delivery metrics for each ad on each day.</p>
             </div>
           </div>
-          <div id="dailyCplChart" class="bar-list"></div>
+          <div id="dailyAdTable"></div>
         </article>
       </div>
-
-      <article class="card panel">
-        <div class="section-head">
-          <div>
-            <h2>Daily overview</h2>
-            <p>Aggregated from every ad delivered on each day.</p>
-          </div>
-        </div>
-        <div id="dailySummaryTable"></div>
-      </article>
-
-      <article class="card panel">
-        <div class="section-head">
-          <div>
-            <h2>Ad-by-day detail</h2>
-            <p>Campaign, ad set, page, spend, registrations and delivery metrics for each ad on each day.</p>
-          </div>
-        </div>
-        <div id="dailyAdTable"></div>
-      </article>
     </section>
 
 

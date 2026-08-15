@@ -457,7 +457,11 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Average ranking position by day, this period.":"Position moyenne de classement par jour, cette période.",
   "Query":"Requête",
   "Position":"Position",
-  "Date":"Date"
+  "Date":"Date",
+  "Meta Ads":"Meta Ads",
+  "Account structure, campaign/ad-set/ad tables and daily detail.":"Structure du compte, tableaux campagne/ensemble de publicités/publicité et détail quotidien.",
+  "Structure":"Structure",
+  "Daily":"Quotidien"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -540,7 +544,11 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Average ranking position by day, this period.":"Posição média de ranking por dia, este período.",
   "Query":"Termo de busca",
   "Position":"Posição",
-  "Date":"Data"
+  "Date":"Data",
+  "Meta Ads":"Meta Ads",
+  "Account structure, campaign/ad-set/ad tables and daily detail.":"Estrutura da conta, tabelas de campanha/ad set/anúncio e detalhe diário.",
+  "Structure":"Estrutura",
+  "Daily":"Diário"
 });
 
 const originalTextNodes=new WeakMap();
@@ -591,6 +599,16 @@ document.querySelectorAll(".tab").forEach(button=>{
   });
 });
 
+
+document.querySelectorAll(".subtab-btn").forEach(button=>{
+  button.addEventListener("click",()=>{
+    const bar=button.closest(".subtab-bar");
+    bar?.querySelectorAll(".subtab-btn").forEach(el=>el.classList.remove("active"));
+    bar?.parentElement.querySelectorAll(".subview").forEach(el=>el.classList.remove("active"));
+    button.classList.add("active");
+    document.getElementById(button.dataset.subview)?.classList.add("active");
+  });
+});
 
 document.getElementById("sidebarToggle")?.addEventListener("click",()=>{
   document.body.classList.toggle("sidebar-open");
