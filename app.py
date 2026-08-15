@@ -1948,12 +1948,17 @@ def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: s
     position = round(position_weighted / impressions, 1) if impressions else 0.0
 
     daily_rows = con.execute(
-        "SELECT report_date, clicks, impressions FROM search_console_daily "
+        "SELECT report_date, clicks, impressions, position FROM search_console_daily "
         "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
         (start_date, end_date),
     ).fetchall()
     daily = [
-        {"report_date": row[0], "clicks": int(row[1] or 0), "impressions": int(row[2] or 0)}
+        {
+            "report_date": row[0],
+            "clicks": int(row[1] or 0),
+            "impressions": int(row[2] or 0),
+            "position": float(row[3] or 0),
+        }
         for row in daily_rows
     ]
 

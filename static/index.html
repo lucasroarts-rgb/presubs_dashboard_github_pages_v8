@@ -21,6 +21,7 @@
 <button class="tab" data-view="strategy" title="Management"><svg viewBox="0 0 24 24"><path d="M4 19V9h3v10H4Zm6 0V5h3v14h-3Zm6 0v-7h3v7h-3ZM3 21h18v-2H3v2Z"/></svg><span>Management</span></button>
 <button class="tab" data-view="audience" title="Audience"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.9 9h-3.4c-.1-2-.5-3.8-1.1-5.3A8 8 0 0 1 19.9 11ZM12 4c.7 1 1.5 3 1.7 7h-3.4c.2-4 1-6 1.7-7Zm-2.4.7C8.9 6.2 8.5 8 8.4 10H5A8 8 0 0 1 9.6 4.7ZM5 13h3.4c.1 2 .5 3.8 1.1 5.3A8 8 0 0 1 5 13Zm7 9.3c-.7-1-1.5-3-1.7-7h3.4c-.2 4-1 6-1.7 7Zm2.4-.7c.7-1.5 1-3.3 1.1-5.3h3.4a8 8 0 0 1-4.5 5.3Z"/></svg><span>Audience</span></button>
 <button class="tab" data-view="organic" title="Organic"><svg viewBox="0 0 24 24"><path d="M12 2c4 3 6 6.6 6 10.5A6 6 0 0 1 6 12.5C6 8.6 8 5 12 2Zm0 3.4c-2.5 2.3-3.7 4.6-3.7 6.9a3.7 3.7 0 0 0 7.4 .2c.1-2.4-1.2-4.8-3.7-7.1ZM11 22v-6h2v6h-2Z"/></svg><span>Organic</span></button>
+<button class="tab" data-view="seo" title="SEO"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5L20.5 19l-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/></svg><span>SEO</span></button>
 <button class="tab" data-view="googleAds" title="Google Ads"><svg viewBox="0 0 24 24"><path d="M12 3 4 8v8l8 5 8-5V8l-8-5Zm0 2.3 6 3.7-6 3.7-6-3.7 6-3.7ZM6 10l5 3.1v6L6 16V10Zm7 9.1v-6l5-3.1v6l-5 3.1Z"/></svg><span>Google Ads</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
 <button class="tab" data-view="hierarchy" title="Campaign structure"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Campaign structure</span></button>
@@ -735,15 +736,15 @@
           <div id="organicForeignChannels"></div>
         </article>
       </div>
+    </section>
 
-      <div class="section-head" style="margin-top:22px"><div><h2>Search performance</h2><p>Google Search Console: how the site shows up in Google search results.</p></div></div>
-      <div id="searchConsoleKpis" class="kpi-grid"></div>
-      <div class="audience-grid">
-        <article class="card panel">
-          <div class="section-head"><div><h2>Top search queries</h2><p>What people typed on Google before landing on the site.</p></div></div>
-          <div id="searchConsoleQueries"></div>
-        </article>
-      </div>
+    <section id="seo" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>SEO</h2><p>Google Search Console: our ranking and visibility in Google search results.</p></div></div>
+      <div id="seoKpis" class="kpi-grid"></div>
+      <div class="section-head" style="margin-top:22px"><div><h2>Ranking by query</h2><p>Average position, clicks, impressions and CTR per search query, sorted best-ranked first.</p></div></div>
+      <div id="seoRankingTable"></div>
+      <div class="section-head" style="margin-top:22px"><div><h2>Position trend</h2><p>Average ranking position by day, this period.</p></div></div>
+      <div id="seoPositionTrend"></div>
     </section>
 
     <section id="googleAds" class="view">
