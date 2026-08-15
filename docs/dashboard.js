@@ -1585,9 +1585,16 @@ function handleGlobalPeriodMode(){
   if(mode==="week"){const id=document.getElementById("weekSelect")?.value;if(id)loadDashboard(id);return}
   const rows=advancedState?.rows||[];if(!rows.length)return;const min=rows[0].report_date,max=rows.at(-1).report_date,start=document.getElementById("globalRangeStart"),end=document.getElementById("globalRangeEnd");start.min=min;start.max=max;end.min=min;end.max=max;if(!start.value)start.value=dashboard?.current_week?.week_start||addDaysIso(max,-6);if(!end.value)end.value=dashboard?.current_week?.week_end>max?max:(dashboard?.current_week?.week_end||max);
 }
-function applyGlobalCustomRange(){
+async function applyGlobalCustomRange(){
   const start=document.getElementById("globalRangeStart")?.value,end=document.getElementById("globalRangeEnd")?.value;if(!start||!end){alert("Choose a start and end date.");return}if(end<start){alert("The end date cannot be before the start date.");return}
-  document.body.dataset.periodMode="custom";dashboard=buildCustomDashboard(start,end);renderLoadedDashboard();
+  document.body.dataset.periodMode="custom";dashboard=buildCustomDashboard(start,end);
+  try{
+    const extras=await fetch(`/api/period-extras?start=${start}&end=${end}`).then(r=>r.json());
+    Object.assign(dashboard,extras);
+  }catch(error){
+    console.error("Dashboard render error in applyGlobalCustomRange:",error);
+  }
+  renderLoadedDashboard();
 }
 
 function weekdayLabel(dateValue){return new Intl.DateTimeFormat(dateLocaleForLang(),{weekday:"short",timeZone:"UTC"}).format(new Date(`${dateValue}T12:00:00Z`))}

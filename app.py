@@ -1989,6 +1989,22 @@ def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: s
     }
 
 
+@app.get("/api/period-extras")
+def period_extras(start: str, end: str):
+    """CRM/GA4/GSC/Google Ads summaries for an arbitrary date range - used by
+    the dashboard's "Custom dates" period mode, which otherwise only has
+    Meta ad-level data available client-side."""
+    with db() as con:
+        return {
+            "crm_gap": crm_gap_summary(con, start, end),
+            "audience": audience_summary(con, start, end),
+            "site_traffic": site_traffic_summary(con, start, end),
+            "organic_breakdown": organic_breakdown_summary(con, start, end),
+            "search_console": search_console_summary(con, start, end),
+            "google_ads": google_ads_summary(con, start, end),
+        }
+
+
 @app.get("/api/dashboard")
 def dashboard(week_id: int | None = None):
     with db() as con:
