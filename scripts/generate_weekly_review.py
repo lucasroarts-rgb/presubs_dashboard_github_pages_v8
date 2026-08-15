@@ -13,6 +13,7 @@ dated snapshot is archived per week - see should_run_today() / main().
 
 from __future__ import annotations
 
+import calendar
 import sys
 from datetime import date, datetime, timezone
 from html import escape
@@ -64,6 +65,57 @@ def pct_change(current: float, previous: float) -> float | None:
     if not previous:
         return None
     return (current - previous) / previous * 100.0
+
+
+def monthly_pacing(reference_date: date) -> dict[str, Any] | None:
+    """Month-to-date actuals vs the configured monthly goal, mirroring the
+    dashboard's Management-tab pacing logic but computed directly from
+    daily_ad_metrics (no browser-side data available at generation time)."""
+    month_key = reference_date.strftime("%Y-%m")
+    config = dashboard_app.read_dashboard_config()
+    goal = next(
+        (g for g in (config.get("monthly_goals") or []) if g.get("month") == month_key),
+        None,
+    )
+    if not goal:
+        return None
+
+    with dashboard_app.db() as con:
+        row = con.execute(
+            "SELECT COALESCE(SUM(spend),0), COALESCE(SUM(results),0) FROM daily_ad_metrics "
+            "WHERE report_date LIKE ?",
+            (f"{month_key}-%",),
+        ).fetchone()
+    spend, results = float(row[0] or 0), float(row[1] or 0)
+
+    days_in_month = calendar.monthrange(reference_date.year, reference_date.month)[1]
+    day_of_month = reference_date.day
+    remaining_days = max(1, days_in_month - day_of_month)
+
+    target_budget = float(goal.get("total_budget") or 0)
+    target_registrations = float(goal.get("target_registrations") or 0)
+    target_cpl = float(goal.get("target_cpl") or 0)
+
+    daily_spend_rate = spend / day_of_month if day_of_month else 0
+    daily_result_rate = results / day_of_month if day_of_month else 0
+    projected_spend = spend + daily_spend_rate * remaining_days
+    projected_results = results + daily_result_rate * remaining_days
+
+    return {
+        "month_label": reference_date.strftime("%B %Y"),
+        "spend": spend,
+        "results": results,
+        "cpl": (spend / results) if results else None,
+        "target_budget": target_budget,
+        "target_registrations": target_registrations,
+        "target_cpl": target_cpl,
+        "budget_progress": (spend / target_budget * 100) if target_budget else None,
+        "registration_progress": (results / target_registrations * 100) if target_registrations else None,
+        "projected_spend": projected_spend,
+        "projected_results": projected_results,
+        "budget_variance": (projected_spend - target_budget) if target_budget else None,
+        "registration_variance": (projected_results - target_registrations) if target_registrations else None,
+    }
 
 
 def format_date_short(iso_date: str) -> str:
@@ -160,6 +212,63 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     previous_conv = data.get("previous_conversion_summary") or {}
     crm_gap = data.get("crm_gap") or {}
     daily = data.get("daily_summary") or []
+
+    account_cpl = float(totals.get("cpl") or 0)
+    findings: list[dict[str, str]] = []
+    for ad in sorted(
+        (a for a in data.get("ads", []) if float(a.get("spend") or 0) > 0 and float(a.get("results") or 0) == 0),
+        key=lambda a: float(a.get("spend") or 0),
+        reverse=True,
+    )[:3]:
+        findings.append(
+            {
+                "type": "Wasted spend",
+                "title": f"{ad.get('entity_name')} spent {money(ad.get('spend'))} without registrations",
+                "action": "Pause or refresh the creative; check targeting and landing-page match before spending more.",
+            }
+        )
+    high_cpl_ads = sorted(
+        (
+            a
+            for a in data.get("ads", [])
+            if float(a.get("results") or 0) > 0
+            and account_cpl > 0
+            and (float(a.get("spend") or 0) / float(a.get("results") or 1)) > account_cpl * 1.2
+        ),
+        key=lambda a: float(a.get("spend") or 0) / float(a.get("results") or 1),
+        reverse=True,
+    )[:3]
+    for ad in high_cpl_ads:
+        cpl = float(ad.get("spend") or 0) / float(ad.get("results") or 1)
+        findings.append(
+            {
+                "type": "High CPL",
+                "title": f"{ad.get('entity_name')} is above the CPL target",
+                "action": f"CPL {money(cpl)} versus account average {money(account_cpl)}. Reallocate spend toward stronger ads.",
+            }
+        )
+    for page in data.get("page_comparison", []) or []:
+        change = (page.get("change") or {}).get("conversion_rate")
+        if change is not None and change < -15:
+            findings.append(
+                {
+                    "type": "Page conversion",
+                    "title": f"{page.get('page_name')} conversion declined",
+                    "action": (
+                        f"{pct(page['previous']['conversion_rate'])} to {pct(page['current']['conversion_rate'])}. "
+                        "Audit page speed, message continuity and form friction."
+                    ),
+                }
+            )
+    findings = findings[:6]
+    action_items: list[str] = []
+    for row in findings:
+        if row["action"] not in action_items:
+            action_items.append(row["action"])
+    action_items = action_items[:5]
+
+    pacing = monthly_pacing(date.fromisoformat(current["week_end"]))
+
     ads = [a for a in data.get("ads", []) if float(a.get("results") or 0) > 0]
     ads = sorted(ads, key=lambda a: float(a.get("results") or 0), reverse=True)[:4]
     campaigns = sorted(data.get("campaigns", []), key=lambda c: float(c.get("spend") or 0), reverse=True)
@@ -378,6 +487,24 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   </section>
 
   <section class="slide" data-index="2">
+    <p class="eyebrow">Findings</p>
+    <h2 class="slide-title">What needs attention this week</h2>
+    <p class="slide-sub">{escape(current["label"])}. {number(len(findings))} finding{"s" if len(findings) != 1 else ""} from wasted spend, CPL and page conversion.</p>
+    <div class="slide-body">
+      {f'<div class="finding-grid">' + "".join(f'<div class="finding-card"><div class="finding-type">{escape(row["type"])}</div><h4>{escape(row["title"])}</h4><p>{escape(row["action"])}</p></div>' for row in findings) + '</div>' if findings else '<p class="empty-note">No findings for this period - account signals are within thresholds.</p>'}
+    </div>
+  </section>
+
+  <section class="slide" data-index="3">
+    <p class="eyebrow">Findings</p>
+    <h2 class="slide-title">Action plan</h2>
+    <p class="slide-sub">Priority order, drawn directly from this week's findings.</p>
+    <div class="slide-body">
+      {f'<ol class="action-list">' + "".join(f'<li><span>{i}</span><div>{escape(action)}</div></li>' for i, action in enumerate(action_items, start=1)) + '</ol>' if action_items else '<p class="empty-note">No action items for this period.</p>'}
+    </div>
+  </section>
+
+  <section class="slide" data-index="4">
     <p class="eyebrow">Overview</p>
     <h2 class="slide-title">Where every lead came from</h2>
     <p class="slide-sub">{escape(current["label"])}. {number(leads_total)} total CRM leads this period. The pages that follow break each source down in detail: Meta, Organic, Google.</p>
@@ -395,7 +522,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="3">
+  <section class="slide" data-index="5">
     <p class="eyebrow">Daily trend</p>
     <h2 class="slide-title">Registrations per day</h2>
     <p class="slide-sub">{escape(current["label"])}.</p>
@@ -410,7 +537,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="4">
+  <section class="slide" data-index="6">
     <p class="eyebrow">Tracking health</p>
     <h2 class="slide-title">CRM leads vs Meta-reported registrations</h2>
     <p class="slide-sub">Same scope both sides: PreSubs, Facebook Ads.</p>
@@ -436,7 +563,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="5">
+  <section class="slide" data-index="7">
     <p class="eyebrow">Landing page</p>
     <h2 class="slide-title">Page conversion, this week vs last</h2>
     <p class="slide-sub">Correlation with the timeline on the next slide, not an isolated cause.</p>
@@ -461,7 +588,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="6">
+  <section class="slide" data-index="8">
     <p class="eyebrow">Where spend performed best</p>
     <h2 class="slide-title">Top creatives this week</h2>
     <p class="slide-sub">{escape(current["label"])}, data through {format_date_short(data_through)}.</p>
@@ -474,7 +601,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="7">
+  <section class="slide" data-index="9">
     <p class="eyebrow">Audience</p>
     <h2 class="slide-title">Where leads come from</h2>
     <p class="slide-sub">{escape(current["label"])}. Country from the phone number's calling code - the number itself is never stored or shown.</p>
@@ -492,7 +619,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="8">
+  <section class="slide" data-index="10">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Organic leads, in detail</h2>
     <p class="slide-sub">{number(organic_leads_total)} organic leads this period{f" ({pct(organic_pct_of_total)} of all CRM leads)" if organic_pct_of_total is not None else ""}. From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
@@ -518,7 +645,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="9">
+  <section class="slide" data-index="11">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Where the foreigners come from</h2>
     <p class="slide-sub">{number(foreign_total)} organic leads this period from outside France, Belgium and Switzerland.</p>
@@ -536,7 +663,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="10">
+  <section class="slide" data-index="12">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Search performance</h2>
     <p class="slide-sub">{escape(search_console_sub)}</p>
@@ -554,7 +681,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="11">
+  <section class="slide" data-index="13">
     <p class="eyebrow">Google</p>
     <h2 class="slide-title">Google Ads performance</h2>
     <p class="slide-sub">{escape(google_ads_sub)}</p>
@@ -572,7 +699,21 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="12">
+  <section class="slide" data-index="14">
+    <p class="eyebrow">Pacing</p>
+    <h2 class="slide-title">Monthly goal pacing</h2>
+    <p class="slide-sub">{escape(pacing["month_label"]) + ": budget and registrations, actual vs projected month end." if pacing else "No monthly goal configured for this month."}</p>
+    <div class="slide-body">
+      {f'''<div class="kpi-grid">
+        <div class="kpi-card"><div class="label">Spend so far</div><div class="value">{money(pacing["spend"])}</div><div class="note">Goal {money(pacing["target_budget"])}{f" · {pct(pacing['budget_progress'])}" if pacing["budget_progress"] is not None else ""}</div></div>
+        <div class="kpi-card"><div class="label">Registrations so far</div><div class="value">{number(pacing["results"])}</div><div class="note">Goal {number(pacing["target_registrations"])}{f" · {pct(pacing['registration_progress'])}" if pacing["registration_progress"] is not None else ""}</div></div>
+        <div class="kpi-card"><div class="label">Projected month-end spend</div><div class="value">{money(pacing["projected_spend"])}</div><div class="note">{f"{'Over' if pacing['budget_variance'] and pacing['budget_variance']>=0 else 'Under'} budget by {money(abs(pacing['budget_variance']))}" if pacing["budget_variance"] is not None else "No budget goal set"}</div></div>
+        <div class="kpi-card"><div class="label">Projected month-end registrations</div><div class="value">{number(pacing["projected_results"])}</div><div class="note">{f"{'Above' if pacing['registration_variance'] and pacing['registration_variance']>=0 else 'Below'} target by {number(abs(pacing['registration_variance']))}" if pacing["registration_variance"] is not None else "No registration goal set"}</div></div>
+      </div>''' if pacing else '<p class="empty-note">Add the monthly budget, registration target and CPL target in the local admin to see pacing here.</p>'}
+    </div>
+  </section>
+
+  <section class="slide" data-index="15">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>

@@ -289,6 +289,17 @@
   .abar-track span{display:block;height:100%;background:var(--chart-meta);border-radius:6px;}
   .abar-value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:13px;}
 
+  /* ---- Findings & action plan ---- */
+  .finding-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .finding-card{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);}
+  .finding-card .finding-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--warn);margin-bottom:6px;}
+  .finding-card h4{font-family:var(--font-display);font-size:16px;font-weight:600;margin:0 0 8px;color:var(--ink);}
+  .finding-card p{font-size:13px;color:var(--ink-muted);margin:0;}
+  .action-list{display:flex;flex-direction:column;gap:0;}
+  .action-list li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px;color:var(--ink);}
+  .action-list li:last-child{border-bottom:none;}
+  .action-list li span{font-family:var(--font-display);font-weight:600;color:var(--accent);}
+
   /* ---- Timeline ---- */
   .timeline{display:flex;flex-direction:column;gap:0;position:relative;}
   .tl-item{
@@ -424,6 +435,24 @@
   </section>
 
   <section class="slide" data-index="2">
+    <p class="eyebrow">Findings</p>
+    <h2 class="slide-title">What needs attention this week</h2>
+    <p class="slide-sub">31 Jul 2026 – 06 Aug 2026. 6 findings from wasted spend, CPL and page conversion.</p>
+    <div class="slide-body">
+      <div class="finding-grid"><div class="finding-card"><div class="finding-type">Wasted spend</div><h4>AD1798B_CONSEILLER_TESTENEWADS spent €103.98 without registrations</h4><p>Pause or refresh the creative; check targeting and landing-page match before spending more.</p></div><div class="finding-card"><div class="finding-type">Wasted spend</div><h4>AD1804B_CONSEILLER_STORIES_V spent €60.86 without registrations</h4><p>Pause or refresh the creative; check targeting and landing-page match before spending more.</p></div><div class="finding-card"><div class="finding-type">Wasted spend</div><h4>AD1802_CONSEILLER_HOTRMKT spent €43.62 without registrations</h4><p>Pause or refresh the creative; check targeting and landing-page match before spending more.</p></div><div class="finding-card"><div class="finding-type">High CPL</div><h4>AD1797B CONSEILLER_PRE SUBS is above the CPL target</h4><p>CPL €159.33 versus account average €58.64. Reallocate spend toward stronger ads.</p></div><div class="finding-card"><div class="finding-type">High CPL</div><h4>AD1795_CONSEILLER_SAAS_BROAD is above the CPL target</h4><p>CPL €135.87 versus account average €58.64. Reallocate spend toward stronger ads.</p></div><div class="finding-card"><div class="finding-type">High CPL</div><h4>AD1795_CONSEILLER_SAAS_LAL1 is above the CPL target</h4><p>CPL €72.74 versus account average €58.64. Reallocate spend toward stronger ads.</p></div></div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="3">
+    <p class="eyebrow">Findings</p>
+    <h2 class="slide-title">Action plan</h2>
+    <p class="slide-sub">Priority order, drawn directly from this week's findings.</p>
+    <div class="slide-body">
+      <ol class="action-list"><li><span>1</span><div>Pause or refresh the creative; check targeting and landing-page match before spending more.</div></li><li><span>2</span><div>CPL €159.33 versus account average €58.64. Reallocate spend toward stronger ads.</div></li><li><span>3</span><div>CPL €135.87 versus account average €58.64. Reallocate spend toward stronger ads.</div></li><li><span>4</span><div>CPL €72.74 versus account average €58.64. Reallocate spend toward stronger ads.</div></li></ol>
+    </div>
+  </section>
+
+  <section class="slide" data-index="4">
     <p class="eyebrow">Overview</p>
     <h2 class="slide-title">Where every lead came from</h2>
     <p class="slide-sub">31 Jul 2026 – 06 Aug 2026. 123 total CRM leads this period. The pages that follow break each source down in detail: Meta, Organic, Google.</p>
@@ -441,7 +470,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="3">
+  <section class="slide" data-index="5">
     <p class="eyebrow">Daily trend</p>
     <h2 class="slide-title">Registrations per day</h2>
     <p class="slide-sub">31 Jul 2026 – 06 Aug 2026.</p>
@@ -456,7 +485,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="4">
+  <section class="slide" data-index="6">
     <p class="eyebrow">Tracking health</p>
     <h2 class="slide-title">CRM leads vs Meta-reported registrations</h2>
     <p class="slide-sub">Same scope both sides: PreSubs, Facebook Ads.</p>
@@ -482,7 +511,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="5">
+  <section class="slide" data-index="7">
     <p class="eyebrow">Landing page</p>
     <h2 class="slide-title">Page conversion, this week vs last</h2>
     <p class="slide-sub">Correlation with the timeline on the next slide, not an isolated cause.</p>
@@ -507,7 +536,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="6">
+  <section class="slide" data-index="8">
     <p class="eyebrow">Where spend performed best</p>
     <h2 class="slide-title">Top creatives this week</h2>
     <p class="slide-sub">31 Jul 2026 – 06 Aug 2026, data through Aug 6.</p>
@@ -520,7 +549,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="7">
+  <section class="slide" data-index="9">
     <p class="eyebrow">Audience</p>
     <h2 class="slide-title">Where leads come from</h2>
     <p class="slide-sub">31 Jul 2026 – 06 Aug 2026. Country from the phone number's calling code - the number itself is never stored or shown.</p>
@@ -538,7 +567,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="8">
+  <section class="slide" data-index="10">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Organic leads, in detail</h2>
     <p class="slide-sub">72 organic leads this period (58.54% of all CRM leads). From the CRM's utm_source / utm_content / utm_term on Location=Organic leads.</p>
@@ -564,7 +593,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="9">
+  <section class="slide" data-index="11">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Where the foreigners come from</h2>
     <p class="slide-sub">24 organic leads this period from outside France, Belgium and Switzerland.</p>
@@ -582,7 +611,7 @@
     </div>
   </section>
 
-  <section class="slide" data-index="10">
+  <section class="slide" data-index="12">
     <p class="eyebrow">Organic</p>
     <h2 class="slide-title">Search performance</h2>
     <p class="slide-sub">99 clicks, 1,120 impressions, 8.84% CTR, avg. position 5.5. Google Search Console.</p>
@@ -595,12 +624,12 @@
       </div>
       <div class="chart-wrap" style="margin-top:18px">
         <h3>Top search queries</h3>
-        <div class="abar-row"><div class="abar-label">peasy anglais</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">1,064</div></div><div class="abar-row"><div class="abar-label">peasy academy</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">352</div></div><div class="abar-row"><div class="abar-label">peasy english</div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">83</div></div><div class="abar-row"><div class="abar-label">peasy</div><div class="abar-track"><span style="width:6%"></span></div><div class="abar-value">61</div></div><div class="abar-row"><div class="abar-label">peasyanglais</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">42</div></div><div class="abar-row"><div class="abar-label">anglais pour voyager pdf</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">19</div></div><div class="abar-row"><div class="abar-label">peasy anglais tarif</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">14</div></div><div class="abar-row"><div class="abar-label">peasy travel</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">13</div></div>
+        <div class="abar-row"><div class="abar-label">peasy anglais</div><div class="abar-track"><span style="width:100%"></span></div><div class="abar-value">1,068</div></div><div class="abar-row"><div class="abar-label">peasy academy</div><div class="abar-track"><span style="width:33%"></span></div><div class="abar-value">352</div></div><div class="abar-row"><div class="abar-label">peasy english</div><div class="abar-track"><span style="width:8%"></span></div><div class="abar-value">83</div></div><div class="abar-row"><div class="abar-label">peasy</div><div class="abar-track"><span style="width:6%"></span></div><div class="abar-value">61</div></div><div class="abar-row"><div class="abar-label">peasyanglais</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">43</div></div><div class="abar-row"><div class="abar-label">anglais pour voyager pdf</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">19</div></div><div class="abar-row"><div class="abar-label">peasy anglais tarif</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">14</div></div><div class="abar-row"><div class="abar-label">peasy travel</div><div class="abar-track"><span style="width:4%"></span></div><div class="abar-value">13</div></div>
       </div>
     </div>
   </section>
 
-  <section class="slide" data-index="11">
+  <section class="slide" data-index="13">
     <p class="eyebrow">Google</p>
     <h2 class="slide-title">Google Ads performance</h2>
     <p class="slide-sub">€206.53 spend, 1,109 clicks, 45 conversions, 5.17% CTR.</p>
@@ -618,7 +647,16 @@
     </div>
   </section>
 
-  <section class="slide" data-index="12">
+  <section class="slide" data-index="14">
+    <p class="eyebrow">Pacing</p>
+    <h2 class="slide-title">Monthly goal pacing</h2>
+    <p class="slide-sub">No monthly goal configured for this month.</p>
+    <div class="slide-body">
+      <p class="empty-note">Add the monthly budget, registration target and CPL target in the local admin to see pacing here.</p>
+    </div>
+  </section>
+
+  <section class="slide" data-index="15">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
     <p class="slide-sub">Most recent changes logged in the dashboard.</p>
@@ -644,7 +682,7 @@
   </div>
 </div>
 
-<!-- generated 2026-08-14 19:56 UTC -->
+<!-- generated 2026-08-15 13:38 UTC -->
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
