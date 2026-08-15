@@ -451,7 +451,16 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Spend by campaign, this period.":"Dépenses par campagne, cette période.",
   "No Google Ads data synced for this period.":"Aucune donnée Google Ads synchronisée pour cette période.",
   "clicks":"clics",
-  "conversions":"conversions"
+  "conversions":"conversions",
+  "SEO":"SEO",
+  "Google Search Console: our ranking and visibility in Google search results.":"Google Search Console : notre classement et notre visibilité dans les résultats de recherche Google.",
+  "Ranking by query":"Classement par requête",
+  "Average position, clicks, impressions and CTR per search query, sorted best-ranked first.":"Position moyenne, clics, impressions et CTR par requête, triés du mieux classé au moins bien classé.",
+  "Position trend":"Évolution de la position",
+  "Average ranking position by day, this period.":"Position moyenne de classement par jour, cette période.",
+  "Query":"Requête",
+  "Position":"Position",
+  "Date":"Date"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -525,7 +534,16 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Spend by campaign, this period.":"Investimento por campanha, este período.",
   "No Google Ads data synced for this period.":"Nenhum dado do Google Ads sincronizado para este período.",
   "clicks":"cliques",
-  "conversions":"conversões"
+  "conversions":"conversões",
+  "SEO":"SEO",
+  "Google Search Console: our ranking and visibility in Google search results.":"Google Search Console: nosso ranking e visibilidade nos resultados de busca do Google.",
+  "Ranking by query":"Ranking por termo de busca",
+  "Average position, clicks, impressions and CTR per search query, sorted best-ranked first.":"Posição média, cliques, impressões e CTR por termo de busca, ordenado do melhor colocado ao pior.",
+  "Position trend":"Evolução da posição",
+  "Average ranking position by day, this period.":"Posição média de ranking por dia, este período.",
+  "Query":"Termo de busca",
+  "Position":"Posição",
+  "Date":"Data"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2387,33 +2405,45 @@ function renderOrganic(){
       .slice(0,10);
     panels.foreignCountries.innerHTML=audienceBarList(foreignRows,row=>row.value,row=>escapeHtml(row.country));
   }
-  renderSearchConsole();
 }
 
-function renderSearchConsole(){
-  const kpis=document.getElementById("searchConsoleKpis");
-  const queriesPanel=document.getElementById("searchConsoleQueries");
-  if(!kpis||!queriesPanel)return;
+function renderSeo(){
+  const kpis=document.getElementById("seoKpis");
+  const rankingTable=document.getElementById("seoRankingTable");
+  const trendTable=document.getElementById("seoPositionTrend");
+  if(!kpis||!rankingTable||!trendTable)return;
   const gsc=dashboard?.search_console;
   const empty=`<div class="empty">${t("No Search Console data synced for this period.")}</div>`;
   if(!gsc||!gsc.available){
-    kpis.innerHTML="";queriesPanel.innerHTML=empty;
+    kpis.innerHTML="";
+    rankingTable.innerHTML=empty;
+    trendTable.innerHTML=empty;
     return;
   }
   const items=[
-    [t("Search clicks"),gsc.clicks,t("Google Search, this period")],
-    [t("Search impressions"),gsc.impressions,t("Google Search, this period")],
-    [t("Search CTR"),null,t("Google Search, this period"),`${gsc.ctr}%`],
-    [t("Avg. position"),null,t("Google Search, this period"),`${gsc.position}`]
+    [t("Avg. position"),`${gsc.position}`,t("Google Search, this period")],
+    [t("Search clicks"),number(gsc.clicks),t("Google Search, this period")],
+    [t("Search impressions"),number(gsc.impressions),t("Google Search, this period")],
+    [t("Search CTR"),`${gsc.ctr}%`,t("Google Search, this period")]
   ];
-  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[3]!==undefined?item[3]:number(item[1])}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
-  const queries=(gsc.top_queries||[]).slice(0,10);
-  queriesPanel.innerHTML=audienceBarList(
-    queries,
-    row=>row.clicks,
-    row=>escapeHtml(row.query),
-    row=>`${number(row.impressions)} ${t("impressions")} · ${row.ctr}% ${t("CTR")} · ${t("pos.")} ${row.position}`
-  );
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  const queries=[...(gsc.top_queries||[])].sort((a,b)=>safeNum(a.position)-safeNum(b.position));
+  table("seoRankingTable",[
+    {label:t("Query"),name:true,render:r=>escapeHtml(r.query)},
+    {label:t("Position"),numeric:true,render:r=>decimal(r.position)},
+    {label:t("Clicks"),numeric:true,render:r=>number(r.clicks)},
+    {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)},
+    {label:t("CTR"),numeric:true,render:r=>`${r.ctr}%`}
+  ],queries,t("No Search Console data synced for this period."));
+
+  const daily=[...(gsc.daily||[])].slice(-30).reverse();
+  table("seoPositionTrend",[
+    {label:t("Date"),name:true,render:r=>r.report_date},
+    {label:t("Position"),numeric:true,render:r=>decimal(r.position)},
+    {label:t("Clicks"),numeric:true,render:r=>number(r.clicks)},
+    {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)}
+  ],daily,t("No Search Console data synced for this period."));
 }
 
 function renderGoogleAds(){
@@ -2827,7 +2857,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("googleAds",renderGoogleAds);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
