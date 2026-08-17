@@ -464,7 +464,18 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Meta Ads":"Meta Ads",
   "Account structure, campaign/ad-set/ad tables and daily detail.":"Structure du compte, tableaux campagne/ensemble de publicités/publicité et détail quotidien.",
   "Structure":"Structure",
-  "Daily":"Quotidien"
+  "Daily":"Quotidien",
+  "Social":"Réseaux sociaux",
+  "Organic growth and engagement across social channels - not paid ads.":"Croissance organique et engagement sur les réseaux sociaux - hors publicités payantes.",
+  "YouTube":"YouTube",
+  "Peasy Anglais channel, public totals.":"Chaîne Peasy Anglais, totaux publics.",
+  "Growth by day":"Croissance par jour",
+  "Subscribers and total views, this period.":"Abonnés et vues totales, cette période.",
+  "Subscribers":"Abonnés",
+  "Total views":"Vues totales",
+  "Videos":"Vidéos",
+  "Total published":"Total publié",
+  "No YouTube data synced for this period.":"Aucune donnée YouTube synchronisée pour cette période."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -551,7 +562,18 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Meta Ads":"Meta Ads",
   "Account structure, campaign/ad-set/ad tables and daily detail.":"Estrutura da conta, tabelas de campanha/ad set/anúncio e detalhe diário.",
   "Structure":"Estrutura",
-  "Daily":"Diário"
+  "Daily":"Diário",
+  "Social":"Redes sociais",
+  "Organic growth and engagement across social channels - not paid ads.":"Crescimento orgânico e engajamento nas redes sociais - fora anúncios pagos.",
+  "YouTube":"YouTube",
+  "Peasy Anglais channel, public totals.":"Canal Peasy Anglais, totais públicos.",
+  "Growth by day":"Crescimento por dia",
+  "Subscribers and total views, this period.":"Inscritos e visualizações totais, este período.",
+  "Subscribers":"Inscritos",
+  "Total views":"Visualizações totais",
+  "Videos":"Vídeos",
+  "Total published":"Total publicado",
+  "No YouTube data synced for this period.":"Nenhum dado do YouTube sincronizado para este período."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2499,6 +2521,31 @@ function renderGoogleAds(){
   );
 }
 
+function renderSocial(){
+  const kpis=document.getElementById("socialYoutubeKpis");
+  const trendTable=document.getElementById("socialYoutubeTrend");
+  if(!kpis||!trendTable)return;
+  const yt=dashboard?.youtube;
+  const empty=`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  if(!yt||!yt.available){
+    kpis.innerHTML="";
+    trendTable.innerHTML=empty;
+    return;
+  }
+  const items=[
+    [t("Subscribers"),number(yt.subscriber_count),yt.subscriber_growth!=null?`${yt.subscriber_growth>=0?"+":""}${number(yt.subscriber_growth)} ${t("this period")}`:t("This period")],
+    [t("Total views"),number(yt.view_count),yt.view_growth!=null?`${yt.view_growth>=0?"+":""}${number(yt.view_growth)} ${t("this period")}`:t("This period")],
+    [t("Videos"),number(yt.video_count),t("Total published")]
+  ];
+  kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+  const daily=[...(yt.daily||[])].reverse();
+  table("socialYoutubeTrend",[
+    {label:t("Date"),name:true,render:r=>r.report_date},
+    {label:t("Subscribers"),numeric:true,render:r=>number(r.subscriber_count)},
+    {label:t("Total views"),numeric:true,render:r=>number(r.view_count)}
+  ],daily,t("No YouTube data synced for this period."));
+}
+
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){
   const target=document.getElementById("pageFunnels");if(!target)return;
   target.innerHTML=groups.length?groups.map(page=>{
@@ -2882,7 +2929,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

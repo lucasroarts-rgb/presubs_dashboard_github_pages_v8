@@ -23,6 +23,7 @@
 <button class="tab" data-view="organic" title="Organic"><svg viewBox="0 0 24 24"><path d="M12 2c4 3 6 6.6 6 10.5A6 6 0 0 1 6 12.5C6 8.6 8 5 12 2Zm0 3.4c-2.5 2.3-3.7 4.6-3.7 6.9a3.7 3.7 0 0 0 7.4 .2c.1-2.4-1.2-4.8-3.7-7.1ZM11 22v-6h2v6h-2Z"/></svg><span>Organic</span></button>
 <button class="tab" data-view="seo" title="SEO"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5L20.5 19l-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/></svg><span>SEO</span></button>
 <button class="tab" data-view="googleAds" title="Google Ads"><svg viewBox="0 0 24 24"><path d="M12 3 4 8v8l8 5 8-5V8l-8-5Zm0 2.3 6 3.7-6 3.7-6-3.7 6-3.7ZM6 10l5 3.1v6L6 16V10Zm7 9.1v-6l5-3.1v6l-5 3.1Z"/></svg><span>Google Ads</span></button>
+<button class="tab" data-view="social" title="Social"><svg viewBox="0 0 24 24"><path d="M18 3a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-1.53-.42l-6.05 3.5a3 3 0 0 1 0 1.84l6.05 3.5A3 3 0 0 1 18 14a3 3 0 1 1-3 3c0-.24.03-.47.08-.7l-6.05-3.5a3 3 0 1 1 0-4.6l6.05-3.5A3 3 0 0 1 15 6a3 3 0 0 1 3-3Z"/></svg><span>Social</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
 <button class="tab" data-view="metaAds" title="Meta Ads"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Meta Ads</span></button>
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
@@ -763,6 +764,18 @@
         <article class="card panel">
           <div class="section-head"><div><h2>Campaigns</h2><p>Spend by campaign, this period.</p></div></div>
           <div id="googleAdsCampaigns"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="social" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Social</h2><p>Organic growth and engagement across social channels - not paid ads.</p></div></div>
+      <div class="section-head" style="margin-top:6px"><div><h2>YouTube</h2><p>Peasy Anglais channel, public totals.</p></div></div>
+      <div id="socialYoutubeKpis" class="kpi-grid"></div>
+      <div class="audience-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Growth by day</h2><p>Subscribers and total views, this period.</p></div></div>
+          <div id="socialYoutubeTrend"></div>
         </article>
       </div>
     </section>

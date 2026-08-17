@@ -412,6 +412,16 @@ def init_db() -> None:
         UNIQUE(report_date, campaign_id)
     );
 
+    CREATE TABLE IF NOT EXISTS youtube_channel_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        subscriber_count INTEGER NOT NULL DEFAULT 0,
+        view_count INTEGER NOT NULL DEFAULT 0,
+        video_count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -1930,6 +1940,47 @@ def google_ads_summary(con: sqlite3.Connection, start_date: str, end_date: str) 
     }
 
 
+def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """YouTube channel growth for the given range, from daily snapshots of
+    the channel's public totals (the API has no historical endpoint)."""
+    rows = con.execute(
+        "SELECT report_date, subscriber_count, view_count, video_count FROM youtube_channel_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [
+        {
+            "report_date": row[0],
+            "subscriber_count": int(row[1] or 0),
+            "view_count": int(row[2] or 0),
+            "video_count": int(row[3] or 0),
+        }
+        for row in rows
+    ]
+    latest_row = con.execute(
+        "SELECT subscriber_count, view_count, video_count, synced_at FROM youtube_channel_daily "
+        "WHERE report_date <= ? ORDER BY report_date DESC LIMIT 1",
+        (end_date,),
+    ).fetchone()
+    if not latest_row:
+        return {"available": False, "subscriber_count": 0, "view_count": 0, "video_count": 0,
+                "subscriber_growth": None, "view_growth": None, "daily": [], "last_synced_at": None}
+
+    subscriber_growth = (daily[-1]["subscriber_count"] - daily[0]["subscriber_count"]) if len(daily) >= 2 else None
+    view_growth = (daily[-1]["view_count"] - daily[0]["view_count"]) if len(daily) >= 2 else None
+
+    return {
+        "available": True,
+        "subscriber_count": int(latest_row[0] or 0),
+        "view_count": int(latest_row[1] or 0),
+        "video_count": int(latest_row[2] or 0),
+        "subscriber_growth": subscriber_growth,
+        "view_growth": view_growth,
+        "daily": daily,
+        "last_synced_at": latest_row[3],
+    }
+
+
 def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
     """Organic search performance from Google Search Console, for the given range."""
     totals_row = con.execute(
@@ -2002,6 +2053,7 @@ def period_extras(start: str, end: str):
             "organic_breakdown": organic_breakdown_summary(con, start, end),
             "search_console": search_console_summary(con, start, end),
             "google_ads": google_ads_summary(con, start, end),
+            "youtube": youtube_summary(con, start, end),
         }
 
 
@@ -2041,6 +2093,7 @@ def dashboard(week_id: int | None = None):
                 "organic_breakdown": None,
                 "search_console": None,
                 "google_ads": None,
+                "youtube": None,
             }
 
         previous = con.execute(
@@ -2175,6 +2228,7 @@ def dashboard(week_id: int | None = None):
         organic_breakdown = organic_breakdown_summary(con, current["week_start"], current["week_end"])
         search_console = search_console_summary(con, current["week_start"], current["week_end"])
         google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
+        youtube = youtube_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -2201,6 +2255,7 @@ def dashboard(week_id: int | None = None):
         "organic_breakdown": organic_breakdown,
         "search_console": search_console,
         "google_ads": google_ads,
+        "youtube": youtube,
     }
 
 

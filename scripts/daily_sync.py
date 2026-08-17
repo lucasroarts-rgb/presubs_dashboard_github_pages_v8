@@ -29,6 +29,7 @@ from scripts.sync_crm import main as sync_crm  # noqa: E402
 from scripts.sync_ga4 import main as sync_ga4  # noqa: E402
 from scripts.sync_gsc import main as sync_gsc  # noqa: E402
 from scripts.sync_google_ads import main as sync_google_ads  # noqa: E402
+from scripts.sync_youtube import main as sync_youtube  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -323,6 +324,14 @@ def main() -> int:
             google_ads_sync_status = f"skipped: {google_ads_error}"
             print(f"WARNING: Google Ads sync skipped ({google_ads_error})", file=sys.stderr)
 
+        print("Syncing YouTube channel stats...")
+        youtube_sync_status = "ok"
+        try:
+            sync_youtube()
+        except Exception as youtube_error:
+            youtube_sync_status = f"skipped: {youtube_error}"
+            print(f"WARNING: YouTube sync skipped ({youtube_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -361,6 +370,7 @@ def main() -> int:
                     "ga4_sync": ga4_sync_status,
                     "gsc_sync": gsc_sync_status,
                     "google_ads_sync": google_ads_sync_status,
+                    "youtube_sync": youtube_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },
