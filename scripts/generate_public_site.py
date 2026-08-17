@@ -128,6 +128,32 @@ def build_public_javascript() -> str:
         raise RuntimeError("Could not patch loadDashboard.")
     js = js.replace(old_dashboard, new_dashboard, 1)
 
+    old_custom_range = """  try{
+    const extras=await fetch(`/api/period-extras?start=${start}&end=${end}`).then(r=>r.json());
+    Object.assign(dashboard,extras);
+  }catch(error){
+    console.error("Dashboard render error in applyGlobalCustomRange:",error);
+    dashboard.period_extras_unavailable=true;
+  }
+  renderLoadedDashboard();
+}"""
+    new_custom_range = """  if(IS_STATIC){
+    dashboard.period_extras_unavailable=true;
+  }else{
+    try{
+      const extras=await fetch(`/api/period-extras?start=${start}&end=${end}`).then(r=>r.json());
+      Object.assign(dashboard,extras);
+    }catch(error){
+      console.error("Dashboard render error in applyGlobalCustomRange:",error);
+      dashboard.period_extras_unavailable=true;
+    }
+  }
+  renderLoadedDashboard();
+}"""
+    if old_custom_range not in js:
+        raise RuntimeError("Could not patch applyGlobalCustomRange.")
+    js = js.replace(old_custom_range, new_custom_range, 1)
+
     return js
 
 

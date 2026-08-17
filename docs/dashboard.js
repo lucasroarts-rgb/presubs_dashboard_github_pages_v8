@@ -484,7 +484,8 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Where searches come from":"D'où viennent les recherches",
   "Clicks by country and by device, this period.":"Clics par pays et par appareil, cette période.",
   "By country":"Par pays",
-  "By device":"Par appareil"
+  "By device":"Par appareil",
+  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Non disponible pour des périodes personnalisées sur le site publié. Choisissez une semaine précise, ou utilisez le tableau de bord local."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -591,7 +592,8 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Where searches come from":"De onde vêm as buscas",
   "Clicks by country and by device, this period.":"Cliques por país e por dispositivo, este período.",
   "By country":"Por país",
-  "By device":"Por dispositivo"
+  "By device":"Por dispositivo",
+  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Não disponível para períodos personalizados no site publicado. Escolha uma semana específica, ou use o dashboard local."
 });
 
 const originalTextNodes=new WeakMap();
@@ -1646,11 +1648,16 @@ function handleGlobalPeriodMode(){
 async function applyGlobalCustomRange(){
   const start=document.getElementById("globalRangeStart")?.value,end=document.getElementById("globalRangeEnd")?.value;if(!start||!end){alert("Choose a start and end date.");return}if(end<start){alert("The end date cannot be before the start date.");return}
   document.body.dataset.periodMode="custom";dashboard=buildCustomDashboard(start,end);
-  try{
-    const extras=await fetch(`/api/period-extras?start=${start}&end=${end}`).then(r=>r.json());
-    Object.assign(dashboard,extras);
-  }catch(error){
-    console.error("Dashboard render error in applyGlobalCustomRange:",error);
+  if(IS_STATIC){
+    dashboard.period_extras_unavailable=true;
+  }else{
+    try{
+      const extras=await fetch(`/api/period-extras?start=${start}&end=${end}`).then(r=>r.json());
+      Object.assign(dashboard,extras);
+    }catch(error){
+      console.error("Dashboard render error in applyGlobalCustomRange:",error);
+      dashboard.period_extras_unavailable=true;
+    }
   }
   renderLoadedDashboard();
 }
@@ -2382,7 +2389,7 @@ function renderAudience(){
   const audience=dashboard?.audience;
   renderAudienceLeadsKpis(audience);
   if(!audience||!audience.available){
-    const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+    const empty=periodExtrasEmpty("No CRM data synced for this period.");
     countriesPanel.innerHTML=empty;channelsPanel.innerHTML=empty;
     return;
   }
@@ -2398,6 +2405,11 @@ function renderAudience(){
   renderSiteTraffic();
 }
 
+function periodExtrasEmpty(defaultMessage){
+  if(dashboard?.period_extras_unavailable)return `<div class="empty">${t("Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.")}</div>`;
+  return `<div class="empty">${t(defaultMessage)}</div>`;
+}
+
 function renderSiteTraffic(){
   const kpis=document.getElementById("siteTrafficKpis");
   const channelsPanel=document.getElementById("siteTrafficChannels");
@@ -2405,7 +2417,7 @@ function renderSiteTraffic(){
   const traffic=dashboard?.site_traffic;
   if(!traffic||!traffic.available){
     kpis.innerHTML="";
-    channelsPanel.innerHTML=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+    channelsPanel.innerHTML=periodExtrasEmpty("No CRM data synced for this period.");
     return;
   }
   const items=[
@@ -2430,7 +2442,7 @@ function renderOrganic(){
   };
   if(!panels.source)return;
   const breakdown=dashboard?.organic_breakdown;
-  const empty=`<div class="empty">${t("No CRM data synced for this period.")}</div>`;
+  const empty=periodExtrasEmpty("No CRM data synced for this period.");
   if(!breakdown||!breakdown.available){
     panels.source.innerHTML=empty;panels.content.innerHTML=empty;panels.term.innerHTML=empty;
     if(panels.foreignChannels)panels.foreignChannels.innerHTML=empty;
@@ -2478,7 +2490,7 @@ function renderSeo(){
   const trendTable=document.getElementById("seoPositionTrend");
   if(!kpis||!rankingTable||!trendTable)return;
   const gsc=dashboard?.search_console;
-  const empty=`<div class="empty">${t("No Search Console data synced for this period.")}</div>`;
+  const empty=periodExtrasEmpty("No Search Console data synced for this period.");
   if(!gsc||!gsc.available){
     kpis.innerHTML="";
     rankingTable.innerHTML=empty;
@@ -2527,7 +2539,7 @@ function renderGoogleAds(){
   const campaignsPanel=document.getElementById("googleAdsCampaigns");
   if(!kpis||!campaignsPanel)return;
   const ga=dashboard?.google_ads;
-  const empty=`<div class="empty">${t("No Google Ads data synced for this period.")}</div>`;
+  const empty=periodExtrasEmpty("No Google Ads data synced for this period.");
   if(!ga||!ga.available){
     kpis.innerHTML="";campaignsPanel.innerHTML=empty;
     return;
@@ -2555,7 +2567,7 @@ function renderSocial(){
   const trendTable=document.getElementById("socialYoutubeTrend");
   if(!kpis||!trendTable)return;
   const yt=dashboard?.youtube;
-  const empty=`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  const empty=periodExtrasEmpty("No YouTube data synced for this period.");
   if(!yt||!yt.available){
     kpis.innerHTML="";
     trendTable.innerHTML=empty;
