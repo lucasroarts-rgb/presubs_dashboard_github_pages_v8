@@ -485,7 +485,17 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Clicks by country and by device, this period.":"Clics par pays et par appareil, cette période.",
   "By country":"Par pays",
   "By device":"Par appareil",
-  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Non disponible pour des périodes personnalisées sur le site publié. Choisissez une semaine précise, ou utilisez le tableau de bord local."
+  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Non disponible pour des périodes personnalisées sur le site publié. Choisissez une semaine précise, ou utilisez le tableau de bord local.",
+  "GoHighLevel":"GoHighLevel",
+  "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads et où ils se situent dans le pipeline.",
+  "Opportunities by stage":"Opportunités par étape",
+  "Current snapshot, all-time.":"Instantané actuel, depuis le début.",
+  "New leads by day":"Nouveaux leads par jour",
+  "New leads":"Nouveaux leads",
+  "This period, Commercial Pipeline":"Cette période, Commercial Pipeline",
+  "Stage":"Étape",
+  "Opportunities":"Opportunités",
+  "No GoHighLevel data synced for this period.":"Aucune donnée GoHighLevel synchronisée pour cette période."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -593,7 +603,17 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Clicks by country and by device, this period.":"Cliques por país e por dispositivo, este período.",
   "By country":"Por país",
   "By device":"Por dispositivo",
-  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Não disponível para períodos personalizados no site publicado. Escolha uma semana específica, ou use o dashboard local."
+  "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Não disponível para períodos personalizados no site publicado. Escolha uma semana específica, ou use o dashboard local.",
+  "GoHighLevel":"GoHighLevel",
+  "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline.":"Funil do PreSubs (Commercial Pipeline): novos leads e em que estágio do pipeline estão.",
+  "Opportunities by stage":"Oportunidades por estágio",
+  "Current snapshot, all-time.":"Retrato atual, desde o início.",
+  "New leads by day":"Novos leads por dia",
+  "New leads":"Novos leads",
+  "This period, Commercial Pipeline":"Este período, Commercial Pipeline",
+  "Stage":"Estágio",
+  "Opportunities":"Oportunidades",
+  "No GoHighLevel data synced for this period.":"Nenhum dado do GoHighLevel sincronizado para este período."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2562,6 +2582,32 @@ function renderGoogleAds(){
   );
 }
 
+function renderGhl(){
+  const kpis=document.getElementById("ghlKpis");
+  const stagesTable=document.getElementById("ghlStagesTable");
+  const trendTable=document.getElementById("ghlLeadsTrend");
+  if(!kpis||!stagesTable||!trendTable)return;
+  const ghl=dashboard?.ghl;
+  const empty=periodExtrasEmpty("No GoHighLevel data synced for this period.");
+  if(!ghl||!ghl.available){
+    kpis.innerHTML="";stagesTable.innerHTML=empty;trendTable.innerHTML=empty;
+    return;
+  }
+  kpis.innerHTML=`<article class="card kpi"><div class="kpi-label">${t("New leads")}</div><div><div class="kpi-value">${number(ghl.leads_total)}</div><div class="kpi-note">${t("This period, Commercial Pipeline")}</div></div></article>`;
+
+  const stages=[...(ghl.stages||[])].slice(0,15);
+  table("ghlStagesTable",[
+    {label:t("Stage"),name:true,render:r=>escapeHtml(r.stage_name)},
+    {label:t("Opportunities"),numeric:true,render:r=>number(r.opportunity_count)}
+  ],stages,t("No GoHighLevel data synced for this period."));
+
+  const daily=[...(ghl.daily||[])].reverse();
+  table("ghlLeadsTrend",[
+    {label:t("Date"),name:true,render:r=>r.report_date},
+    {label:t("New leads"),numeric:true,render:r=>number(r.lead_count)}
+  ],daily,t("No GoHighLevel data synced for this period."));
+}
+
 function renderSocial(){
   const kpis=document.getElementById("socialYoutubeKpis");
   const trendTable=document.getElementById("socialYoutubeTrend");
@@ -2986,7 +3032,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

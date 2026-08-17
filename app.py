@@ -446,6 +446,21 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_leads_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        lead_count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS ghl_pipeline_stage (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        stage_name TEXT NOT NULL,
+        opportunity_count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2048,6 +2063,34 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     }
 
 
+def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """GoHighLevel ("Twilead") PreSubs funnel: new leads by day for the
+    given range, plus a current snapshot of opportunities per pipeline
+    stage (not date-scoped - it is the live state of the funnel)."""
+    daily_rows = con.execute(
+        "SELECT report_date, lead_count FROM ghl_leads_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [{"report_date": row[0], "lead_count": int(row[1] or 0)} for row in daily_rows]
+    leads_total = sum(row["lead_count"] for row in daily)
+
+    stage_rows = con.execute(
+        "SELECT stage_name, opportunity_count FROM ghl_pipeline_stage ORDER BY opportunity_count DESC"
+    ).fetchall()
+    stages = [{"stage_name": row[0], "opportunity_count": int(row[1] or 0)} for row in stage_rows]
+
+    last_synced_row = con.execute("SELECT MAX(synced_at) FROM ghl_leads_daily").fetchone()
+
+    return {
+        "available": bool(daily) or bool(stages),
+        "leads_total": leads_total,
+        "daily": daily,
+        "stages": stages,
+        "last_synced_at": last_synced_row[0] if last_synced_row else None,
+    }
+
+
 def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
     """Organic search performance from Google Search Console, for the given range."""
     totals_row = con.execute(
@@ -2143,6 +2186,7 @@ def period_extras(start: str, end: str):
             "search_console": search_console_summary(con, start, end),
             "google_ads": google_ads_summary(con, start, end),
             "youtube": youtube_summary(con, start, end),
+            "ghl": ghl_summary(con, start, end),
         }
 
 
@@ -2183,6 +2227,7 @@ def dashboard(week_id: int | None = None):
                 "search_console": None,
                 "google_ads": None,
                 "youtube": None,
+                "ghl": None,
             }
 
         previous = con.execute(
@@ -2318,6 +2363,7 @@ def dashboard(week_id: int | None = None):
         search_console = search_console_summary(con, current["week_start"], current["week_end"])
         google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
         youtube = youtube_summary(con, current["week_start"], current["week_end"])
+        ghl = ghl_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -2345,6 +2391,7 @@ def dashboard(week_id: int | None = None):
         "search_console": search_console,
         "google_ads": google_ads,
         "youtube": youtube,
+        "ghl": ghl,
     }
 
 
