@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-08-16T11:01:51.367483+00:00",
+  "generated_at": "2026-08-17T11:03:41.981382+00:00",
   "weeks": 33,
   "campaigns_latest": 2,
   "adsets_latest": 8,
-  "ads_latest": 28,
+  "ads_latest": 29,
   "page_groups_latest": 1,
-  "daily_ad_rows_latest": 47,
-  "daily_ad_rows_published": 5330,
-  "daily_days_published": 224,
-  "config_updated_at": "2026-08-11T20:16:12Z",
-  "annotations": 12,
+  "daily_ad_rows_latest": 70,
+  "daily_ad_rows_published": 5353,
+  "daily_days_published": 225,
+  "config_updated_at": "2026-08-16T23:37:46Z",
+  "annotations": 17,
   "student_profile_responses": 2115
 }
