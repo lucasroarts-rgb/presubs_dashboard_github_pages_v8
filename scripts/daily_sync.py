@@ -30,6 +30,7 @@ from scripts.sync_ga4 import main as sync_ga4  # noqa: E402
 from scripts.sync_gsc import main as sync_gsc  # noqa: E402
 from scripts.sync_google_ads import main as sync_google_ads  # noqa: E402
 from scripts.sync_youtube import main as sync_youtube  # noqa: E402
+from scripts.sync_youtube_analytics import main as sync_youtube_analytics  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -332,6 +333,14 @@ def main() -> int:
             youtube_sync_status = f"skipped: {youtube_error}"
             print(f"WARNING: YouTube sync skipped ({youtube_error})", file=sys.stderr)
 
+        print("Syncing YouTube Analytics breakdowns...")
+        youtube_analytics_sync_status = "ok"
+        try:
+            sync_youtube_analytics()
+        except Exception as youtube_analytics_error:
+            youtube_analytics_sync_status = f"skipped: {youtube_analytics_error}"
+            print(f"WARNING: YouTube Analytics sync skipped ({youtube_analytics_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -371,6 +380,7 @@ def main() -> int:
                     "gsc_sync": gsc_sync_status,
                     "google_ads_sync": google_ads_sync_status,
                     "youtube_sync": youtube_sync_status,
+                    "youtube_analytics_sync": youtube_analytics_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },

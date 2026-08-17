@@ -472,7 +472,16 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Total views":"Vues totales",
   "Videos":"Vidéos",
   "Total published":"Total publié",
-  "No YouTube data synced for this period.":"Aucune donnée YouTube synchronisée pour cette période."
+  "No YouTube data synced for this period.":"Aucune donnée YouTube synchronisée pour cette période.",
+  "Views by country":"Vues par pays",
+  "Last 90 days.":"90 derniers jours.",
+  "Views by device":"Vues par appareil",
+  "Age and gender":"Âge et genre",
+  "Share of viewers, last 90 days.":"Part des spectateurs, 90 derniers jours.",
+  "Where searches come from":"D'où viennent les recherches",
+  "Clicks by country and by device, this period.":"Clics par pays et par appareil, cette période.",
+  "By country":"Par pays",
+  "By device":"Par appareil"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -570,7 +579,16 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Total views":"Visualizações totais",
   "Videos":"Vídeos",
   "Total published":"Total publicado",
-  "No YouTube data synced for this period.":"Nenhum dado do YouTube sincronizado para este período."
+  "No YouTube data synced for this period.":"Nenhum dado do YouTube sincronizado para este período.",
+  "Views by country":"Visualizações por país",
+  "Last 90 days.":"Últimos 90 dias.",
+  "Views by device":"Visualizações por dispositivo",
+  "Age and gender":"Idade e gênero",
+  "Share of viewers, last 90 days.":"Participação de espectadores, últimos 90 dias.",
+  "Where searches come from":"De onde vêm as buscas",
+  "Clicks by country and by device, this period.":"Cliques por país e por dispositivo, este período.",
+  "By country":"Por país",
+  "By device":"Por dispositivo"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2479,6 +2497,17 @@ function renderSeo(){
     {label:t("Clicks"),numeric:true,render:r=>number(r.clicks)},
     {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)}
   ],daily,t("No Search Console data synced for this period."));
+
+  const countryPanel=document.getElementById("seoCountries");
+  const devicePanel=document.getElementById("seoDevices");
+  if(countryPanel){
+    const countries=gsc.countries||[];
+    countryPanel.innerHTML=countries.length?audienceBarList(countries,row=>row.clicks,row=>escapeHtml(row.country)):`<div class="empty">${t("No Search Console data synced for this period.")}</div>`;
+  }
+  if(devicePanel){
+    const devices=gsc.devices||[];
+    devicePanel.innerHTML=devices.length?audienceBarList(devices,row=>row.clicks,row=>escapeHtml(row.device)):`<div class="empty">${t("No Search Console data synced for this period.")}</div>`;
+  }
 }
 
 function renderGoogleAds(){
@@ -2532,6 +2561,22 @@ function renderSocial(){
     {label:t("Subscribers"),numeric:true,render:r=>number(r.subscriber_count)},
     {label:t("Total views"),numeric:true,render:r=>number(r.view_count)}
   ],daily,t("No YouTube data synced for this period."));
+
+  const countryPanel=document.getElementById("socialYoutubeCountries");
+  const devicePanel=document.getElementById("socialYoutubeDevices");
+  const demoPanel=document.getElementById("socialYoutubeDemographics");
+  if(countryPanel){
+    const countries=(yt.countries||[]).slice(0,10);
+    countryPanel.innerHTML=countries.length?audienceBarList(countries,row=>row.views,row=>escapeHtml(row.country)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  }
+  if(devicePanel){
+    const devices=yt.devices||[];
+    devicePanel.innerHTML=devices.length?audienceBarList(devices,row=>row.views,row=>escapeHtml(row.device_type)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  }
+  if(demoPanel){
+    const demo=yt.demographics||[];
+    demoPanel.innerHTML=demo.length?audienceBarList(demo,row=>row.viewer_percentage,row=>escapeHtml(`${row.age_group} · ${row.gender}`)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  }
 }
 
 function renderPageFunnels(groups=(dashboard?.page_groups||[])){

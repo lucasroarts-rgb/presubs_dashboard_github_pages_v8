@@ -422,6 +422,30 @@ def init_db() -> None:
         UNIQUE(report_date)
     );
 
+    CREATE TABLE IF NOT EXISTS youtube_views_by_country (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        country TEXT NOT NULL,
+        views INTEGER NOT NULL DEFAULT 0,
+        watch_minutes INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS youtube_views_by_device (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        device_type TEXT NOT NULL,
+        views INTEGER NOT NULL DEFAULT 0,
+        watch_minutes INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS youtube_demographics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        age_group TEXT NOT NULL,
+        gender TEXT NOT NULL,
+        viewer_percentage REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -442,6 +466,26 @@ def init_db() -> None:
         position REAL NOT NULL DEFAULT 0,
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(query)
+    );
+
+    CREATE TABLE IF NOT EXISTS search_console_country (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        country TEXT NOT NULL,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        ctr REAL NOT NULL DEFAULT 0,
+        position REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS search_console_device (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        device TEXT NOT NULL,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        ctr REAL NOT NULL DEFAULT 0,
+        position REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
     """
     with db() as con:
@@ -1969,6 +2013,26 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     subscriber_growth = (daily[-1]["subscriber_count"] - daily[0]["subscriber_count"]) if len(daily) >= 2 else None
     view_growth = (daily[-1]["view_count"] - daily[0]["view_count"]) if len(daily) >= 2 else None
 
+    countries = [
+        {"country": row[0], "views": int(row[1] or 0), "watch_minutes": int(row[2] or 0)}
+        for row in con.execute(
+            "SELECT country, views, watch_minutes FROM youtube_views_by_country ORDER BY views DESC"
+        ).fetchall()
+    ]
+    devices = [
+        {"device_type": row[0], "views": int(row[1] or 0), "watch_minutes": int(row[2] or 0)}
+        for row in con.execute(
+            "SELECT device_type, views, watch_minutes FROM youtube_views_by_device ORDER BY views DESC"
+        ).fetchall()
+    ]
+    demographics = [
+        {"age_group": row[0], "gender": row[1], "viewer_percentage": float(row[2] or 0)}
+        for row in con.execute(
+            "SELECT age_group, gender, viewer_percentage FROM youtube_demographics "
+            "ORDER BY age_group, gender"
+        ).fetchall()
+    ]
+
     return {
         "available": True,
         "subscriber_count": int(latest_row[0] or 0),
@@ -1977,6 +2041,9 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         "subscriber_growth": subscriber_growth,
         "view_growth": view_growth,
         "daily": daily,
+        "countries": countries,
+        "devices": devices,
+        "demographics": demographics,
         "last_synced_at": latest_row[3],
     }
 
@@ -2028,6 +2095,26 @@ def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: s
         for row in query_rows
     ]
 
+    country_rows = con.execute(
+        "SELECT country, clicks, impressions, ctr, position FROM search_console_country "
+        "ORDER BY clicks DESC LIMIT 10"
+    ).fetchall()
+    top_countries = [
+        {"country": row[0], "clicks": int(row[1] or 0), "impressions": int(row[2] or 0),
+         "ctr": float(row[3] or 0), "position": float(row[4] or 0)}
+        for row in country_rows
+    ]
+
+    device_rows = con.execute(
+        "SELECT device, clicks, impressions, ctr, position FROM search_console_device "
+        "ORDER BY clicks DESC"
+    ).fetchall()
+    devices = [
+        {"device": row[0], "clicks": int(row[1] or 0), "impressions": int(row[2] or 0),
+         "ctr": float(row[3] or 0), "position": float(row[4] or 0)}
+        for row in device_rows
+    ]
+
     return {
         "available": impressions > 0,
         "clicks": clicks,
@@ -2036,6 +2123,8 @@ def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: s
         "position": position,
         "daily": daily,
         "top_queries": top_queries,
+        "countries": top_countries,
+        "devices": devices,
         "last_synced_at": last_synced_at,
     }
 

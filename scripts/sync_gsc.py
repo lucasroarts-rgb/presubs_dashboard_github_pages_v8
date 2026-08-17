@@ -102,6 +102,45 @@ def fetch_top_queries(service, site_url: str) -> list[tuple[str, int, int, float
     return rows
 
 
+def fetch_by_country(service, site_url: str) -> list[tuple[str, int, int, float, float]]:
+    start_date, end_date = _date_range()
+    body = {
+        "startDate": start_date,
+        "endDate": end_date,
+        "dimensions": ["country"],
+        "rowLimit": TOP_QUERY_LIMIT,
+    }
+    response = service.searchanalytics().query(siteUrl=site_url, body=body).execute()
+    rows: list[tuple[str, int, int, float, float]] = []
+    for row in response.get("rows", []):
+        country = row["keys"][0]
+        clicks = int(row.get("clicks", 0))
+        impressions = int(row.get("impressions", 0))
+        ctr = round(float(row.get("ctr", 0.0)) * 100, 2)
+        position = round(float(row.get("position", 0.0)), 1)
+        rows.append((country, clicks, impressions, ctr, position))
+    return rows
+
+
+def fetch_by_device(service, site_url: str) -> list[tuple[str, int, int, float, float]]:
+    start_date, end_date = _date_range()
+    body = {
+        "startDate": start_date,
+        "endDate": end_date,
+        "dimensions": ["device"],
+    }
+    response = service.searchanalytics().query(siteUrl=site_url, body=body).execute()
+    rows: list[tuple[str, int, int, float, float]] = []
+    for row in response.get("rows", []):
+        device = row["keys"][0]
+        clicks = int(row.get("clicks", 0))
+        impressions = int(row.get("impressions", 0))
+        ctr = round(float(row.get("ctr", 0.0)) * 100, 2)
+        position = round(float(row.get("position", 0.0)), 1)
+        rows.append((device, clicks, impressions, ctr, position))
+    return rows
+
+
 def store_daily(rows: list[tuple[str, int, int, float, float]]) -> None:
     with dashboard_app.db() as con:
         con.executemany(
@@ -139,6 +178,26 @@ def store_top_queries(rows: list[tuple[str, int, int, float, float]]) -> None:
         )
 
 
+def store_country(rows: list[tuple[str, int, int, float, float]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM search_console_country")
+        con.executemany(
+            "INSERT INTO search_console_country (country, clicks, impressions, ctr, position, synced_at) "
+            "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
+def store_device(rows: list[tuple[str, int, int, float, float]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM search_console_device")
+        con.executemany(
+            "INSERT INTO search_console_device (device, clicks, impressions, ctr, position, synced_at) "
+            "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
 def main() -> int:
     env = load_env_file()
     dashboard_app.init_db()
@@ -146,11 +205,18 @@ def main() -> int:
     service, site_url = _client(env)
     daily = fetch_daily(service, site_url)
     top_queries = fetch_top_queries(service, site_url)
+    countries = fetch_by_country(service, site_url)
+    devices = fetch_by_device(service, site_url)
 
     store_daily(daily)
     store_top_queries(top_queries)
+    store_country(countries)
+    store_device(devices)
 
-    print(f"Search Console sync complete: {len(daily)} daily rows, {len(top_queries)} top queries.")
+    print(
+        f"Search Console sync complete: {len(daily)} daily rows, {len(top_queries)} top queries, "
+        f"{len(countries)} countries, {len(devices)} device types."
+    )
     return 0
 
 
