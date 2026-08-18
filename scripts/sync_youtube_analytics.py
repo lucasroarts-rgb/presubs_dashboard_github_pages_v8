@@ -27,6 +27,7 @@ TOP_LIMIT = 15
 
 REQUIRED_KEYS = [
     "YOUTUBE_CHANNEL_ID",
+    "YOUTUBE_API_KEY",
     "GOOGLE_ADS_CLIENT_ID",
     "GOOGLE_ADS_CLIENT_SECRET",
     "YOUTUBE_REFRESH_TOKEN",
@@ -96,6 +97,44 @@ def fetch_by_device(access_token: str, channel_id: str) -> list[tuple[str, int, 
     return [(row[0], int(row[1]), int(row[2])) for row in rows]
 
 
+def fetch_subscribers_daily(access_token: str, channel_id: str) -> list[tuple[str, int, int, int]]:
+    rows = _query(
+        access_token, channel_id,
+        metrics="subscribersGained,subscribersLost,views", dimensions="day",
+        sort="day",
+    )
+    return [(row[0], int(row[1]), int(row[2]), int(row[3])) for row in rows]
+
+
+def fetch_top_videos(access_token: str, channel_id: str, api_key: str) -> list[tuple[str, str, int, int, int, int]]:
+    import requests
+
+    rows = _query(
+        access_token, channel_id,
+        metrics="views,likes,comments,estimatedMinutesWatched", dimensions="video",
+        sort="-views", maxResults=str(TOP_LIMIT),
+    )
+    if not rows:
+        return []
+
+    video_ids = [row[0] for row in rows]
+    titles: dict[str, str] = {}
+    response = requests.get(
+        "https://www.googleapis.com/youtube/v3/videos",
+        params={"part": "snippet", "id": ",".join(video_ids), "key": api_key},
+        timeout=20,
+    )
+    payload = response.json()
+    if response.ok:
+        for item in payload.get("items") or []:
+            titles[item["id"]] = item.get("snippet", {}).get("title") or item["id"]
+
+    return [
+        (video_id, titles.get(video_id, video_id), int(views), int(likes), int(comments), int(watch_minutes))
+        for video_id, views, likes, comments, watch_minutes in rows
+    ]
+
+
 def fetch_by_demographics(access_token: str, channel_id: str) -> list[tuple[str, str, float]]:
     rows = _query(
         access_token, channel_id,
@@ -125,6 +164,33 @@ def store_device(rows: list[tuple[str, int, int]]) -> None:
         )
 
 
+def store_subscribers_daily(rows: list[tuple[str, int, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO youtube_subscribers_daily (report_date, subscribers_gained, subscribers_lost, views, synced_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(report_date) DO UPDATE SET
+                subscribers_gained = excluded.subscribers_gained,
+                subscribers_lost = excluded.subscribers_lost,
+                views = excluded.views,
+                synced_at = CURRENT_TIMESTAMP
+            """,
+            rows,
+        )
+
+
+def store_top_videos(rows: list[tuple[str, str, int, int, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM youtube_top_videos")
+        con.executemany(
+            "INSERT INTO youtube_top_videos "
+            "(video_id, title, views, likes, comments, watch_minutes, synced_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
 def store_demographics(rows: list[tuple[str, str, float]]) -> None:
     with dashboard_app.db() as con:
         con.execute("DELETE FROM youtube_demographics")
@@ -149,13 +215,18 @@ def main() -> int:
     countries = fetch_by_country(access_token, channel_id)
     devices = fetch_by_device(access_token, channel_id)
     demographics = fetch_by_demographics(access_token, channel_id)
+    subscribers_daily = fetch_subscribers_daily(access_token, channel_id)
+    top_videos = fetch_top_videos(access_token, channel_id, env["YOUTUBE_API_KEY"])
 
     store_country(countries)
     store_device(devices)
     store_demographics(demographics)
+    store_subscribers_daily(subscribers_daily)
+    store_top_videos(top_videos)
 
     print(
         f"YouTube Analytics sync complete: {len(countries)} countries, "
+        f"{len(subscribers_daily)} subscriber-days, {len(top_videos)} top videos, "
         f"{len(devices)} device types, {len(demographics)} age/gender rows."
     )
     return 0

@@ -481,6 +481,27 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS youtube_subscribers_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        subscribers_gained INTEGER NOT NULL DEFAULT 0,
+        subscribers_lost INTEGER NOT NULL DEFAULT 0,
+        views INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS youtube_top_videos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        video_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        views INTEGER NOT NULL DEFAULT 0,
+        likes INTEGER NOT NULL DEFAULT 0,
+        comments INTEGER NOT NULL DEFAULT 0,
+        watch_minutes INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2076,6 +2097,36 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         ).fetchall()
     ]
 
+    subscriber_rows = con.execute(
+        "SELECT report_date, subscribers_gained, subscribers_lost, views FROM youtube_subscribers_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    subscribers_daily = [
+        {
+            "report_date": row[0],
+            "subscribers_gained": int(row[1] or 0),
+            "subscribers_lost": int(row[2] or 0),
+            "views": int(row[3] or 0),
+        }
+        for row in subscriber_rows
+    ]
+    gained_total = sum(row["subscribers_gained"] for row in subscribers_daily)
+    lost_total = sum(row["subscribers_lost"] for row in subscribers_daily)
+
+    top_videos = [
+        {
+            "title": row[0],
+            "views": int(row[1] or 0),
+            "likes": int(row[2] or 0),
+            "comments": int(row[3] or 0),
+            "watch_minutes": int(row[4] or 0),
+        }
+        for row in con.execute(
+            "SELECT title, views, likes, comments, watch_minutes FROM youtube_top_videos ORDER BY views DESC"
+        ).fetchall()
+    ]
+
     return {
         "available": True,
         "subscriber_count": int(latest_row[0] or 0),
@@ -2087,6 +2138,10 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         "countries": countries,
         "devices": devices,
         "demographics": demographics,
+        "subscribers_daily": subscribers_daily,
+        "subscribers_gained_total": gained_total,
+        "subscribers_lost_total": lost_total,
+        "top_videos": top_videos,
         "last_synced_at": latest_row[3],
     }
 

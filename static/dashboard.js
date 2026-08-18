@@ -520,7 +520,18 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Booking → Showed":"Rendez-vous → Présent",
   "Showed → Sale":"Présent → Vente",
   "Overall (Pageview → Sale)":"Global (Page vue → Vente)",
-  "No funnel data synced for this period.":"Aucune donnée d'entonnoir synchronisée pour cette période."
+  "No funnel data synced for this period.":"Aucune donnée d'entonnoir synchronisée pour cette période.",
+  "Subscribers gained":"Abonnés gagnés",
+  "Subscribers lost":"Abonnés perdus",
+  "Gender":"Genre",
+  "Age":"Âge",
+  "Top videos":"Meilleures vidéos",
+  "By views, all-time.":"Par vues, depuis le début.",
+  "Video":"Vidéo",
+  "Views":"Vues",
+  "Likes":"J'aime",
+  "Comments":"Commentaires",
+  "Total":"Total"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -666,7 +677,17 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Booking → Showed":"Agendamento → Compareceu",
   "Showed → Sale":"Compareceu → Venda",
   "Overall (Pageview → Sale)":"Geral (Pageview → Venda)",
-  "No funnel data synced for this period.":"Nenhum dado de funil sincronizado para este período."
+  "No funnel data synced for this period.":"Nenhum dado de funil sincronizado para este período.",
+  "Subscribers gained":"Inscritos ganhos",
+  "Subscribers lost":"Inscritos perdidos",
+  "Gender":"Gênero",
+  "Age":"Idade",
+  "Top videos":"Top vídeos",
+  "By views, all-time.":"Por visualizações, desde o início.",
+  "Video":"Vídeo",
+  "Views":"Visualizações",
+  "Likes":"Curtidas",
+  "Comments":"Comentários"
 });
 
 const originalTextNodes=new WeakMap();
@@ -2465,6 +2486,16 @@ function renderAudience(){
   renderSiteTraffic();
 }
 
+const GENERIC_DONUT_PALETTE=["#315f9d","#2c7d63","#a66435","#5d4dc5","#c93c45","#248c66","#d5a81e","#3d76cf","#98a2b3","#d89a24"];
+function genericDonutHtml(rows,valueFn,labelFn){
+  if(!rows||!rows.length)return "";
+  const total=Math.max(1,rows.reduce((sum,row)=>sum+safeNum(valueFn(row)),0));
+  let cursor=0;const stops=[];
+  rows.forEach((row,i)=>{const start=cursor/total*360;cursor+=safeNum(valueFn(row));const end=cursor/total*360;stops.push(`${GENERIC_DONUT_PALETTE[i%GENERIC_DONUT_PALETTE.length]} ${start}deg ${end}deg`)});
+  const legend=rows.map((row,i)=>`<span><i style="background:${GENERIC_DONUT_PALETTE[i%GENERIC_DONUT_PALETTE.length]}"></i>${labelFn(row)}<strong>${number(valueFn(row))}</strong></span>`).join("");
+  return `<div class="audit-donut-wrap"><div class="audit-css-donut" style="background:conic-gradient(${stops.join(",")})"><div><strong>${number(total)}</strong><span>${t("Total")}</span></div></div></div><div class="audit-donut-legend">${legend}</div>`;
+}
+
 function periodExtrasEmpty(defaultMessage){
   if(dashboard?.period_extras_unavailable)return `<div class="empty">${t("Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.")}</div>`;
   return `<div class="empty">${t(defaultMessage)}</div>`;
@@ -2703,30 +2734,54 @@ function renderSocial(){
   const items=[
     [t("Subscribers"),number(yt.subscriber_count),yt.subscriber_growth!=null?`${yt.subscriber_growth>=0?"+":""}${number(yt.subscriber_growth)} ${t("this period")}`:t("This period")],
     [t("Total views"),number(yt.view_count),yt.view_growth!=null?`${yt.view_growth>=0?"+":""}${number(yt.view_growth)} ${t("this period")}`:t("This period")],
-    [t("Videos"),number(yt.video_count),t("Total published")]
+    [t("Videos"),number(yt.video_count),t("Total published")],
+    [t("Subscribers gained"),`+${number(yt.subscribers_gained_total)}`,t("This period")],
+    [t("Subscribers lost"),`-${number(yt.subscribers_lost_total)}`,t("This period")]
   ];
   kpis.innerHTML=items.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
-  const daily=[...(yt.daily||[])].reverse();
+  const daily=[...(yt.subscribers_daily||yt.daily||[])].reverse();
   table("socialYoutubeTrend",[
     {label:t("Date"),name:true,render:r=>r.report_date},
-    {label:t("Subscribers"),numeric:true,render:r=>number(r.subscriber_count)},
-    {label:t("Total views"),numeric:true,render:r=>number(r.view_count)}
+    {label:t("Subscribers gained"),numeric:true,render:r=>`+${number(r.subscribers_gained)}`},
+    {label:t("Subscribers lost"),numeric:true,render:r=>`-${number(r.subscribers_lost)}`},
+    {label:t("Total views"),numeric:true,render:r=>number(r.views)}
   ],daily,t("No YouTube data synced for this period."));
 
   const countryPanel=document.getElementById("socialYoutubeCountries");
   const devicePanel=document.getElementById("socialYoutubeDevices");
-  const demoPanel=document.getElementById("socialYoutubeDemographics");
+  const genderPanel=document.getElementById("socialYoutubeGender");
+  const agePanel=document.getElementById("socialYoutubeAge");
+  const videosTable=document.getElementById("socialYoutubeTopVideos");
+  const empty2=`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
   if(countryPanel){
     const countries=(yt.countries||[]).slice(0,10);
-    countryPanel.innerHTML=countries.length?audienceBarList(countries,row=>row.views,row=>escapeHtml(row.country)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+    countryPanel.innerHTML=countries.length?audienceBarList(countries,row=>row.views,row=>escapeHtml(row.country)):empty2;
   }
   if(devicePanel){
     const devices=yt.devices||[];
-    devicePanel.innerHTML=devices.length?audienceBarList(devices,row=>row.views,row=>escapeHtml(row.device_type)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+    devicePanel.innerHTML=devices.length?audienceBarList(devices,row=>row.views,row=>escapeHtml(row.device_type)):empty2;
   }
-  if(demoPanel){
-    const demo=yt.demographics||[];
-    demoPanel.innerHTML=demo.length?audienceBarList(demo,row=>row.viewer_percentage,row=>escapeHtml(`${row.age_group} · ${row.gender}`)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  const demo=yt.demographics||[];
+  if(genderPanel){
+    const byGender=new Map();
+    demo.forEach(row=>{const key=row.gender;byGender.set(key,(byGender.get(key)||0)+safeNum(row.viewer_percentage))});
+    const rows=[...byGender.entries()].map(([gender,pct])=>({gender,pct})).sort((a,b)=>b.pct-a.pct);
+    genderPanel.innerHTML=rows.length?genericDonutHtml(rows,r=>r.pct,r=>escapeHtml(r.gender)):empty2;
+  }
+  if(agePanel){
+    const byAge=new Map();
+    demo.forEach(row=>{const key=row.age_group;byAge.set(key,(byAge.get(key)||0)+safeNum(row.viewer_percentage))});
+    const rows=[...byAge.entries()].map(([age_group,pct])=>({age_group,pct})).sort((a,b)=>a.age_group.localeCompare(b.age_group));
+    agePanel.innerHTML=rows.length?genericDonutHtml(rows,r=>r.pct,r=>escapeHtml(r.age_group)):empty2;
+  }
+  if(videosTable){
+    const videos=yt.top_videos||[];
+    table("socialYoutubeTopVideos",[
+      {label:t("Video"),name:true,render:r=>escapeHtml(r.title)},
+      {label:t("Views"),numeric:true,render:r=>number(r.views)},
+      {label:t("Likes"),numeric:true,render:r=>number(r.likes)},
+      {label:t("Comments"),numeric:true,render:r=>number(r.comments)}
+    ],videos,t("No YouTube data synced for this period."));
   }
 }
 
