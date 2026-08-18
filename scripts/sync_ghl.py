@@ -19,6 +19,7 @@ Opportunities - no OAuth flow needed.
 
 from __future__ import annotations
 
+import re
 import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -71,14 +72,36 @@ def fetch_pipeline_stages(env: dict[str, str]) -> dict[str, str]:
     raise GhlSyncError(f"Pipeline {env['GHL_PIPELINE_ID']} not found")
 
 
-def fetch_new_leads_by_day(env: dict[str, str]) -> list[tuple[str, int]]:
+CAMPAIGN_SOURCE_PATTERN = re.compile(r"^\s*\[l\s*(\d+)\]\s*-?\s*(.*)$", re.IGNORECASE)
+
+
+def extract_campaign(source: str | None) -> str | None:
+    """PreSubs capture-page sources look like "[L22] - Capture Lead Semaine
+    l'anglais - PAGE WHITE" - the same [LP-...] tagging convention already
+    used on the Meta side. Sources that don't match (other Peasy Anglais
+    products sharing this pipeline/location, e.g. "Peasy Academy - RRPREIND")
+    return None and are excluded from the campaign breakdown rather than
+    silently miscounted as PreSubs."""
+    if not source:
+        return None
+    match = CAMPAIGN_SOURCE_PATTERN.match(source)
+    if not match:
+        return None
+    return f"L{match.group(1)}"
+
+
+SALE_STAGE_PATTERN = re.compile(r"sale|confirmed", re.IGNORECASE)
+
+
+def fetch_opportunities_in_window(env: dict[str, str]) -> list[dict]:
     """Paginate opportunities in the PreSubs pipeline, newest first, and
     stop once past the lookback window - much cheaper than scanning all
-    35k+ historical opportunities on every sync."""
+    35k+ historical opportunities on every sync. Returns id/source/
+    contactId/stage/createdAt only - no contact name, email or phone."""
     import requests
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)
-    counts: dict[str, int] = {}
+    results: list[dict] = []
     params = {
         "location_id": env["GHL_LOCATION_ID"],
         "pipeline_id": env["GHL_PIPELINE_ID"],
@@ -105,8 +128,14 @@ def fetch_new_leads_by_day(env: dict[str, str]) -> list[tuple[str, int]]:
             if created < cutoff:
                 stop = True
                 break
-            report_date = created.date().isoformat()
-            counts[report_date] = counts.get(report_date, 0) + 1
+            results.append(
+                {
+                    "created_at": created,
+                    "source": opp.get("source"),
+                    "contact_id": opp.get("contactId"),
+                    "pipeline_stage_id": opp.get("pipelineStageId"),
+                }
+            )
 
         if stop:
             break
@@ -119,7 +148,69 @@ def fetch_new_leads_by_day(env: dict[str, str]) -> list[tuple[str, int]]:
         params["startAfter"] = start_after
         params["startAfterId"] = start_after_id
 
+    return results
+
+
+def leads_by_day(opportunities: list[dict]) -> list[tuple[str, int]]:
+    counts: dict[str, int] = {}
+    for opp in opportunities:
+        report_date = opp["created_at"].date().isoformat()
+        counts[report_date] = counts.get(report_date, 0) + 1
     return sorted(counts.items())
+
+
+def contact_status_map(events: list[dict]) -> dict[str, str]:
+    """contactId -> most recent appointmentStatus, from active-calendar
+    events only. Never keeps the contact name/title from the event."""
+    latest: dict[str, tuple[datetime, str]] = {}
+    for event in events:
+        contact_id = event.get("contactId")
+        start_time = event.get("startTime")
+        status = event.get("appointmentStatus")
+        if not contact_id or not start_time or not status:
+            continue
+        try:
+            when = datetime.fromisoformat(start_time)
+        except ValueError:
+            continue
+        if contact_id not in latest or when > latest[contact_id][0]:
+            latest[contact_id] = (when, status)
+    return {contact_id: status for contact_id, (_, status) in latest.items()}
+
+
+def aggregate_campaign_funnel(
+    opportunities: list[dict], stages: dict[str, str], statuses_by_contact: dict[str, str]
+) -> list[tuple[str, int, int, int, int, int]]:
+    """(campaign, leads, booked, cancelled, showed, sales) per PreSubs
+    capture-page campaign code. "Sale" is a heuristic: current stage name
+    contains "sale" or "confirmed" (e.g. Regular Sale, CPF Sale, Confirmed,
+    Sale Direct Link) - flagged as a heuristic, not a guaranteed-correct
+    revenue source (the CRM MySQL sales table remains the trusted revenue
+    figure elsewhere in the dashboard)."""
+    totals: dict[str, dict[str, int]] = {}
+    for opp in opportunities:
+        campaign = extract_campaign(opp.get("source"))
+        if not campaign:
+            continue
+        bucket = totals.setdefault(campaign, {"leads": 0, "booked": 0, "cancelled": 0, "showed": 0, "sales": 0})
+        bucket["leads"] += 1
+
+        status = statuses_by_contact.get(opp.get("contact_id") or "")
+        if status:
+            bucket["booked"] += 1
+            if status == "cancelled":
+                bucket["cancelled"] += 1
+            elif status == "showed":
+                bucket["showed"] += 1
+
+        stage_name = stages.get(opp.get("pipeline_stage_id") or "", "")
+        if SALE_STAGE_PATTERN.search(stage_name):
+            bucket["sales"] += 1
+
+    return [
+        (campaign, data["leads"], data["booked"], data["cancelled"], data["showed"], data["sales"])
+        for campaign, data in sorted(totals.items(), key=lambda item: item[1]["leads"], reverse=True)
+    ]
 
 
 def fetch_stage_counts(env: dict[str, str], stages: dict[str, str]) -> list[tuple[str, int]]:
@@ -165,23 +256,41 @@ def fetch_all_calendars(env: dict[str, str]) -> list[tuple[str, str]]:
 
 
 def fetch_calendar_events(env: dict[str, str], calendar_id: str, start_ms: int, end_ms: int) -> list[dict]:
+    """A handful of these 71 sequential calls intermittently come back as a
+    transient "Command timed out" (GHL rate-limiting the burst) - retried a
+    few times with a short backoff before giving up on that one calendar."""
+    import time
+
     import requests
 
-    response = requests.get(
-        f"{API_BASE}/calendars/events",
-        headers=_headers(env),
-        params={
-            "locationId": env["GHL_LOCATION_ID"],
-            "calendarId": calendar_id,
-            "startTime": start_ms,
-            "endTime": end_ms,
-        },
-        timeout=20,
-    )
-    payload = response.json()
-    if not response.ok:
+    last_error: Exception | None = None
+    for attempt in range(4):
+        if attempt:
+            time.sleep(1.5 * attempt)
+        try:
+            response = requests.get(
+                f"{API_BASE}/calendars/events",
+                headers=_headers(env),
+                params={
+                    "locationId": env["GHL_LOCATION_ID"],
+                    "calendarId": calendar_id,
+                    "startTime": start_ms,
+                    "endTime": end_ms,
+                },
+                timeout=20,
+            )
+        except requests.RequestException as error:
+            last_error = error
+            continue
+        payload = response.json()
+        if response.ok:
+            return payload.get("events") or []
+        if "timed out" in str(payload.get("message", "")).lower():
+            last_error = GhlSyncError(f"GHL calendar events error ({response.status_code}): {payload}")
+            continue
         raise GhlSyncError(f"GHL calendar events error ({response.status_code}): {payload}")
-    return payload.get("events") or []
+
+    raise GhlSyncError(f"GHL calendar events error for {calendar_id} after retries: {last_error}")
 
 
 def discover_calendars_and_events(
@@ -256,6 +365,17 @@ def store_leads_daily(rows: list[tuple[str, int]]) -> None:
         )
 
 
+def store_campaign_funnel(rows: list[tuple[str, int, int, int, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_campaign_funnel")
+        con.executemany(
+            "INSERT INTO ghl_campaign_funnel "
+            "(campaign, leads, booked, cancelled, showed, sales, synced_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
 def store_stage_counts(rows: list[tuple[str, int]]) -> None:
     with dashboard_app.db() as con:
         con.execute("DELETE FROM ghl_pipeline_stage")
@@ -275,7 +395,8 @@ def main() -> int:
         raise GhlSyncError("Missing in .env: " + ", ".join(missing))
 
     stages = fetch_pipeline_stages(env)
-    leads_daily = fetch_new_leads_by_day(env)
+    opportunities = fetch_opportunities_in_window(env)
+    leads_daily = leads_by_day(opportunities)
     stage_counts = fetch_stage_counts(env, stages)
 
     store_leads_daily(leads_daily)
@@ -288,12 +409,17 @@ def main() -> int:
     store_calendars(calendar_rows)
     store_appointments(appointment_rows)
 
+    statuses_by_contact = contact_status_map(active_events)
+    campaign_funnel = aggregate_campaign_funnel(opportunities, stages, statuses_by_contact)
+    store_campaign_funnel(campaign_funnel)
+
     active_count = sum(1 for row in calendar_rows if row[2])
     print(
         f"GoHighLevel sync complete: {len(leads_daily)} lead-days, "
         f"{len(stage_counts)} pipeline stages, "
         f"{active_count}/{len(calendar_rows)} active calendars, "
-        f"{len(appointment_rows)} appointment status-day rows."
+        f"{len(appointment_rows)} appointment status-day rows, "
+        f"{len(campaign_funnel)} campaigns tracked."
     )
     return 0
 

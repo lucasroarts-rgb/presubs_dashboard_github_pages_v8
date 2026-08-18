@@ -496,6 +496,11 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Stage":"Étape",
   "Opportunities":"Opportunités",
   "No GoHighLevel data synced for this period.":"Aucune donnée GoHighLevel synchronisée pour cette période.",
+  "Attribution by campaign":"Attribution par campagne",
+  "Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. \"Sales\" is a heuristic based on the opportunity's current pipeline stage name (contains \"sale\" or \"confirmed\") - the CRM MySQL sales figure elsewhere in the dashboard is the trusted revenue source.":"Quelle campagne de capture (même tag [L..] utilisé côté CRM) génère des leads, rendez-vous, annulations, présences et ventes. « Ventes » est une heuristique basée sur le nom de l'étape actuelle de l'opportunité (contient « sale » ou « confirmed ») - le chiffre de ventes du CRM MySQL ailleurs dans le tableau de bord reste la source de revenus fiable.",
+  "Campaign":"Campagne",
+  "Booked":"Réservé",
+  "Lead → Sale":"Lead → Vente",
   "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads, rendez-vous et où ils se situent dans le pipeline.",
   "Active booking calendars":"Calendriers de réservation actifs",
   "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendriers avec au moins un rendez-vous ces 60 derniers jours. Les 50+ autres calendriers de ce compte (personnels, autres produits, inutilisés) sont exclus automatiquement.",
@@ -653,6 +658,11 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Stage":"Estágio",
   "Opportunities":"Oportunidades",
   "No GoHighLevel data synced for this period.":"Nenhum dado do GoHighLevel sincronizado para este período.",
+  "Attribution by campaign":"Atribuição por campanha",
+  "Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. \"Sales\" is a heuristic based on the opportunity's current pipeline stage name (contains \"sale\" or \"confirmed\") - the CRM MySQL sales figure elsewhere in the dashboard is the trusted revenue source.":"Qual campanha de captação (mesma tag [L..] usada do lado do CRM) tá gerando leads, agendamentos, cancelamentos, comparecimentos e vendas. \"Vendas\" é uma estimativa baseada no nome do estágio atual da oportunidade (contém \"sale\" ou \"confirmed\") - o número de vendas do CRM MySQL em outro lugar do dashboard continua sendo a fonte confiável de receita.",
+  "Campaign":"Campanha",
+  "Booked":"Agendado",
+  "Lead → Sale":"Lead → Venda",
   "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Funil do PreSubs (Commercial Pipeline): novos leads, agendamentos e em que estágio do pipeline estão.",
   "Active booking calendars":"Calendários de agendamento ativos",
   "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendários com pelo menos um agendamento nos últimos 60 dias. Os outros 50+ calendários dessa conta (pessoais, outros produtos, sem uso) são descartados automaticamente.",
@@ -2734,6 +2744,17 @@ function renderGhl(){
     const statuses=ghl.appointments_by_status_all_time||[];
     statusPanel.innerHTML=statuses.length?audienceBarList(statuses,row=>row.count,row=>escapeHtml(row.status)):empty;
   }
+
+  const campaignFunnel=ghl.campaign_funnel||[];
+  table("ghlCampaignFunnel",[
+    {label:t("Campaign"),name:true,render:r=>escapeHtml(r.campaign)},
+    {label:t("Leads"),numeric:true,render:r=>number(r.leads)},
+    {label:t("Booked"),numeric:true,render:r=>number(r.booked)},
+    {label:t("Cancelled"),numeric:true,render:r=>number(r.cancelled)},
+    {label:t("Showed"),numeric:true,render:r=>number(r.showed)},
+    {label:t("Sales"),numeric:true,render:r=>number(r.sales)},
+    {label:t("Lead → Sale"),numeric:true,render:r=>r.leads?`${(r.sales/r.leads*100).toFixed(1)}%`:"—"}
+  ],campaignFunnel,t("No GoHighLevel data synced for this period."));
 }
 
 function renderSocial(){

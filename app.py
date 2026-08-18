@@ -473,6 +473,17 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_campaign_funnel (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign TEXT NOT NULL,
+        leads INTEGER NOT NULL DEFAULT 0,
+        booked INTEGER NOT NULL DEFAULT 0,
+        cancelled INTEGER NOT NULL DEFAULT 0,
+        showed INTEGER NOT NULL DEFAULT 0,
+        sales INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS ghl_appointments_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2194,6 +2205,22 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         {"report_date": row[0], "count": int(row[1] or 0)} for row in appointment_daily_rows
     ]
 
+    campaign_rows = con.execute(
+        "SELECT campaign, leads, booked, cancelled, showed, sales FROM ghl_campaign_funnel "
+        "ORDER BY leads DESC"
+    ).fetchall()
+    campaign_funnel = [
+        {
+            "campaign": row[0],
+            "leads": int(row[1] or 0),
+            "booked": int(row[2] or 0),
+            "cancelled": int(row[3] or 0),
+            "showed": int(row[4] or 0),
+            "sales": int(row[5] or 0),
+        }
+        for row in campaign_rows
+    ]
+
     last_synced_row = con.execute("SELECT MAX(synced_at) FROM ghl_leads_daily").fetchone()
 
     return {
@@ -2206,6 +2233,7 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         "appointments_by_status": appointments_by_status,
         "appointments_by_status_all_time": appointments_by_status_all_time,
         "appointments_daily": appointments_daily,
+        "campaign_funnel": campaign_funnel,
         "last_synced_at": last_synced_row[0] if last_synced_row else None,
     }
 
