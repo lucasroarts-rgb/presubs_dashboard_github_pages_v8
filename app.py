@@ -510,6 +510,15 @@ def init_db() -> None:
         UNIQUE(report_date)
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_appointment_slots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        weekday INTEGER NOT NULL,
+        hour INTEGER NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS youtube_subscribers_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -1900,12 +1909,23 @@ def crm_gap_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     revenue_full = float(sales_row[1] or 0)
     revenue_net = float(sales_row[2] or 0)
 
+    sales_daily_rows = con.execute(
+        "SELECT report_date, SUM(sale_count), SUM(revenue_full) FROM crm_sales_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY report_date ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    sales_daily = [
+        {"report_date": row[0], "sale_count": int(row[1] or 0), "revenue_full": float(row[2] or 0)}
+        for row in sales_daily_rows
+    ]
+
     return {
         "available": crm_leads > 0 or sale_count > 0,
         "crm_leads": crm_leads,
         "sale_count": sale_count,
         "revenue_full": revenue_full,
         "revenue_net": revenue_net,
+        "sales_daily": sales_daily,
         "last_synced_at": last_synced_at,
     }
 
@@ -2241,6 +2261,16 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
     bookings_daily = [{"report_date": row[0], "count": int(row[1] or 0)} for row in bookings_rows]
     bookings_total = sum(row["count"] for row in bookings_daily)
 
+    slot_rows = con.execute(
+        "SELECT report_date, weekday, hour, count FROM ghl_appointment_slots "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date, hour",
+        (start_date, end_date),
+    ).fetchall()
+    appointment_slots = [
+        {"report_date": row[0], "weekday": int(row[1]), "hour": int(row[2]), "count": int(row[3] or 0)}
+        for row in slot_rows
+    ]
+
     campaign_rows = con.execute(
         "SELECT campaign, leads, booked, cancelled, showed, sales FROM ghl_campaign_funnel "
         "ORDER BY leads DESC"
@@ -2287,6 +2317,7 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         "appointments_daily": appointments_daily,
         "bookings_daily": bookings_daily,
         "bookings_total": bookings_total,
+        "appointment_slots": appointment_slots,
         "campaign_funnel": campaign_funnel,
         "sales_attribution": sales_attribution,
         "sales_attribution_revenue_total": sales_attribution_revenue_total,

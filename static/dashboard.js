@@ -542,6 +542,31 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "This period, active calendars":"Cette période, calendriers actifs",
   "Pipeline stages to show":"Étapes du pipeline à afficher",
   "Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.":"Choisissez les étapes pertinentes parmi les 31 - le tableau et la diapositive ci-dessous n'utilisent que celles cochées ici. Laissez tout coché pour tout afficher.",
+  "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline. See Meetings and Sales for bookings/attendance and revenue.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads et où ils se situent dans le pipeline. Voir Rendez-vous et Ventes pour les réservations/présences et les revenus.",
+  "Meetings":"Rendez-vous",
+  "Bookings and attendance from GoHighLevel calendars. Bookings are counted by the day someone booked; attendance (showed/cancelled/no-show) is counted by the day of the meeting itself.":"Réservations et présences des calendriers GoHighLevel. Les réservations sont comptées le jour où la personne a réservé ; la présence (présent/annulé/absent) est comptée le jour du rendez-vous lui-même.",
+  "Showed, no-show, cancelled, etc, this period (by meeting day).":"Présent, absent, annulé, etc, cette période (par jour de rendez-vous).",
+  "Bookings by day":"Réservations par jour",
+  "Day the meeting was booked, this period.":"Jour où le rendez-vous a été réservé, cette période.",
+  "Bookings":"Réservations",
+  "This period, by day booked":"Cette période, par jour de réservation",
+  "This period, by meeting day":"Cette période, par jour de rendez-vous",
+  "Showed":"Présent",
+  "Cancelled":"Annulé",
+  "No-show":"Absent",
+  "Booking calendar":"Calendrier des rendez-vous",
+  "When meetings actually happen, by day and hour (local time) - useful for spotting agenda gaps like the ones that caused low lead volume in mid-August.":"Quand les rendez-vous ont réellement lieu, par jour et heure (heure locale) - utile pour repérer les trous d'agenda comme ceux qui ont causé le faible volume de leads mi-août.",
+  "Mon":"Lun","Tue":"Mar","Wed":"Mer","Thu":"Jeu","Fri":"Ven","Sat":"Sam","Sun":"Dim",
+  "Sales":"Ventes",
+  "Confirmed revenue from the CRM, and which source actually closed - built from each sale's stable first-touch UTM attribution, not the funnel-stage source (which gets overwritten as a lead moves through the pipeline).":"Revenus confirmés du CRM, et quelle source a réellement vendu - basé sur l'attribution UTM stable au premier contact de chaque vente, pas la source d'étape du pipeline (écrasée au fil du parcours du lead).",
+  "Revenue by day":"Revenus par jour",
+  "Confirmed sales, this period.":"Ventes confirmées, cette période.",
+  "Revenue by source":"Revenus par source",
+  "Which channel (Facebook ads, Instagram, Google, email, etc) the sale's first touch came from.":"De quel canal (Facebook ads, Instagram, Google, email, etc) provient le premier contact de la vente.",
+  "Which Meta campaign / UTM actually sold, and how much - this is the real revenue breakdown, in €.":"Quelle campagne Meta / UTM a réellement vendu, et combien - c'est la vraie répartition des revenus, en €.",
+  "Avg. deal size":"Panier moyen",
+  "Revenue / sale":"Revenus / vente",
+  "Confirmed, this period":"Confirmé, cette période",
   "Save selection":"Enregistrer la sélection",
   "Saving…":"Enregistrement…",
   "Funnel":"Entonnoir",
@@ -738,6 +763,31 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "This period, active calendars":"Este período, calendários ativos",
   "Pipeline stages to show":"Estágios do pipeline pra mostrar",
   "Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.":"Escolha quais dos 31 estágios importam pro relatório - a tabela e o slide abaixo usam só os marcados aqui. Deixe tudo marcado pra mostrar tudo.",
+  "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline. See Meetings and Sales for bookings/attendance and revenue.":"Funil PreSubs (Commercial Pipeline): novos leads e onde estão no pipeline. Veja Agendamentos e Vendas pros agendamentos/comparecimentos e receita.",
+  "Meetings":"Agendamentos",
+  "Bookings and attendance from GoHighLevel calendars. Bookings are counted by the day someone booked; attendance (showed/cancelled/no-show) is counted by the day of the meeting itself.":"Agendamentos e comparecimento dos calendários do GoHighLevel. Agendamentos contam pelo dia em que a pessoa agendou; comparecimento (compareceu/cancelado/não compareceu) conta pelo dia da própria reunião.",
+  "Showed, no-show, cancelled, etc, this period (by meeting day).":"Compareceu, não compareceu, cancelado, etc, este período (por dia da reunião).",
+  "Bookings by day":"Agendamentos por dia",
+  "Day the meeting was booked, this period.":"Dia em que a reunião foi agendada, este período.",
+  "Bookings":"Agendamentos",
+  "This period, by day booked":"Este período, por dia de agendamento",
+  "This period, by meeting day":"Este período, por dia da reunião",
+  "Showed":"Compareceu",
+  "Cancelled":"Cancelado",
+  "No-show":"Não compareceu",
+  "Booking calendar":"Calendário de agendamentos",
+  "When meetings actually happen, by day and hour (local time) - useful for spotting agenda gaps like the ones that caused low lead volume in mid-August.":"Quando as reuniões realmente acontecem, por dia e hora (horário local) - útil pra identificar buracos na agenda como os que causaram o baixo volume de leads em meados de agosto.",
+  "Mon":"Seg","Tue":"Ter","Wed":"Qua","Thu":"Qui","Fri":"Sex","Sat":"Sáb","Sun":"Dom",
+  "Sales":"Vendas",
+  "Confirmed revenue from the CRM, and which source actually closed - built from each sale's stable first-touch UTM attribution, not the funnel-stage source (which gets overwritten as a lead moves through the pipeline).":"Receita confirmada do CRM, e qual fonte realmente vendeu - baseado na atribuição UTM estável de primeiro toque de cada venda, não a fonte do estágio do funil (que é sobrescrita conforme o lead avança no pipeline).",
+  "Revenue by day":"Receita por dia",
+  "Confirmed sales, this period.":"Vendas confirmadas, este período.",
+  "Revenue by source":"Receita por fonte",
+  "Which channel (Facebook ads, Instagram, Google, email, etc) the sale's first touch came from.":"De qual canal (Facebook ads, Instagram, Google, email, etc) veio o primeiro toque da venda.",
+  "Which Meta campaign / UTM actually sold, and how much - this is the real revenue breakdown, in €.":"Qual campanha Meta / UTM realmente vendeu, e quanto - essa é a divisão real de receita, em €.",
+  "Avg. deal size":"Ticket médio",
+  "Revenue / sale":"Receita / venda",
+  "Confirmed, this period":"Confirmado, este período",
   "Save selection":"Salvar seleção",
   "Saving…":"Salvando…",
   "Funnel":"Funil",
@@ -2516,13 +2566,13 @@ function renderCrmGap(){
   panel.innerHTML=`<div class="table-wrap"><table><tbody>${rows.map(row=>`<tr><td>${row[0]}</td><td class="num"><strong>${row[1]}</strong></td></tr>`).join("")}</tbody></table></div>${gap.last_synced_at?`<p class="footnote">${t("CRM data synced at")} ${gap.last_synced_at}</p>`:""}`;
 }
 
-function audienceBarList(rows,valueFn,labelFn,noteFn){
+function audienceBarList(rows,valueFn,labelFn,noteFn,formatFn=number){
   if(!rows.length)return `<div class="empty">${t("No CRM data synced for this period.")}</div>`;
   const max=Math.max(...rows.map(valueFn))||1;
   return `<div class="audience-bar-list">${rows.map(row=>{
     const value=valueFn(row),pct=Math.max(4,value/max*100);
-    const tip=`${labelFn(row)}: ${number(value)}`;
-    return `<div class="audit-hbar-row" title="${escapeHtml(tip)}"><span class="audit-hbar-label">${labelFn(row)}${noteFn?`<br><small class="footnote">${noteFn(row)}</small>`:""}</span><span class="audit-hbar-track"><span class="blue" style="width:${pct}%"></span></span><strong>${number(value)}</strong></div>`;
+    const tip=`${labelFn(row)}: ${formatFn(value)}`;
+    return `<div class="audit-hbar-row" title="${escapeHtml(tip)}"><span class="audit-hbar-label">${labelFn(row)}${noteFn?`<br><small class="footnote">${noteFn(row)}</small>`:""}</span><span class="audit-hbar-track"><span class="blue" style="width:${pct}%"></span></span><strong>${formatFn(value)}</strong></div>`;
   }).join("")}</div>`;
 }
 
@@ -2755,22 +2805,16 @@ function renderGhl(){
   const stagesTable=document.getElementById("ghlStagesTable");
   const trendTable=document.getElementById("ghlLeadsTrend");
   const picker=document.getElementById("ghlStagePicker");
-  const calendarsPanel=document.getElementById("ghlActiveCalendars");
-  const statusPanel=document.getElementById("ghlAppointmentStatus");
   if(!kpis||!stagesTable||!trendTable)return;
   const ghl=dashboard?.ghl;
   const empty=periodExtrasEmpty("No GoHighLevel data synced for this period.");
   if(!ghl||!ghl.available){
     kpis.innerHTML="";stagesTable.innerHTML=empty;trendTable.innerHTML=empty;
     if(picker)picker.innerHTML=empty;
-    if(calendarsPanel)calendarsPanel.innerHTML=empty;
-    if(statusPanel)statusPanel.innerHTML=empty;
     return;
   }
-  const appointmentsTotal=(ghl.appointments_by_status||[]).reduce((sum,row)=>sum+safeNum(row.count),0);
   kpis.innerHTML=[
-    [t("New leads"),number(ghl.leads_total),t("This period, Commercial Pipeline")],
-    [t("Appointments booked"),number(appointmentsTotal),t("This period, active calendars")]
+    [t("New leads"),number(ghl.leads_total),t("This period, Commercial Pipeline")]
   ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
 
   if(picker){
@@ -2793,24 +2837,6 @@ function renderGhl(){
     {label:t("New leads"),numeric:true,render:r=>number(r.lead_count)}
   ],daily,t("No GoHighLevel data synced for this period."));
 
-  if(calendarsPanel){
-    const calendars=(ghl.active_calendars||[]).slice(0,20);
-    calendarsPanel.innerHTML=calendars.length?audienceBarList(calendars,row=>row.event_count,row=>escapeHtml(row.calendar_name)):empty;
-  }
-  if(statusPanel){
-    const statuses=ghl.appointments_by_status_all_time||[];
-    statusPanel.innerHTML=statuses.length?audienceBarList(statuses,row=>row.count,row=>escapeHtml(row.status)):empty;
-  }
-
-  const salesAttribution=ghl.sales_attribution||[];
-  table("ghlSalesAttribution",[
-    {label:t("Campaign"),name:true,render:r=>escapeHtml(r.utm_campaign)},
-    {label:t("UTM source"),render:r=>escapeHtml(r.utm_source)},
-    {label:t("UTM content"),render:r=>escapeHtml(r.utm_content)},
-    {label:t("Sales"),numeric:true,render:r=>number(r.sale_count)},
-    {label:t("Revenue"),numeric:true,render:r=>money(r.revenue)}
-  ],salesAttribution,t("No GoHighLevel data synced for this period."));
-
   const campaignFunnel=ghl.campaign_funnel||[];
   table("ghlCampaignFunnel",[
     {label:t("Campaign"),name:true,render:r=>escapeHtml(r.campaign)},
@@ -2821,6 +2847,137 @@ function renderGhl(){
     {label:t("Sales"),numeric:true,render:r=>number(r.sales)},
     {label:t("Lead → Sale"),numeric:true,render:r=>r.leads?`${(r.sales/r.leads*100).toFixed(1)}%`:"—"}
   ],campaignFunnel,t("No GoHighLevel data synced for this period."));
+}
+
+const WEEKDAY_LABELS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function meetingsHeatmapHtml(slots){
+  if(!slots||!slots.length)return `<div class="empty">${t("No GoHighLevel data synced for this period.")}</div>`;
+  const byDate=new Map();
+  slots.forEach(row=>{
+    if(!byDate.has(row.report_date))byDate.set(row.report_date,{weekday:row.weekday,hours:new Map()});
+    byDate.get(row.report_date).hours.set(row.hour,(byDate.get(row.report_date).hours.get(row.hour)||0)+safeNum(row.count));
+  });
+  const dates=[...byDate.keys()].sort();
+  const hours=[...new Set(slots.map(r=>r.hour))].sort((a,b)=>a-b);
+  const minHour=Math.max(0,Math.min(...hours)-1),maxHour=Math.min(23,Math.max(...hours)+1);
+  const hourRange=[];for(let h=minHour;h<=maxHour;h++)hourRange.push(h);
+  const max=Math.max(1,...slots.map(r=>safeNum(r.count)));
+  const fmtHour=h=>`${String(h).padStart(2,"0")}:00`;
+  const rows=dates.map(date=>{
+    const info=byDate.get(date);
+    const cells=hourRange.map(hour=>{
+      const count=info.hours.get(hour)||0;
+      const alpha=count?0.15+0.75*(count/max):0;
+      const label=`${date} (${t(WEEKDAY_LABELS[info.weekday])}) ${fmtHour(hour)}: ${count}`;
+      return `<td class="cal-heat-cell" title="${escapeHtml(label)}" style="background:${count?`rgba(63,90,204,${alpha.toFixed(2)})`:"transparent"}">${count||""}</td>`;
+    }).join("");
+    return `<tr><th class="cal-heat-rowlabel">${date}<br><small>${t(WEEKDAY_LABELS[info.weekday])}</small></th>${cells}</tr>`;
+  }).join("");
+  const head=hourRange.map(hour=>`<th>${fmtHour(hour)}</th>`).join("");
+  return `<div class="table-wrap"><table class="cal-heatmap"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderMeetings(){
+  const kpis=document.getElementById("meetingsKpis");
+  const calendarsPanel=document.getElementById("meetingsActiveCalendars");
+  const statusPanel=document.getElementById("meetingsAppointmentStatus");
+  const trendTable=document.getElementById("meetingsBookingsTrend");
+  const heatmap=document.getElementById("meetingsCalendarHeatmap");
+  if(!kpis)return;
+  const ghl=dashboard?.ghl;
+  const empty=periodExtrasEmpty("No GoHighLevel data synced for this period.");
+  if(!ghl||!ghl.available){
+    kpis.innerHTML="";
+    if(calendarsPanel)calendarsPanel.innerHTML=empty;
+    if(statusPanel)statusPanel.innerHTML=empty;
+    if(trendTable)trendTable.innerHTML=empty;
+    if(heatmap)heatmap.innerHTML=empty;
+    return;
+  }
+  const statusCounts=ghl.appointments_by_status||[];
+  const showed=statusCounts.find(r=>r.status==="showed")?.count||0;
+  const cancelled=statusCounts.find(r=>r.status==="cancelled")?.count||0;
+  const noshow=statusCounts.find(r=>r.status==="noshow")?.count||0;
+  kpis.innerHTML=[
+    [t("Bookings"),number(ghl.bookings_total),t("This period, by day booked")],
+    [t("Showed"),number(showed),t("This period, by meeting day")],
+    [t("Cancelled"),number(cancelled),t("This period, by meeting day")],
+    [t("No-show"),number(noshow),t("This period, by meeting day")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  if(calendarsPanel){
+    const calendars=(ghl.active_calendars||[]).slice(0,20);
+    calendarsPanel.innerHTML=calendars.length?audienceBarList(calendars,row=>row.event_count,row=>escapeHtml(row.calendar_name)):empty;
+  }
+  if(statusPanel){
+    const statuses=statusCounts.length?statusCounts:(ghl.appointments_by_status_all_time||[]);
+    statusPanel.innerHTML=statuses.length?audienceBarList(statuses,row=>row.count,row=>escapeHtml(row.status)):empty;
+  }
+  if(trendTable){
+    const daily=[...(ghl.bookings_daily||[])].reverse();
+    table("meetingsBookingsTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Bookings"),numeric:true,render:r=>number(r.count)}
+    ],daily,t("No GoHighLevel data synced for this period."));
+  }
+  if(heatmap){
+    heatmap.innerHTML=meetingsHeatmapHtml(ghl.appointment_slots||[]);
+  }
+}
+
+function renderSales(){
+  const kpis=document.getElementById("salesKpis");
+  const trendTable=document.getElementById("salesRevenueTrend");
+  const sourcePanel=document.getElementById("salesBySource");
+  const campaignTable=document.getElementById("salesByCampaign");
+  if(!kpis)return;
+  const crmGap=dashboard?.crm_gap;
+  const ghl=dashboard?.ghl;
+  const empty=periodExtrasEmpty("No CRM data synced for this period.");
+  if(!crmGap||!crmGap.available){
+    kpis.innerHTML="";
+    if(trendTable)trendTable.innerHTML=empty;
+    if(sourcePanel)sourcePanel.innerHTML=empty;
+    if(campaignTable)campaignTable.innerHTML=empty;
+    return;
+  }
+  kpis.innerHTML=[
+    [t("Sales"),number(crmGap.sale_count),t("Confirmed, this period")],
+    [t("Revenue"),money(crmGap.revenue_full),t("Confirmed, this period")],
+    [t("Avg. deal size"),crmGap.sale_count?money(crmGap.revenue_full/crmGap.sale_count):"—",t("Revenue / sale")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  if(trendTable){
+    const daily=[...(crmGap.sales_daily||[])].reverse();
+    table("salesRevenueTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Sales"),numeric:true,render:r=>number(r.sale_count)},
+      {label:t("Revenue"),numeric:true,render:r=>money(r.revenue_full)}
+    ],daily,t("No CRM data synced for this period."));
+  }
+
+  const salesAttribution=ghl?.sales_attribution||[];
+  if(sourcePanel){
+    const bySource=new Map();
+    salesAttribution.forEach(row=>{
+      const key=row.utm_source||"(unknown)";
+      const bucket=bySource.get(key)||{source:key,revenue:0,sale_count:0};
+      bucket.revenue+=safeNum(row.revenue);
+      bucket.sale_count+=safeNum(row.sale_count);
+      bySource.set(key,bucket);
+    });
+    const sourceRows=[...bySource.values()].sort((a,b)=>b.revenue-a.revenue);
+    sourcePanel.innerHTML=sourceRows.length?audienceBarList(sourceRows,row=>row.revenue,row=>escapeHtml(row.source),row=>`${number(row.sale_count)} ${t("sales")}`,money):`<div class="empty">${t("No GoHighLevel data synced for this period.")}</div>`;
+  }
+  if(campaignTable){
+    table("salesByCampaign",[
+      {label:t("Campaign"),name:true,render:r=>escapeHtml(r.utm_campaign)},
+      {label:t("UTM source"),render:r=>escapeHtml(r.utm_source)},
+      {label:t("UTM content"),render:r=>escapeHtml(r.utm_content)},
+      {label:t("Sales"),numeric:true,render:r=>number(r.sale_count)},
+      {label:t("Revenue"),numeric:true,render:r=>money(r.revenue)}
+    ],salesAttribution,t("No GoHighLevel data synced for this period."));
+  }
 }
 
 function renderSocial(){
@@ -3348,7 +3505,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

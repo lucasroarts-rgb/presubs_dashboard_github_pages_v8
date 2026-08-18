@@ -26,6 +26,8 @@
 <button class="tab" data-view="googleAds" title="Google Ads"><svg viewBox="0 0 24 24"><path d="M12 3 4 8v8l8 5 8-5V8l-8-5Zm0 2.3 6 3.7-6 3.7-6-3.7 6-3.7ZM6 10l5 3.1v6L6 16V10Zm7 9.1v-6l5-3.1v6l-5 3.1Z"/></svg><span>Google Ads</span></button>
 <button class="tab" data-view="social" title="Social"><svg viewBox="0 0 24 24"><path d="M18 3a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-1.53-.42l-6.05 3.5a3 3 0 0 1 0 1.84l6.05 3.5A3 3 0 0 1 18 14a3 3 0 1 1-3 3c0-.24.03-.47.08-.7l-6.05-3.5a3 3 0 1 1 0-4.6l6.05-3.5A3 3 0 0 1 15 6a3 3 0 0 1 3-3Z"/></svg><span>Social</span></button>
 <button class="tab" data-view="ghl" title="GoHighLevel"><svg viewBox="0 0 24 24"><path d="M4 4h4v16H4V4Zm6 6h4v10h-4V10Zm6-4h4v14h-4V6Z"/></svg><span>GoHighLevel</span></button>
+<button class="tab" data-view="meetings" title="Meetings"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h4v4H8v-4Z"/></svg><span>Meetings</span></button>
+<button class="tab" data-view="sales" title="Sales"><svg viewBox="0 0 24 24"><path d="M3 13.5 9 8l4 4 8-8v3l-8 8-4-4-6 5.5v-3ZM3 19h18v2H3v-2Z"/></svg><span>Sales</span></button>
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
 <button class="tab" data-view="metaAds" title="Meta Ads"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Meta Ads</span></button>
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
@@ -850,27 +852,14 @@
     </section>
 
     <section id="ghl" class="view">
-      <div class="section-head" style="margin-top:6px"><div><h2>GoHighLevel</h2><p>PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.</p></div></div>
+      <div class="section-head" style="margin-top:6px"><div><h2>GoHighLevel</h2><p>PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline. See Meetings and Sales for bookings/attendance and revenue.</p></div></div>
       <div id="ghlKpis" class="kpi-grid"></div>
-      <div class="audience-grid">
-        <article class="card panel">
-          <div class="section-head"><div><h2>Active booking calendars</h2><p>Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.</p></div></div>
-          <div id="ghlActiveCalendars"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Appointments by status</h2><p>Showed, no-show, cancelled, etc, last 60 days.</p></div></div>
-          <div id="ghlAppointmentStatus"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>New leads by day</h2><p>This period.</p></div></div>
-          <div id="ghlLeadsTrend"></div>
-        </article>
-      </div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>New leads by day</h2><p>This period.</p></div></div>
+        <div id="ghlLeadsTrend"></div>
+      </article>
 
-      <div class="section-head" style="margin-top:22px"><div><h2>Revenue by campaign</h2><p>Which Meta campaign / UTM actually sold, and how much. Built from each sale's stable first-touch attribution (not the funnel-stage source, which gets overwritten as a lead moves through the pipeline) - this is the real revenue breakdown, in €.</p></div></div>
-      <div id="ghlSalesAttribution"></div>
-
-      <div class="section-head" style="margin-top:22px"><div><h2>Attribution by campaign</h2><p>Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. "Sales" here is a lead count, not revenue - see "Revenue by campaign" above for actual € by campaign.</p></div></div>
+      <div class="section-head" style="margin-top:22px"><div><h2>Attribution by campaign</h2><p>Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. "Sales" here is a lead count, not revenue - see the Sales tab for actual € by campaign.</p></div></div>
       <div id="ghlCampaignFunnel"></div>
 
       <div class="section-head" style="margin-top:22px"><div><h2>Pipeline stages to show</h2><p>Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.</p></div></div>
@@ -878,6 +867,44 @@
 
       <div class="section-head" style="margin-top:22px"><div><h2>Opportunities by stage</h2><p>Current snapshot, all-time.</p></div></div>
       <div id="ghlStagesTable"></div>
+    </section>
+
+    <section id="meetings" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Meetings</h2><p>Bookings and attendance from GoHighLevel calendars. Bookings are counted by the day someone booked; attendance (showed/cancelled/no-show) is counted by the day of the meeting itself.</p></div></div>
+      <div id="meetingsKpis" class="kpi-grid"></div>
+      <div class="audience-grid">
+        <article class="card panel">
+          <div class="section-head"><div><h2>Active booking calendars</h2><p>Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.</p></div></div>
+          <div id="meetingsActiveCalendars"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Appointments by status</h2><p>Showed, no-show, cancelled, etc, this period (by meeting day).</p></div></div>
+          <div id="meetingsAppointmentStatus"></div>
+        </article>
+        <article class="card panel">
+          <div class="section-head"><div><h2>Bookings by day</h2><p>Day the meeting was booked, this period.</p></div></div>
+          <div id="meetingsBookingsTrend"></div>
+        </article>
+      </div>
+      <article class="card panel" style="margin-top:18px">
+        <div class="section-head"><div><h2>Booking calendar</h2><p>When meetings actually happen, by day and hour (local time) - useful for spotting agenda gaps like the ones that caused low lead volume in mid-August.</p></div></div>
+        <div id="meetingsCalendarHeatmap"></div>
+      </article>
+    </section>
+
+    <section id="sales" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Sales</h2><p>Confirmed revenue from the CRM, and which source actually closed - built from each sale's stable first-touch UTM attribution, not the funnel-stage source (which gets overwritten as a lead moves through the pipeline).</p></div></div>
+      <div id="salesKpis" class="kpi-grid"></div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Revenue by day</h2><p>Confirmed sales, this period.</p></div></div>
+        <div id="salesRevenueTrend"></div>
+      </article>
+
+      <div class="section-head" style="margin-top:22px"><div><h2>Revenue by source</h2><p>Which channel (Facebook ads, Instagram, Google, email, etc) the sale's first touch came from.</p></div></div>
+      <div id="salesBySource"></div>
+
+      <div class="section-head" style="margin-top:22px"><div><h2>Revenue by campaign</h2><p>Which Meta campaign / UTM actually sold, and how much - this is the real revenue breakdown, in €.</p></div></div>
+      <div id="salesByCampaign"></div>
     </section>
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>

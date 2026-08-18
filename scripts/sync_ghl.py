@@ -450,6 +450,28 @@ def aggregate_bookings_by_day(events: list[dict]) -> list[tuple[str, int]]:
     return sorted(counts.items())
 
 
+def aggregate_appointment_slots(events: list[dict]) -> list[tuple[str, int, int, int]]:
+    """(report_date, weekday, hour, count) - meeting day/weekday/hour in the
+    calendar's own local time (startTime carries its UTC offset), so the
+    calendar heatmap matches the business's real working hours. Counts
+    every event regardless of status (booked slot = booked slot, whether
+    it ended up cancelled or not) - only the slot and date are kept,
+    never the contact name/title."""
+    counts: dict[tuple[str, int, int], int] = {}
+    for event in events:
+        start_time = event.get("startTime")
+        if not start_time:
+            continue
+        try:
+            when = datetime.fromisoformat(start_time)
+        except ValueError:
+            continue
+        report_date = start_time[:10]
+        key = (report_date, when.weekday(), when.hour)
+        counts[key] = counts.get(key, 0) + 1
+    return [(report_date, weekday, hour, count) for (report_date, weekday, hour), count in counts.items()]
+
+
 def store_calendars(rows: list[tuple[str, str, int, int]]) -> None:
     with dashboard_app.db() as con:
         con.execute("DELETE FROM ghl_calendars")
@@ -476,6 +498,16 @@ def store_bookings_daily(rows: list[tuple[str, int]]) -> None:
         con.executemany(
             "INSERT INTO ghl_bookings_daily (report_date, count, synced_at) "
             "VALUES (?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
+def store_appointment_slots(rows: list[tuple[str, int, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_appointment_slots")
+        con.executemany(
+            "INSERT INTO ghl_appointment_slots (report_date, weekday, hour, count, synced_at) "
+            "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
             rows,
         )
 
@@ -546,10 +578,12 @@ def main() -> int:
     calendar_rows, active_events = discover_calendars_and_events(env, all_calendars)
     appointment_rows = aggregate_appointments(active_events)
     booking_rows = aggregate_bookings_by_day(active_events)
+    slot_rows = aggregate_appointment_slots(active_events)
 
     store_calendars(calendar_rows)
     store_appointments(appointment_rows)
     store_bookings_daily(booking_rows)
+    store_appointment_slots(slot_rows)
 
     statuses_by_contact = contact_status_map(active_events)
     campaign_funnel = aggregate_campaign_funnel(opportunities, stages, statuses_by_contact)
