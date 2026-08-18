@@ -2291,7 +2291,7 @@ async function initializeDateAnalysis(){
 let advancedConfig={
   goals:{target_cpl:45,total_budget:70000,target_registrations:1556,launch_start:"2026-01-01",launch_end:"2026-12-31"},
   monthly_goals:[],
-  thresholds:{spend_without_result_multiplier:1,high_cpl_percent:20,ctr_drop_percent:25,page_click_to_lpv_min:70,frequency_limit:3,no_result_days:3},
+  thresholds:{spend_without_result_multiplier:1,high_cpl_percent:20,ctr_drop_percent:25,page_click_to_lpv_min:70,frequency_limit:3,no_result_days:3,crm_meta_gap_percent:50,min_show_rate_percent:40},
   annotations:[]
 };
 let advancedState={dashboards:[],rows:[],creativeRows:[],alerts:[],quality:[]};
@@ -2451,8 +2451,43 @@ function buildAlerts(){
   if(!p.goalConfigured) alerts.push({severity:"warning",type:"Goal",title:`Monthly goal missing for ${p.monthLabel}`,detail:"Add the monthly budget, registration target and CPL target in the local admin.",entity:"Monthly goal"});
   if(p.projectedSpend&&p.targetBudget&&p.projectedSpend>p.targetBudget*1.05) alerts.push({severity:"warning",type:"Budget",title:"Projected spend is above the launch budget",detail:`Projection ${money(p.projectedSpend)} versus budget ${money(p.targetBudget)}.`,entity:"Budget"});
   if(p.projectedResults!=null&&p.targetRegistrations&&p.projectedResults<p.targetRegistrations*.95) alerts.push({severity:"critical",type:"Goal",title:"Projected registrations are below target",detail:`Projection ${number(p.projectedResults)} versus target ${number(p.targetRegistrations)}.`,entity:"Registrations"});
+
+  alerts.push(...buildFunnelAlerts());
+
   if(!alerts.length) alerts.push({severity:"good",type:"Account",title:"No critical management alerts for this period",detail:"The configured thresholds were not breached.",entity:"Account"});
   return alerts.sort((a,b)=>severityOrder(a.severity)-severityOrder(b.severity));
+}
+
+function buildFunnelAlerts(){
+  const alerts=[];
+  const ghl=dashboard?.ghl,crmGap=dashboard?.crm_gap;
+  const metaResults=safeNum(dashboard?.totals?.results);
+
+  if(crmGap?.available&&metaResults>0){
+    const gapPct=(crmGap.crm_leads-metaResults)*100/metaResults;
+    if(Math.abs(gapPct)>=configThreshold("crm_meta_gap_percent",50)){
+      alerts.push({severity:"warning",type:"Tracking",title:`CRM vs Meta lead count gap is ${gapPct>0?"+":""}${decimal(gapPct)}%`,detail:`CRM shows ${number(crmGap.crm_leads)} Facebook-ads leads versus ${number(metaResults)} reported by Meta - check for a pixel/CAPI outage before trusting Meta's registration count this period.`,entity:"CRM vs Meta"});
+    }
+  }
+
+  if(ghl?.available){
+    const statusCounts=ghl.appointments_by_status||[];
+    const showed=statusCounts.find(r=>r.status==="showed")?.count||0;
+    const cancelled=statusCounts.find(r=>r.status==="cancelled")?.count||0;
+    const noshow=statusCounts.find(r=>r.status==="noshow")?.count||0;
+    const outcomeTotal=showed+cancelled+noshow;
+    if(outcomeTotal>=5){
+      const showRate=showed*100/outcomeTotal;
+      if(showRate<configThreshold("min_show_rate_percent",40)){
+        alerts.push({severity:"warning",type:"Meetings",title:`Low show-up rate this period: ${decimal(showRate)}%`,detail:`${number(showed)} showed out of ${number(outcomeTotal)} meetings with a known outcome (${number(cancelled)} cancelled, ${number(noshow)} no-show).`,entity:"Meetings"});
+      }
+    }
+    const bookingsThisWeek=safeNum(ghl.bookings_total);
+    if(String(dashboard.current_week?.id)===String(weeks?.[0]?.id)&&bookingsThisWeek===0&&safeNum(ghl.leads_total)>=5){
+      alerts.push({severity:"critical",type:"Meetings",title:"No meetings booked this period",detail:`${number(ghl.leads_total)} new leads came in but zero of them booked a meeting - check whether the booking calendar has open slots (this is what happened Aug 13-15).`,entity:"Meetings"});
+    }
+  }
+  return alerts;
 }
 
 function alertHtml(alert){return `<div class="management-alert ${alert.severity}"><div class="alert-icon">${alert.severity==="critical"?"!":alert.severity==="warning"?"△":alert.severity==="good"?"✓":"i"}</div><div><div class="alert-heading"><strong>${alert.title}</strong><span>${severityLabel(alert.severity)} · ${alert.type}</span></div><p>${alert.detail}</p></div></div>`}
@@ -2536,7 +2571,34 @@ function buildQualityChecks(){
   const mainAds=ads.filter(ad=>(ad.page_key||"main")==="main").length;checks.push({status:mainAds?"info":"pass",title:"Conversion-page tagging",detail:mainAds?`${mainAds} ads are assigned to Main page because their names have no [LP-...] tag.`:"Every ad uses an [LP-...] page tag."});
   const quizRows=[...campaigns,...(dashboard.adsets||[]),...ads].filter(row=>/quiz/i.test(row.entity_name||""));checks.push({status:quizRows.length?"critical":"pass",title:"Campaign naming scope",detail:quizRows.length?`${quizRows.length} excluded-name rows were found. Reimport with v10.`:"No excluded campaign, ad-set or ad naming pattern is present."});
   checks.push({status:safeNum(dashboard.totals?.landing_page_views)>0?"pass":"warning",title:"Landing-page-view availability",detail:safeNum(dashboard.totals?.landing_page_views)>0?"LPV is available, so page conversion uses LPV → registration.":"LPV is unavailable; conversion uses link clicks as a proxy."});
+  checks.push(...buildFreshnessChecks());
   return checks;
+}
+
+function hoursSince(timestamp){
+  if(!timestamp)return null;
+  const parsed=new Date(String(timestamp).replace(" ","T")+(String(timestamp).endsWith("Z")?"":"Z"));
+  if(Number.isNaN(parsed.getTime()))return null;
+  return (Date.now()-parsed.getTime())/3_600_000;
+}
+
+function buildFreshnessChecks(){
+  const sources=[
+    ["CRM (leads/sales)",dashboard?.crm_gap?.last_synced_at,30,72],
+    ["Google Analytics (GA4)",dashboard?.site_traffic?.last_synced_at,30,72],
+    ["Search Console",dashboard?.search_console?.last_synced_at,30,72],
+    ["Google Ads",dashboard?.google_ads?.last_synced_at,30,72],
+    ["YouTube",dashboard?.youtube?.last_synced_at,30,72],
+    ["Instagram/Facebook (organic)",dashboard?.meta_organic?.last_synced_at,30,72],
+    ["GoHighLevel",dashboard?.ghl?.last_synced_at,30,72]
+  ];
+  return sources.filter(([,ts])=>ts!==undefined).map(([name,timestamp,warnHours,criticalHours])=>{
+    const hours=hoursSince(timestamp);
+    if(hours==null)return {status:"warning",title:`${name} sync status unknown`,detail:"No sync timestamp recorded yet - run the daily automation once to establish a baseline."};
+    const status=hours>criticalHours?"critical":hours>warnHours?"warning":"pass";
+    const ageLabel=hours<48?`${Math.round(hours)}h`:`${Math.round(hours/24)}d`;
+    return {status,title:`${name} last synced ${ageLabel} ago`,detail:status==="pass"?`Synced at ${timestamp} - within the expected daily refresh window.`:`Synced at ${timestamp} - expected within ${warnHours}h of the daily automation run. Check the sync logs if this doesn't self-resolve tomorrow.`};
+  });
 }
 
 function renderQuality(){

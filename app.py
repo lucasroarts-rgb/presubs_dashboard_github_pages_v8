@@ -40,6 +40,8 @@ DEFAULT_DASHBOARD_CONFIG: dict[str, Any] = {
         "page_click_to_lpv_min": 70.0,
         "frequency_limit": 3.0,
         "no_result_days": 3,
+        "crm_meta_gap_percent": 50.0,
+        "min_show_rate_percent": 40.0,
     },
     "annotations": [],
     "ghl_selected_stages": [],

@@ -253,30 +253,48 @@ SALE_CAMPAIGN_CODE_REGEXP = r"(^|[^a-z0-9])(cpl|l)[0-9]{2}([^0-9]|$)"
 def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
     """sales.sale_campaign holds the raw ad-campaign name, not a fixed
     product tag like leads.utm_campaign - a plain "%presubs%" match only
-    caught the old literal-named campaigns (nothing after 2026-07-16).
-    Every campaign since then uses the same L##/cpl## capture-page code
-    used throughout this dashboard (see CAMPAIGN_SOURCE_PATTERN in
-    sync_ghl.py), so that's matched too. sale_campaign is empty on ~63%
-    of Confirmed rows in the CRM itself (no attribution captured at
-    point of sale) - those are left out; there's no reliable signal to
-    classify them as PreSubs vs another course line from this table
-    alone."""
+    caught the old literal-named campaigns. Every campaign since then
+    uses the same L##/cpl## capture-page code used throughout this
+    dashboard (see CAMPAIGN_SOURCE_PATTERN in sync_ghl.py), so that's
+    matched too.
+
+    sale_campaign is blank on ~63% of Confirmed rows (no attribution
+    captured at the point of sale itself) - for those, fall back to the
+    matching lead's own utm_campaign, joined by email and picking each
+    email's earliest row that actually has a non-blank utm_campaign
+    (leads.email is not unique - a contact can have multiple capture-page
+    visits over time, so a naive join fans out and double-counts revenue;
+    this recovers ~53 of 130 previously-blank Confirmed sales / ~90 days,
+    the rest have no matching lead row with UTM data at all). The join
+    key (email) is only ever used inside this query, never selected or
+    stored - no PII leaves the CRM."""
     query = """
-        SELECT sale_date AS report_date,
+        SELECT s.sale_date AS report_date,
                COUNT(*) AS sale_count,
-               COALESCE(SUM(price_full), 0) AS revenue_full,
-               COALESCE(SUM(total_paid), 0) AS revenue_net
-        FROM sales
-        WHERE sale_date IS NOT NULL
-          AND sale_status = 'Confirmed'
+               COALESCE(SUM(s.price_full), 0) AS revenue_full,
+               COALESCE(SUM(s.total_paid), 0) AS revenue_net
+        FROM sales s
+        LEFT JOIN (
+            SELECT l1.email, l1.utm_campaign
+            FROM leads l1
+            JOIN (
+                SELECT email, MIN(data) AS first_date
+                FROM leads
+                WHERE utm_campaign IS NOT NULL AND utm_campaign <> ''
+                GROUP BY email
+            ) fl ON fl.email = l1.email AND fl.first_date = l1.data
+            GROUP BY l1.email
+        ) first_lead ON first_lead.email = s.email
+        WHERE s.sale_date IS NOT NULL
+          AND s.sale_status = 'Confirmed'
           AND (
-            LOWER(sale_campaign) LIKE %s
-            OR LOWER(sale_campaign) LIKE %s
-            OR LOWER(sale_campaign) LIKE %s
-            OR LOWER(sale_campaign) REGEXP %s
+            LOWER(COALESCE(NULLIF(s.sale_campaign, ''), first_lead.utm_campaign, '')) LIKE %s
+            OR LOWER(COALESCE(NULLIF(s.sale_campaign, ''), first_lead.utm_campaign, '')) LIKE %s
+            OR LOWER(COALESCE(NULLIF(s.sale_campaign, ''), first_lead.utm_campaign, '')) LIKE %s
+            OR LOWER(COALESCE(NULLIF(s.sale_campaign, ''), first_lead.utm_campaign, '')) REGEXP %s
           )
-        GROUP BY sale_date
-        ORDER BY sale_date
+        GROUP BY s.sale_date
+        ORDER BY s.sale_date
     """
     cursor = connection.cursor()
     cursor.execute(query, ["%presubs%", "%pre-subs%", "%pre subs%", SALE_CAMPAIGN_CODE_REGEXP])
