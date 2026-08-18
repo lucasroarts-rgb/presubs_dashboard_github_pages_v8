@@ -32,6 +32,7 @@ from scripts.sync_google_ads import main as sync_google_ads  # noqa: E402
 from scripts.sync_youtube import main as sync_youtube  # noqa: E402
 from scripts.sync_youtube_analytics import main as sync_youtube_analytics  # noqa: E402
 from scripts.sync_ghl import main as sync_ghl  # noqa: E402
+from scripts.sync_meta_organic import main as sync_meta_organic  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -350,6 +351,14 @@ def main() -> int:
             ghl_sync_status = f"skipped: {ghl_error}"
             print(f"WARNING: GoHighLevel sync skipped ({ghl_error})", file=sys.stderr)
 
+        print("Syncing Meta organic (Facebook/Instagram) growth...")
+        meta_organic_sync_status = "ok"
+        try:
+            sync_meta_organic()
+        except Exception as meta_organic_error:
+            meta_organic_sync_status = f"skipped: {meta_organic_error}"
+            print(f"WARNING: Meta organic sync skipped ({meta_organic_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -391,6 +400,7 @@ def main() -> int:
                     "youtube_sync": youtube_sync_status,
                     "youtube_analytics_sync": youtube_analytics_sync_status,
                     "ghl_sync": ghl_sync_status,
+                    "meta_organic_sync": meta_organic_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },

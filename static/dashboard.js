@@ -473,6 +473,18 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Videos":"Vidéos",
   "Total published":"Total publié",
   "No YouTube data synced for this period.":"Aucune donnée YouTube synchronisée pour cette période.",
+  "Followers":"Abonnés",
+  "Posts":"Publications",
+  "Page fans":"Fans de la page",
+  "Followers by day":"Abonnés par jour",
+  "Daily snapshot of the Instagram Business account, this period.":"Instantané quotidien du compte professionnel Instagram, cette période.",
+  "Page fans by day":"Fans de la page par jour",
+  "Daily snapshot of the Facebook Page, this period.":"Instantané quotidien de la page Facebook, cette période.",
+  "No Instagram/Facebook data synced for this period.":"Aucune donnée Instagram/Facebook synchronisée pour cette période.",
+  "No Instagram data synced for this period.":"Aucune donnée Instagram synchronisée pour cette période.",
+  "No Facebook data synced for this period.":"Aucune donnée Facebook synchronisée pour cette période.",
+  "Post-level engagement (likes/comments per post) needs the instagram_basic and instagram_manage_insights scopes, not yet granted on this token.":"L'engagement au niveau des publications (likes/commentaires) nécessite les permissions instagram_basic et instagram_manage_insights, pas encore accordées sur ce token.",
+  "Post-level engagement (reach/reactions per post) is blocked by Meta's deprecated Page Insights metric names - not available for this Page yet.":"L'engagement au niveau des publications (portée/réactions) est bloqué par des métriques Page Insights obsolètes chez Meta - pas encore disponible pour cette page.",
   "Views by country":"Vues par pays",
   "Last 90 days.":"90 derniers jours.",
   "Views by device":"Vues par appareil",
@@ -498,6 +510,23 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Campaign":"Campagne",
   "Booked":"Réservé",
   "Lead → Sale":"Lead → Vente",
+  "Revenue by campaign":"Revenus par campagne",
+  "Which Meta campaign / UTM actually sold, and how much. Built from each sale's stable first-touch attribution (not the funnel-stage source, which gets overwritten as a lead moves through the pipeline) - this is the real revenue breakdown, in €.":"Quelle campagne Meta / UTM a réellement vendu, et combien. Basé sur l'attribution stable au premier contact de chaque vente (pas la source d'étape du pipeline, qui est écrasée au fil du parcours du lead) - c'est la vraie répartition des revenus, en €.",
+  "Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. \"Sales\" here is a lead count, not revenue - see \"Revenue by campaign\" above for actual € by campaign.":"Quelle campagne de capture (même tag [L..] côté CRM) génère leads, rendez-vous, annulations, présences et ventes. « Ventes » ici est un nombre de leads, pas un revenu - voir « Revenus par campagne » ci-dessus pour les € réels par campagne.",
+  "UTM source":"Source UTM",
+  "UTM content":"Contenu UTM",
+  "Sales":"Ventes",
+  "Revenue":"Revenus",
+  "CAC":"CAC",
+  "Spend / sale":"Dépense / vente",
+  "ROAS":"ROAS",
+  "Revenue / spend":"Revenus / dépense",
+  "CPL":"CPL",
+  "Spend / lead":"Dépense / lead",
+  "Instagram":"Instagram",
+  "Facebook":"Facebook",
+  "Not connected yet - needs a token with instagram_basic and instagram_manage_insights scopes on the same Meta System User already used for Ads.":"Pas encore connecté - nécessite un token avec les scopes instagram_basic et instagram_manage_insights sur le même utilisateur système Meta déjà utilisé pour les Ads.",
+  "Not connected yet - needs a token with pages_read_engagement on the same Meta System User already used for Ads.":"Pas encore connecté - nécessite un token avec le scope pages_read_engagement sur le même utilisateur système Meta déjà utilisé pour les Ads.",
   "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads, rendez-vous et où ils se situent dans le pipeline.",
   "Active booking calendars":"Calendriers de réservation actifs",
   "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendriers avec au moins un rendez-vous ces 60 derniers jours. Les 50+ autres calendriers de ce compte (personnels, autres produits, inutilisés) sont exclus automatiquement.",
@@ -635,6 +664,18 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Videos":"Vídeos",
   "Total published":"Total publicado",
   "No YouTube data synced for this period.":"Nenhum dado do YouTube sincronizado para este período.",
+  "Followers":"Seguidores",
+  "Posts":"Publicações",
+  "Page fans":"Fãs da página",
+  "Followers by day":"Seguidores por dia",
+  "Daily snapshot of the Instagram Business account, this period.":"Instantâneo diário da conta profissional do Instagram, este período.",
+  "Page fans by day":"Fãs da página por dia",
+  "Daily snapshot of the Facebook Page, this period.":"Instantâneo diário da Página do Facebook, este período.",
+  "No Instagram/Facebook data synced for this period.":"Nenhum dado do Instagram/Facebook sincronizado para este período.",
+  "No Instagram data synced for this period.":"Nenhum dado do Instagram sincronizado para este período.",
+  "No Facebook data synced for this period.":"Nenhum dado do Facebook sincronizado para este período.",
+  "Post-level engagement (likes/comments per post) needs the instagram_basic and instagram_manage_insights scopes, not yet granted on this token.":"O engajamento por publicação (curtidas/comentários) precisa das permissões instagram_basic e instagram_manage_insights, ainda não concedidas nesse token.",
+  "Post-level engagement (reach/reactions per post) is blocked by Meta's deprecated Page Insights metric names - not available for this Page yet.":"O engajamento por publicação (alcance/reações) está bloqueado por métricas do Page Insights descontinuadas pela Meta - ainda não disponível para esta página.",
   "Views by country":"Visualizações por país",
   "Last 90 days.":"Últimos 90 dias.",
   "Views by device":"Visualizações por dispositivo",
@@ -660,6 +701,23 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Campaign":"Campanha",
   "Booked":"Agendado",
   "Lead → Sale":"Lead → Venda",
+  "Revenue by campaign":"Receita por campanha",
+  "Which Meta campaign / UTM actually sold, and how much. Built from each sale's stable first-touch attribution (not the funnel-stage source, which gets overwritten as a lead moves through the pipeline) - this is the real revenue breakdown, in €.":"Qual campanha Meta / UTM realmente vendeu, e quanto. Baseado na atribuição estável de primeiro contato de cada venda (não a fonte do estágio do funil, que é sobrescrita conforme o lead avança) - essa é a divisão real de receita, em €.",
+  "Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. \"Sales\" here is a lead count, not revenue - see \"Revenue by campaign\" above for actual € by campaign.":"Qual campanha de captação (mesma tag [L..] do lado do CRM) tá gerando leads, agendamentos, cancelamentos, comparecimentos e vendas. \"Vendas\" aqui é contagem de lead, não receita - vê \"Receita por campanha\" acima pros € reais por campanha.",
+  "UTM source":"Origem UTM",
+  "UTM content":"Conteúdo UTM",
+  "Sales":"Vendas",
+  "Revenue":"Receita",
+  "CAC":"CAC",
+  "Spend / sale":"Investimento / venda",
+  "ROAS":"ROAS",
+  "Revenue / spend":"Receita / investimento",
+  "CPL":"CPL",
+  "Spend / lead":"Investimento / lead",
+  "Instagram":"Instagram",
+  "Facebook":"Facebook",
+  "Not connected yet - needs a token with instagram_basic and instagram_manage_insights scopes on the same Meta System User already used for Ads.":"Ainda não conectado - precisa de um token com os escopos instagram_basic e instagram_manage_insights, no mesmo usuário do sistema Meta já usado pros Ads.",
+  "Not connected yet - needs a token with pages_read_engagement on the same Meta System User already used for Ads.":"Ainda não conectado - precisa de um token com o escopo pages_read_engagement, no mesmo usuário do sistema Meta já usado pros Ads.",
   "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Funil do PreSubs (Commercial Pipeline): novos leads, agendamentos e em que estágio do pipeline estão.",
   "Active booking calendars":"Calendários de agendamento ativos",
   "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendários com pelo menos um agendamento nos últimos 60 dias. Os outros 50+ calendários dessa conta (pessoais, outros produtos, sem uso) são descartados automaticamente.",
@@ -2729,6 +2787,15 @@ function renderGhl(){
     statusPanel.innerHTML=statuses.length?audienceBarList(statuses,row=>row.count,row=>escapeHtml(row.status)):empty;
   }
 
+  const salesAttribution=ghl.sales_attribution||[];
+  table("ghlSalesAttribution",[
+    {label:t("Campaign"),name:true,render:r=>escapeHtml(r.utm_campaign)},
+    {label:t("UTM source"),render:r=>escapeHtml(r.utm_source)},
+    {label:t("UTM content"),render:r=>escapeHtml(r.utm_content)},
+    {label:t("Sales"),numeric:true,render:r=>number(r.sale_count)},
+    {label:t("Revenue"),numeric:true,render:r=>money(r.revenue)}
+  ],salesAttribution,t("No GoHighLevel data synced for this period."));
+
   const campaignFunnel=ghl.campaign_funnel||[];
   table("ghlCampaignFunnel",[
     {label:t("Campaign"),name:true,render:r=>escapeHtml(r.campaign)},
@@ -2804,6 +2871,42 @@ function renderSocial(){
       {label:t("Comments"),numeric:true,render:r=>number(r.comments)}
     ],videos,t("No YouTube data synced for this period."));
   }
+
+  const mo=dashboard?.meta_organic;
+  const igKpis=document.getElementById("socialInstagramKpis");
+  const igTrend=document.getElementById("socialInstagramTrend");
+  const fbKpis=document.getElementById("socialFacebookKpis");
+  const fbTrend=document.getElementById("socialFacebookTrend");
+  const emptyMo=periodExtrasEmpty("No Instagram/Facebook data synced for this period.");
+  if(igKpis&&fbKpis){
+    if(!mo||!mo.available){
+      igKpis.innerHTML="";fbKpis.innerHTML="";
+      if(igTrend)igTrend.innerHTML=emptyMo;
+      if(fbTrend)fbTrend.innerHTML=emptyMo;
+    }else{
+      igKpis.innerHTML=[
+        [t("Followers"),number(mo.instagram_followers),mo.instagram_growth!=null?`${mo.instagram_growth>=0?"+":""}${number(mo.instagram_growth)} ${t("this period")}`:t("This period")],
+        [t("Posts"),number(mo.instagram_media_count),t("Total published")]
+      ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+      fbKpis.innerHTML=[
+        [t("Page fans"),number(mo.facebook_fan_count),mo.facebook_growth!=null?`${mo.facebook_growth>=0?"+":""}${number(mo.facebook_growth)} ${t("this period")}`:t("This period")]
+      ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+      const moDaily=[...(mo.daily||[])].reverse();
+      if(igTrend){
+        table("socialInstagramTrend",[
+          {label:t("Date"),name:true,render:r=>r.report_date},
+          {label:t("Followers"),numeric:true,render:r=>r.instagram_followers!=null?number(r.instagram_followers):"—"},
+          {label:t("Posts"),numeric:true,render:r=>r.instagram_media_count!=null?number(r.instagram_media_count):"—"}
+        ],moDaily,t("No Instagram data synced for this period."));
+      }
+      if(fbTrend){
+        table("socialFacebookTrend",[
+          {label:t("Date"),name:true,render:r=>r.report_date},
+          {label:t("Page fans"),numeric:true,render:r=>number(r.facebook_fan_count)}
+        ],moDaily,t("No Facebook data synced for this period."));
+      }
+    }
+  }
 }
 
 function renderFullFunnel(){
@@ -2826,13 +2929,16 @@ function renderFullFunnel(){
   }).join("");
   if(summaryEl){
     const rates=[
-      [t("Pageview → Lead"),funnel.pageview_to_lead],
-      [t("Lead → Booking"),funnel.lead_to_booking],
-      [t("Booking → Showed"),funnel.booking_to_showed],
-      [t("Showed → Sale"),funnel.showed_to_sale],
-      [t("Overall (Pageview → Sale)"),funnel.overall_conversion]
+      [t("Pageview → Lead"),funnel.pageview_to_lead!=null?funnel.pageview_to_lead+"%":"—",null],
+      [t("Lead → Booking"),funnel.lead_to_booking!=null?funnel.lead_to_booking+"%":"—",null],
+      [t("Booking → Showed"),funnel.booking_to_showed!=null?funnel.booking_to_showed+"%":"—",null],
+      [t("Showed → Sale"),funnel.showed_to_sale!=null?funnel.showed_to_sale+"%":"—",null],
+      [t("Overall (Pageview → Sale)"),funnel.overall_conversion!=null?funnel.overall_conversion+"%":"—",null],
+      [t("CAC"),money(funnel.cac),t("Spend / sale")],
+      [t("ROAS"),funnel.roas!=null?funnel.roas+"x":"—",t("Revenue / spend")],
+      [t("CPL"),money(funnel.cpl),t("Spend / lead")]
     ];
-    summaryEl.innerHTML=rates.map(([label,value])=>`<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value!=null?value+"%":"—"}</div></div></article>`).join("");
+    summaryEl.innerHTML=rates.map(([label,value,note])=>`<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div>${note?`<div class="kpi-note">${note}</div>`:""}</div></article>`).join("");
   }
 }
 

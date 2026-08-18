@@ -90,7 +90,107 @@ def extract_campaign(source: str | None) -> str | None:
     return f"L{match.group(1)}"
 
 
-SALE_STAGE_PATTERN = re.compile(r"sale|confirmed", re.IGNORECASE)
+SALE_STAGE_PATTERN = re.compile(r"sale", re.IGNORECASE)
+SALE_STAGE_EXCLUDE_PATTERN = re.compile(r"park|process|meeting", re.IGNORECASE)
+
+
+def is_sale_stage(name: str) -> bool:
+    """A stage counts as a closed sale only if its name contains "sale"
+    and isn't a mid-funnel holding stage ("...En Process", "Park...
+    (Meeting + Sales)"). The old bare "sale|confirmed" regex also matched
+    the generic "Confirmed" stage (appointment-confirmed, not a sale) and
+    two "Park" stages - together over 10k opportunities, turning the
+    per-contact attribution lookup into an hours-long sequential API
+    crawl. Revenue/CAC/ROAS on the dashboard still come from the CRM
+    MySQL sales table, not this heuristic - this only drives the
+    supplementary "revenue by campaign" breakdown."""
+    return bool(SALE_STAGE_PATTERN.search(name)) and not SALE_STAGE_EXCLUDE_PATTERN.search(name)
+
+
+def fetch_sale_opportunities(env: dict[str, str], stages: dict[str, str]) -> list[dict]:
+    """Every opportunity currently sitting in a "sale"-looking stage
+    (contains "sale" or "confirmed"), with its monetaryValue - not
+    windowed by LOOKBACK_DAYS, since a sale can close long after the lead
+    was created and we want the full current snapshot for revenue
+    attribution."""
+    import requests
+
+    headers = _headers(env)
+    sale_stage_ids = [stage_id for stage_id, name in stages.items() if is_sale_stage(name)]
+    results: list[dict] = []
+    for stage_id in sale_stage_ids:
+        params = {
+            "location_id": env["GHL_LOCATION_ID"],
+            "pipeline_id": env["GHL_PIPELINE_ID"],
+            "pipeline_stage_id": stage_id,
+            "limit": 100,
+        }
+        while True:
+            response = requests.get(f"{API_BASE}/opportunities/search", headers=headers, params=params, timeout=20)
+            payload = response.json()
+            if not response.ok:
+                raise GhlSyncError(f"GHL sale opportunities error ({response.status_code}): {payload}")
+            batch = payload.get("opportunities") or []
+            if not batch:
+                break
+            for opp in batch:
+                results.append({"contact_id": opp.get("contactId"), "monetary_value": opp.get("monetaryValue") or 0})
+            meta = payload.get("meta") or {}
+            start_after, start_after_id = meta.get("startAfter"), meta.get("startAfterId")
+            if not start_after or not start_after_id:
+                break
+            params["startAfter"] = start_after
+            params["startAfterId"] = start_after_id
+    return results
+
+
+def fetch_contact_attribution(env: dict[str, str], contact_id: str) -> dict[str, str | None]:
+    """The stable, first-touch UTM data for a contact - unlike
+    opportunity/contact "source" (last-touch, overwritten every time the
+    contact interacts with something new), attributionSource is set once
+    and never changes. Only utm_source/utm_campaign/utm_content are kept -
+    no name, email, phone or IP from the payload."""
+    import requests
+
+    response = requests.get(
+        f"{API_BASE}/contacts/{contact_id}", headers=_headers(env), timeout=20
+    )
+    payload = response.json()
+    if not response.ok:
+        return {"utm_source": None, "utm_campaign": None, "utm_content": None}
+    attribution = (payload.get("contact") or {}).get("attributionSource") or {}
+    return {
+        "utm_source": attribution.get("utmSource"),
+        "utm_campaign": attribution.get("campaign"),
+        "utm_content": attribution.get("utmContent"),
+    }
+
+
+def aggregate_sales_attribution(env: dict[str, str], sale_opportunities: list[dict]) -> list[tuple]:
+    """(utm_campaign, utm_source, utm_content, sale_count, revenue) - one
+    contacts/{id} call per opportunity currently in a sale-looking stage
+    (a few dozen, not the full lead volume) to get the stable first-touch
+    attribution."""
+    totals: dict[tuple[str, str, str], dict[str, float]] = {}
+    for opp in sale_opportunities:
+        contact_id = opp.get("contact_id")
+        if not contact_id:
+            continue
+        attribution = fetch_contact_attribution(env, contact_id)
+        campaign = attribution["utm_campaign"] or "(unknown)"
+        source = attribution["utm_source"] or "(unknown)"
+        content = attribution["utm_content"] or "(unknown)"
+        key = (campaign, source, content)
+        bucket = totals.setdefault(key, {"count": 0, "revenue": 0.0})
+        bucket["count"] += 1
+        bucket["revenue"] += float(opp.get("monetary_value") or 0)
+
+    return [
+        (campaign, source, content, int(data["count"]), data["revenue"])
+        for (campaign, source, content), data in sorted(
+            totals.items(), key=lambda item: item[1]["revenue"], reverse=True
+        )
+    ]
 
 
 def fetch_opportunities_in_window(env: dict[str, str]) -> list[dict]:
@@ -204,7 +304,7 @@ def aggregate_campaign_funnel(
                 bucket["showed"] += 1
 
         stage_name = stages.get(opp.get("pipeline_stage_id") or "", "")
-        if SALE_STAGE_PATTERN.search(stage_name):
+        if is_sale_stage(stage_name):
             bucket["sales"] += 1
 
     return [
@@ -365,6 +465,17 @@ def store_leads_daily(rows: list[tuple[str, int]]) -> None:
         )
 
 
+def store_sales_attribution(rows: list[tuple]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_sales_attribution")
+        con.executemany(
+            "INSERT INTO ghl_sales_attribution "
+            "(utm_campaign, utm_source, utm_content, sale_count, revenue, synced_at) "
+            "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
 def store_campaign_funnel(rows: list[tuple[str, int, int, int, int, int]]) -> None:
     with dashboard_app.db() as con:
         con.execute("DELETE FROM ghl_campaign_funnel")
@@ -413,13 +524,18 @@ def main() -> int:
     campaign_funnel = aggregate_campaign_funnel(opportunities, stages, statuses_by_contact)
     store_campaign_funnel(campaign_funnel)
 
+    sale_opportunities = fetch_sale_opportunities(env, stages)
+    sales_attribution = aggregate_sales_attribution(env, sale_opportunities)
+    store_sales_attribution(sales_attribution)
+
     active_count = sum(1 for row in calendar_rows if row[2])
     print(
         f"GoHighLevel sync complete: {len(leads_daily)} lead-days, "
         f"{len(stage_counts)} pipeline stages, "
         f"{active_count}/{len(calendar_rows)} active calendars, "
         f"{len(appointment_rows)} appointment status-day rows, "
-        f"{len(campaign_funnel)} campaigns tracked."
+        f"{len(campaign_funnel)} campaigns tracked, "
+        f"{len(sale_opportunities)} sales attributed."
     )
     return 0
 

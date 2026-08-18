@@ -783,33 +783,58 @@
 
     <section id="social" class="view">
       <div class="section-head" style="margin-top:6px"><div><h2>Social</h2><p>Organic growth and engagement across social channels - not paid ads.</p></div></div>
-      <div class="section-head" style="margin-top:6px"><div><h2>YouTube</h2><p>Peasy Anglais channel, public totals.</p></div></div>
-      <div id="socialYoutubeKpis" class="kpi-grid"></div>
-      <div class="audience-grid">
-        <article class="card panel">
-          <div class="section-head"><div><h2>Growth by day</h2><p>Subscribers and total views, this period.</p></div></div>
-          <div id="socialYoutubeTrend"></div>
+      <div class="subtab-bar">
+        <button class="subtab-btn active" data-subview="socialYoutube">YouTube</button>
+        <button class="subtab-btn" data-subview="socialInstagram">Instagram</button>
+        <button class="subtab-btn" data-subview="socialFacebook">Facebook</button>
+      </div>
+
+      <div id="socialYoutube" class="subview active">
+        <div id="socialYoutubeKpis" class="kpi-grid"></div>
+        <div class="audience-grid">
+          <article class="card panel">
+            <div class="section-head"><div><h2>Growth by day</h2><p>Subscribers and total views, this period.</p></div></div>
+            <div id="socialYoutubeTrend"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Views by country</h2><p>Last 90 days.</p></div></div>
+            <div id="socialYoutubeCountries"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Views by device</h2><p>Last 90 days.</p></div></div>
+            <div id="socialYoutubeDevices"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Gender</h2><p>Share of viewers, last 90 days.</p></div></div>
+            <div id="socialYoutubeGender"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Age</h2><p>Share of viewers, last 90 days.</p></div></div>
+            <div id="socialYoutubeAge"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Top videos</h2><p>By views, all-time.</p></div></div>
+            <div id="socialYoutubeTopVideos"></div>
+          </article>
+        </div>
+      </div>
+
+      <div id="socialInstagram" class="subview">
+        <div id="socialInstagramKpis" class="kpi-grid"></div>
+        <article class="card panel" style="margin-top:16px">
+          <div class="section-head"><div><h2>Followers by day</h2><p>Daily snapshot of the Instagram Business account, this period.</p></div></div>
+          <div id="socialInstagramTrend"></div>
         </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Views by country</h2><p>Last 90 days.</p></div></div>
-          <div id="socialYoutubeCountries"></div>
+        <p class="hint" style="margin-top:10px">Post-level engagement (likes/comments per post) needs the instagram_basic and instagram_manage_insights scopes, not yet granted on this token.</p>
+      </div>
+
+      <div id="socialFacebook" class="subview">
+        <div id="socialFacebookKpis" class="kpi-grid"></div>
+        <article class="card panel" style="margin-top:16px">
+          <div class="section-head"><div><h2>Page fans by day</h2><p>Daily snapshot of the Facebook Page, this period.</p></div></div>
+          <div id="socialFacebookTrend"></div>
         </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Views by device</h2><p>Last 90 days.</p></div></div>
-          <div id="socialYoutubeDevices"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Gender</h2><p>Share of viewers, last 90 days.</p></div></div>
-          <div id="socialYoutubeGender"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Age</h2><p>Share of viewers, last 90 days.</p></div></div>
-          <div id="socialYoutubeAge"></div>
-        </article>
-        <article class="card panel">
-          <div class="section-head"><div><h2>Top videos</h2><p>By views, all-time.</p></div></div>
-          <div id="socialYoutubeTopVideos"></div>
-        </article>
+        <p class="hint" style="margin-top:10px">Post-level engagement (reach/reactions per post) is blocked by Meta's deprecated Page Insights metric names - not available for this Page yet.</p>
       </div>
     </section>
 
@@ -839,7 +864,10 @@
         </article>
       </div>
 
-      <div class="section-head" style="margin-top:22px"><div><h2>Attribution by campaign</h2><p>Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. "Sales" is a heuristic based on the opportunity's current pipeline stage name (contains "sale" or "confirmed") - the CRM MySQL sales figure elsewhere in the dashboard is the trusted revenue source.</p></div></div>
+      <div class="section-head" style="margin-top:22px"><div><h2>Revenue by campaign</h2><p>Which Meta campaign / UTM actually sold, and how much. Built from each sale's stable first-touch attribution (not the funnel-stage source, which gets overwritten as a lead moves through the pipeline) - this is the real revenue breakdown, in €.</p></div></div>
+      <div id="ghlSalesAttribution"></div>
+
+      <div class="section-head" style="margin-top:22px"><div><h2>Attribution by campaign</h2><p>Which capture-page campaign (the same [L..] tag used on the CRM side) is producing leads, bookings, cancellations, show-ups and sales. "Sales" here is a lead count, not revenue - see "Revenue by campaign" above for actual € by campaign.</p></div></div>
       <div id="ghlCampaignFunnel"></div>
 
       <div class="section-head" style="margin-top:22px"><div><h2>Pipeline stages to show</h2><p>Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.</p></div></div>

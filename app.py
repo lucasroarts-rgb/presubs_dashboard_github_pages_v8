@@ -484,6 +484,16 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_sales_attribution (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        utm_campaign TEXT NOT NULL,
+        utm_source TEXT NOT NULL,
+        utm_content TEXT NOT NULL,
+        sale_count INTEGER NOT NULL DEFAULT 0,
+        revenue REAL NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS ghl_appointments_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -511,6 +521,16 @@ def init_db() -> None:
         comments INTEGER NOT NULL DEFAULT 0,
         watch_minutes INTEGER NOT NULL DEFAULT 0,
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS meta_organic_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        facebook_fan_count INTEGER NOT NULL DEFAULT 0,
+        instagram_followers INTEGER,
+        instagram_media_count INTEGER,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
     );
 
     CREATE TABLE IF NOT EXISTS search_console_daily (
@@ -2221,6 +2241,22 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         for row in campaign_rows
     ]
 
+    sales_rows = con.execute(
+        "SELECT utm_campaign, utm_source, utm_content, sale_count, revenue FROM ghl_sales_attribution "
+        "ORDER BY revenue DESC"
+    ).fetchall()
+    sales_attribution = [
+        {
+            "utm_campaign": row[0],
+            "utm_source": row[1],
+            "utm_content": row[2],
+            "sale_count": int(row[3] or 0),
+            "revenue": float(row[4] or 0),
+        }
+        for row in sales_rows
+    ]
+    sales_attribution_revenue_total = sum(row["revenue"] for row in sales_attribution)
+
     last_synced_row = con.execute("SELECT MAX(synced_at) FROM ghl_leads_daily").fetchone()
 
     return {
@@ -2234,6 +2270,8 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         "appointments_by_status_all_time": appointments_by_status_all_time,
         "appointments_daily": appointments_daily,
         "campaign_funnel": campaign_funnel,
+        "sales_attribution": sales_attribution,
+        "sales_attribution_revenue_total": sales_attribution_revenue_total,
         "last_synced_at": last_synced_row[0] if last_synced_row else None,
     }
 
@@ -2258,6 +2296,13 @@ def full_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str)
     pageviews = int(traffic.get("sessions") or 0)
     leads = int(ghl.get("leads_total") or 0)
     sales = int(crm_gap.get("sale_count") or 0)
+    revenue = float(crm_gap.get("revenue_full") or 0)
+
+    spend_row = con.execute(
+        "SELECT COALESCE(SUM(spend),0) FROM daily_ad_metrics WHERE report_date BETWEEN ? AND ?",
+        (start_date, end_date),
+    ).fetchone()
+    spend = float(spend_row[0] or 0)
 
     def rate(numerator: int, denominator: int) -> float | None:
         return round(numerator / denominator * 100, 2) if denominator else None
@@ -2280,6 +2325,58 @@ def full_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str)
         "booking_to_showed": rate(showed, booked),
         "showed_to_sale": rate(sales, showed),
         "overall_conversion": rate(sales, pageviews),
+        "spend": spend,
+        "revenue": revenue,
+        "cac": round(spend / sales, 2) if sales else None,
+        "roas": round(revenue / spend, 2) if spend else None,
+        "cpl": round(spend / leads, 2) if leads else None,
+    }
+
+
+def meta_organic_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Facebook Page + Instagram Business account growth, from daily
+    snapshots (same pattern as YouTube - the Graph API only exposes
+    current totals, no historical endpoint for these)."""
+    rows = con.execute(
+        "SELECT report_date, facebook_fan_count, instagram_followers, instagram_media_count "
+        "FROM meta_organic_daily WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily = [
+        {
+            "report_date": row[0],
+            "facebook_fan_count": int(row[1] or 0),
+            "instagram_followers": int(row[2]) if row[2] is not None else None,
+            "instagram_media_count": int(row[3]) if row[3] is not None else None,
+        }
+        for row in rows
+    ]
+    latest_row = con.execute(
+        "SELECT facebook_fan_count, instagram_followers, instagram_media_count, synced_at "
+        "FROM meta_organic_daily WHERE report_date <= ? ORDER BY report_date DESC LIMIT 1",
+        (end_date,),
+    ).fetchone()
+    if not latest_row:
+        return {
+            "available": False, "facebook_fan_count": 0, "instagram_followers": None,
+            "instagram_media_count": None, "facebook_growth": None, "instagram_growth": None,
+            "daily": [], "last_synced_at": None,
+        }
+
+    facebook_growth = (daily[-1]["facebook_fan_count"] - daily[0]["facebook_fan_count"]) if len(daily) >= 2 else None
+    instagram_growth = None
+    if len(daily) >= 2 and daily[-1]["instagram_followers"] is not None and daily[0]["instagram_followers"] is not None:
+        instagram_growth = daily[-1]["instagram_followers"] - daily[0]["instagram_followers"]
+
+    return {
+        "available": True,
+        "facebook_fan_count": int(latest_row[0] or 0),
+        "instagram_followers": int(latest_row[1]) if latest_row[1] is not None else None,
+        "instagram_media_count": int(latest_row[2]) if latest_row[2] is not None else None,
+        "facebook_growth": facebook_growth,
+        "instagram_growth": instagram_growth,
+        "daily": daily,
+        "last_synced_at": latest_row[3],
     }
 
 
@@ -2378,6 +2475,7 @@ def period_extras(start: str, end: str):
             "search_console": search_console_summary(con, start, end),
             "google_ads": google_ads_summary(con, start, end),
             "youtube": youtube_summary(con, start, end),
+            "meta_organic": meta_organic_summary(con, start, end),
             "ghl": ghl_summary(con, start, end),
             "full_funnel": full_funnel_summary(con, start, end),
         }
@@ -2420,6 +2518,7 @@ def dashboard(week_id: int | None = None):
                 "search_console": None,
                 "google_ads": None,
                 "youtube": None,
+                "meta_organic": None,
                 "ghl": None,
                 "full_funnel": None,
             }
@@ -2557,6 +2656,7 @@ def dashboard(week_id: int | None = None):
         search_console = search_console_summary(con, current["week_start"], current["week_end"])
         google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
         youtube = youtube_summary(con, current["week_start"], current["week_end"])
+        meta_organic = meta_organic_summary(con, current["week_start"], current["week_end"])
         ghl = ghl_summary(con, current["week_start"], current["week_end"])
         full_funnel = full_funnel_summary(con, current["week_start"], current["week_end"])
 
@@ -2586,6 +2686,7 @@ def dashboard(week_id: int | None = None):
         "search_console": search_console,
         "google_ads": google_ads,
         "youtube": youtube,
+        "meta_organic": meta_organic,
         "ghl": ghl,
         "full_funnel": full_funnel,
     }
