@@ -492,7 +492,35 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "This period, Commercial Pipeline":"Cette période, Commercial Pipeline",
   "Stage":"Étape",
   "Opportunities":"Opportunités",
-  "No GoHighLevel data synced for this period.":"Aucune donnée GoHighLevel synchronisée pour cette période."
+  "No GoHighLevel data synced for this period.":"Aucune donnée GoHighLevel synchronisée pour cette période.",
+  "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads, rendez-vous et où ils se situent dans le pipeline.",
+  "Active booking calendars":"Calendriers de réservation actifs",
+  "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendriers avec au moins un rendez-vous ces 60 derniers jours. Les 50+ autres calendriers de ce compte (personnels, autres produits, inutilisés) sont exclus automatiquement.",
+  "Appointments by status":"Rendez-vous par statut",
+  "Showed, no-show, cancelled, etc, last 60 days.":"Présent, absent, annulé, etc, 60 derniers jours.",
+  "Appointments booked":"Rendez-vous pris",
+  "Active calendars, last 60 days":"Calendriers actifs, 60 derniers jours",
+  "This period, active calendars":"Cette période, calendriers actifs",
+  "Pipeline stages to show":"Étapes du pipeline à afficher",
+  "Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.":"Choisissez les étapes pertinentes parmi les 31 - le tableau et la diapositive ci-dessous n'utilisent que celles cochées ici. Laissez tout coché pour tout afficher.",
+  "Save selection":"Enregistrer la sélection",
+  "Saving…":"Enregistrement…",
+  "Funnel":"Entonnoir",
+  "Full funnel":"Entonnoir complet",
+  "Pageview → Lead → Booking → Cancelled/No-show → Showed → Sale. Pageviews from GA4, leads/bookings/attendance from GoHighLevel, sales from the CRM's confirmed revenue.":"Page vue → Lead → Rendez-vous → Annulé/Absent → Présent → Vente. Pages vues depuis GA4, leads/rendez-vous/présence depuis GoHighLevel, ventes depuis les revenus confirmés du CRM.",
+  "Pageviews":"Pages vues",
+  "Leads":"Leads",
+  "Bookings":"Rendez-vous",
+  "Cancelled":"Annulé",
+  "No-show":"Absent",
+  "Showed":"Présent",
+  "Sales":"Ventes",
+  "Pageview → Lead":"Page vue → Lead",
+  "Lead → Booking":"Lead → Rendez-vous",
+  "Booking → Showed":"Rendez-vous → Présent",
+  "Showed → Sale":"Présent → Vente",
+  "Overall (Pageview → Sale)":"Global (Page vue → Vente)",
+  "No funnel data synced for this period.":"Aucune donnée d'entonnoir synchronisée pour cette période."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -610,7 +638,35 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "This period, Commercial Pipeline":"Este período, Commercial Pipeline",
   "Stage":"Estágio",
   "Opportunities":"Oportunidades",
-  "No GoHighLevel data synced for this period.":"Nenhum dado do GoHighLevel sincronizado para este período."
+  "No GoHighLevel data synced for this period.":"Nenhum dado do GoHighLevel sincronizado para este período.",
+  "PreSubs funnel (Commercial Pipeline): new leads, appointments and where they sit in the pipeline.":"Funil do PreSubs (Commercial Pipeline): novos leads, agendamentos e em que estágio do pipeline estão.",
+  "Active booking calendars":"Calendários de agendamento ativos",
+  "Calendars with at least one appointment in the last 60 days. The other 50+ calendars in this account (personal, other products, unused) are left out automatically.":"Calendários com pelo menos um agendamento nos últimos 60 dias. Os outros 50+ calendários dessa conta (pessoais, outros produtos, sem uso) são descartados automaticamente.",
+  "Appointments by status":"Agendamentos por status",
+  "Showed, no-show, cancelled, etc, last 60 days.":"Compareceu, não compareceu, cancelado, etc, últimos 60 dias.",
+  "Appointments booked":"Agendamentos marcados",
+  "Active calendars, last 60 days":"Calendários ativos, últimos 60 dias",
+  "This period, active calendars":"Este período, calendários ativos",
+  "Pipeline stages to show":"Estágios do pipeline pra mostrar",
+  "Pick which of the 31 stages matter for reporting - the table and slide below only use the ones checked here. Leave all checked to show everything.":"Escolha quais dos 31 estágios importam pro relatório - a tabela e o slide abaixo usam só os marcados aqui. Deixe tudo marcado pra mostrar tudo.",
+  "Save selection":"Salvar seleção",
+  "Saving…":"Salvando…",
+  "Funnel":"Funil",
+  "Full funnel":"Funil completo",
+  "Pageview → Lead → Booking → Cancelled/No-show → Showed → Sale. Pageviews from GA4, leads/bookings/attendance from GoHighLevel, sales from the CRM's confirmed revenue.":"Pageview → Lead → Agendamento → Cancelado/Não compareceu → Compareceu → Venda. Pageviews do GA4, leads/agendamentos/comparecimento do GoHighLevel, vendas da receita confirmada do CRM.",
+  "Pageviews":"Pageviews",
+  "Leads":"Leads",
+  "Bookings":"Agendamentos",
+  "Cancelled":"Cancelado",
+  "No-show":"Não compareceu",
+  "Showed":"Compareceu",
+  "Sales":"Vendas",
+  "Pageview → Lead":"Pageview → Lead",
+  "Lead → Booking":"Lead → Agendamento",
+  "Booking → Showed":"Agendamento → Compareceu",
+  "Showed → Sale":"Compareceu → Venda",
+  "Overall (Pageview → Sale)":"Geral (Pageview → Venda)",
+  "No funnel data synced for this period.":"Nenhum dado de funil sincronizado para este período."
 });
 
 const originalTextNodes=new WeakMap();
@@ -2566,20 +2622,52 @@ function renderGoogleAds(){
   );
 }
 
+async function saveGhlStageSelection(){
+  const checked=[...document.querySelectorAll(".ghl-stage-checkbox:checked")].map(el=>el.value);
+  const btn=document.getElementById("ghlStagePickerSave");
+  if(btn){btn.disabled=true;btn.textContent=t("Saving…")}
+  try{
+    await fetch("/api/ghl-stage-selection",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({stages:checked})});
+    await loadDashboard(document.getElementById("weekSelect").value);
+  }catch(error){
+    console.error("Dashboard render error in saveGhlStageSelection:",error);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=t("Save selection")}
+  }
+}
+
 function renderGhl(){
   const kpis=document.getElementById("ghlKpis");
   const stagesTable=document.getElementById("ghlStagesTable");
   const trendTable=document.getElementById("ghlLeadsTrend");
+  const picker=document.getElementById("ghlStagePicker");
+  const calendarsPanel=document.getElementById("ghlActiveCalendars");
+  const statusPanel=document.getElementById("ghlAppointmentStatus");
   if(!kpis||!stagesTable||!trendTable)return;
   const ghl=dashboard?.ghl;
   const empty=periodExtrasEmpty("No GoHighLevel data synced for this period.");
   if(!ghl||!ghl.available){
     kpis.innerHTML="";stagesTable.innerHTML=empty;trendTable.innerHTML=empty;
+    if(picker)picker.innerHTML=empty;
+    if(calendarsPanel)calendarsPanel.innerHTML=empty;
+    if(statusPanel)statusPanel.innerHTML=empty;
     return;
   }
-  kpis.innerHTML=`<article class="card kpi"><div class="kpi-label">${t("New leads")}</div><div><div class="kpi-value">${number(ghl.leads_total)}</div><div class="kpi-note">${t("This period, Commercial Pipeline")}</div></div></article>`;
+  const appointmentsTotal=(ghl.appointments_by_status||[]).reduce((sum,row)=>sum+safeNum(row.count),0);
+  kpis.innerHTML=[
+    [t("New leads"),number(ghl.leads_total),t("This period, Commercial Pipeline")],
+    [t("Appointments booked"),number(appointmentsTotal),t("This period, active calendars")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
 
-  const stages=[...(ghl.stages||[])].slice(0,15);
+  if(picker){
+    const allStages=ghl.all_stages||[];
+    const selectedNames=new Set((ghl.stages||[]).map(r=>r.stage_name));
+    const anySelected=selectedNames.size>0 && selectedNames.size<allStages.length;
+    picker.innerHTML=allStages.length?`<div class="ghl-stage-picker-list">${allStages.map(row=>`<label class="toggle-label"><input type="checkbox" class="ghl-stage-checkbox" value="${escapeHtml(row.stage_name)}" ${!anySelected||selectedNames.has(row.stage_name)?"checked":""}/> ${escapeHtml(row.stage_name)} <small>(${number(row.opportunity_count)})</small></label>`).join("")}</div><button class="btn btn-primary" id="ghlStagePickerSave" type="button">${t("Save selection")}</button>`:empty;
+    document.getElementById("ghlStagePickerSave")?.addEventListener("click",saveGhlStageSelection);
+  }
+
+  const stages=[...(ghl.stages||[])];
   table("ghlStagesTable",[
     {label:t("Stage"),name:true,render:r=>escapeHtml(r.stage_name)},
     {label:t("Opportunities"),numeric:true,render:r=>number(r.opportunity_count)}
@@ -2590,6 +2678,15 @@ function renderGhl(){
     {label:t("Date"),name:true,render:r=>r.report_date},
     {label:t("New leads"),numeric:true,render:r=>number(r.lead_count)}
   ],daily,t("No GoHighLevel data synced for this period."));
+
+  if(calendarsPanel){
+    const calendars=(ghl.active_calendars||[]).slice(0,20);
+    calendarsPanel.innerHTML=calendars.length?audienceBarList(calendars,row=>row.event_count,row=>escapeHtml(row.calendar_name)):empty;
+  }
+  if(statusPanel){
+    const statuses=ghl.appointments_by_status_all_time||[];
+    statusPanel.innerHTML=statuses.length?audienceBarList(statuses,row=>row.count,row=>escapeHtml(row.status)):empty;
+  }
 }
 
 function renderSocial(){
@@ -2630,6 +2727,36 @@ function renderSocial(){
   if(demoPanel){
     const demo=yt.demographics||[];
     demoPanel.innerHTML=demo.length?audienceBarList(demo,row=>row.viewer_percentage,row=>escapeHtml(`${row.age_group} · ${row.gender}`)):`<div class="empty">${t("No YouTube data synced for this period.")}</div>`;
+  }
+}
+
+function renderFullFunnel(){
+  const target=document.getElementById("fullFunnelSteps");
+  const summaryEl=document.getElementById("fullFunnelSummary");
+  if(!target)return;
+  const funnel=dashboard?.full_funnel;
+  const empty=periodExtrasEmpty("No funnel data synced for this period.");
+  if(!funnel||!funnel.available){
+    target.innerHTML=empty;
+    if(summaryEl)summaryEl.innerHTML="";
+    return;
+  }
+  const steps=funnel.steps||[];
+  const max=Math.max(1,...steps.map(s=>safeNum(s.value)));
+  target.innerHTML=steps.map(step=>{
+    const pct=Math.max(3,safeNum(step.value)/max*100);
+    const isNegative=step.key==="cancelled"||step.key==="noshow";
+    return `<div class="funnel-bar-row ${isNegative?"negative":""}"><span class="funnel-bar-label">${t(step.label)}</span><span class="funnel-bar-track"><span class="funnel-bar-fill" style="width:${pct}%"></span></span><strong>${number(step.value)}</strong></div>`;
+  }).join("");
+  if(summaryEl){
+    const rates=[
+      [t("Pageview → Lead"),funnel.pageview_to_lead],
+      [t("Lead → Booking"),funnel.lead_to_booking],
+      [t("Booking → Showed"),funnel.booking_to_showed],
+      [t("Showed → Sale"),funnel.showed_to_sale],
+      [t("Overall (Pageview → Sale)"),funnel.overall_conversion]
+    ];
+    summaryEl.innerHTML=rates.map(([label,value])=>`<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value!=null?value+"%":"—"}</div></div></article>`).join("");
   }
 }
 
@@ -3016,7 +3143,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

@@ -91,6 +91,14 @@
     .subtab-btn{border:1px solid var(--line);background:#fff;color:var(--muted);padding:9px 16px;border-radius:999px;font-weight:800;font-size:12.5px;cursor:pointer}
     .subtab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
     .subview{display:none}.subview.active{display:block}
+    .ghl-stage-picker-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 16px;margin-bottom:16px}
+    .ghl-stage-picker-list .toggle-label{font-size:12.5px}
+    .funnel-bar-row{display:grid;grid-template-columns:140px 1fr 70px;gap:12px;align-items:center;padding:10px 0}
+    .funnel-bar-label{font-weight:800;font-size:13px}
+    .funnel-bar-track{height:22px;background:var(--line,#ececf3);border-radius:6px;overflow:hidden}
+    .funnel-bar-fill{display:block;height:100%;background:var(--navy);border-radius:6px}
+    .funnel-bar-row.negative .funnel-bar-fill{background:var(--red,#c0392b)}
+    .funnel-bar-row strong{text-align:right;font-variant-numeric:tabular-nums}
     .kpi-grid{
       display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:14px;margin-bottom:18px
     }

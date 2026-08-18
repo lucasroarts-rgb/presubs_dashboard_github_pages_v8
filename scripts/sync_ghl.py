@@ -30,6 +30,7 @@ import app as dashboard_app  # noqa: E402
 from scripts.automate_meta import load_env_file  # noqa: E402
 
 LOOKBACK_DAYS = 90
+CALENDAR_LOOKBACK_DAYS = 60
 API_BASE = "https://services.leadconnectorhq.com"
 API_VERSION = "2021-07-28"
 
@@ -148,6 +149,99 @@ def fetch_stage_counts(env: dict[str, str], stages: dict[str, str]) -> list[tupl
     return rows
 
 
+def fetch_all_calendars(env: dict[str, str]) -> list[tuple[str, str]]:
+    import requests
+
+    response = requests.get(
+        f"{API_BASE}/calendars/",
+        headers=_headers(env),
+        params={"locationId": env["GHL_LOCATION_ID"]},
+        timeout=20,
+    )
+    payload = response.json()
+    if not response.ok:
+        raise GhlSyncError(f"GHL calendars error ({response.status_code}): {payload}")
+    return [(c["id"], c.get("name") or c["id"]) for c in payload.get("calendars") or []]
+
+
+def fetch_calendar_events(env: dict[str, str], calendar_id: str, start_ms: int, end_ms: int) -> list[dict]:
+    import requests
+
+    response = requests.get(
+        f"{API_BASE}/calendars/events",
+        headers=_headers(env),
+        params={
+            "locationId": env["GHL_LOCATION_ID"],
+            "calendarId": calendar_id,
+            "startTime": start_ms,
+            "endTime": end_ms,
+        },
+        timeout=20,
+    )
+    payload = response.json()
+    if not response.ok:
+        raise GhlSyncError(f"GHL calendar events error ({response.status_code}): {payload}")
+    return payload.get("events") or []
+
+
+def discover_calendars_and_events(
+    env: dict[str, str], calendars: list[tuple[str, str]]
+) -> tuple[list[tuple[str, str, int, int]], list[dict]]:
+    """One events call per calendar over the last CALENDAR_LOOKBACK_DAYS days.
+    Calendars with zero bookings in that window are marked inactive and
+    excluded from the appointment-status aggregation - most of this
+    location's 70+ calendars are personal/unused/other-product calendars,
+    not PreSubs booking calendars."""
+    now = datetime.now(timezone.utc)
+    start_ms = int((now - timedelta(days=CALENDAR_LOOKBACK_DAYS)).timestamp() * 1000)
+    end_ms = int(now.timestamp() * 1000)
+
+    calendar_rows: list[tuple[str, str, int, int]] = []
+    active_events: list[dict] = []
+    for calendar_id, calendar_name in calendars:
+        events = fetch_calendar_events(env, calendar_id, start_ms, end_ms)
+        is_active = 1 if events else 0
+        calendar_rows.append((calendar_id, calendar_name, is_active, len(events)))
+        if is_active:
+            active_events.extend(events)
+    return calendar_rows, active_events
+
+
+def aggregate_appointments(events: list[dict]) -> list[tuple[str, str, int]]:
+    """(report_date, appointment_status, count) - only the status and date
+    of each booking are kept, never the contact name/title in the event."""
+    counts: dict[tuple[str, str], int] = {}
+    for event in events:
+        start_time = event.get("startTime")
+        if not start_time:
+            continue
+        report_date = start_time[:10]
+        status = event.get("appointmentStatus") or "unknown"
+        key = (report_date, status)
+        counts[key] = counts.get(key, 0) + 1
+    return [(report_date, status, count) for (report_date, status), count in counts.items()]
+
+
+def store_calendars(rows: list[tuple[str, str, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_calendars")
+        con.executemany(
+            "INSERT INTO ghl_calendars (calendar_id, calendar_name, is_active, event_count, synced_at) "
+            "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
+def store_appointments(rows: list[tuple[str, str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_appointments_daily")
+        con.executemany(
+            "INSERT INTO ghl_appointments_daily (report_date, status, count, synced_at) "
+            "VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
 def store_leads_daily(rows: list[tuple[str, int]]) -> None:
     with dashboard_app.db() as con:
         con.executemany(
@@ -187,9 +281,19 @@ def main() -> int:
     store_leads_daily(leads_daily)
     store_stage_counts(stage_counts)
 
+    all_calendars = fetch_all_calendars(env)
+    calendar_rows, active_events = discover_calendars_and_events(env, all_calendars)
+    appointment_rows = aggregate_appointments(active_events)
+
+    store_calendars(calendar_rows)
+    store_appointments(appointment_rows)
+
+    active_count = sum(1 for row in calendar_rows if row[2])
     print(
         f"GoHighLevel sync complete: {len(leads_daily)} lead-days, "
-        f"{len(stage_counts)} pipeline stages."
+        f"{len(stage_counts)} pipeline stages, "
+        f"{active_count}/{len(calendar_rows)} active calendars, "
+        f"{len(appointment_rows)} appointment status-day rows."
     )
     return 0
 

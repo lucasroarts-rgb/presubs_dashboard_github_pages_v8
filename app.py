@@ -42,6 +42,7 @@ DEFAULT_DASHBOARD_CONFIG: dict[str, Any] = {
         "no_result_days": 3,
     },
     "annotations": [],
+    "ghl_selected_stages": [],
     "updated_at": None,
 }
 
@@ -77,6 +78,8 @@ def write_dashboard_config(payload: dict[str, Any]) -> dict[str, Any]:
         clean_payload["monthly_goals"] = payload["monthly_goals"]
     if isinstance(payload.get("annotations"), list):
         clean_payload["annotations"] = payload["annotations"]
+    if isinstance(payload.get("ghl_selected_stages"), list):
+        clean_payload["ghl_selected_stages"] = payload["ghl_selected_stages"]
     merged = _merge_config(current, clean_payload)
     merged["updated_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     DASHBOARD_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -461,6 +464,23 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_calendars (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        calendar_id TEXT NOT NULL,
+        calendar_name TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 0,
+        event_count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS ghl_appointments_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        status TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -825,6 +845,14 @@ def delete_monthly_goal(month: str):
         if str(item.get("month")) != month
     ]
     return write_dashboard_config({"monthly_goals": monthly_goals})
+
+
+@app.post("/api/ghl-stage-selection")
+def save_ghl_stage_selection(payload: dict[str, Any]):
+    stages = payload.get("stages")
+    if not isinstance(stages, list):
+        raise HTTPException(400, "stages must be a list.")
+    return write_dashboard_config({"ghl_selected_stages": [str(s) for s in stages]})
 
 
 @app.post("/api/annotations")
@@ -2078,16 +2106,97 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
     stage_rows = con.execute(
         "SELECT stage_name, opportunity_count FROM ghl_pipeline_stage ORDER BY opportunity_count DESC"
     ).fetchall()
-    stages = [{"stage_name": row[0], "opportunity_count": int(row[1] or 0)} for row in stage_rows]
+    all_stages = [{"stage_name": row[0], "opportunity_count": int(row[1] or 0)} for row in stage_rows]
+
+    selected = set(read_dashboard_config().get("ghl_selected_stages") or [])
+    stages = [row for row in all_stages if row["stage_name"] in selected] if selected else all_stages
+
+    calendar_rows = con.execute(
+        "SELECT calendar_name, event_count FROM ghl_calendars WHERE is_active = 1 ORDER BY event_count DESC"
+    ).fetchall()
+    active_calendars = [{"calendar_name": row[0], "event_count": int(row[1] or 0)} for row in calendar_rows]
+
+    appointment_rows = con.execute(
+        "SELECT status, SUM(count) FROM ghl_appointments_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY status ORDER BY SUM(count) DESC",
+        (start_date, end_date),
+    ).fetchall()
+    appointments_by_status = [{"status": row[0], "count": int(row[1] or 0)} for row in appointment_rows]
+
+    appointment_rows_all_time = con.execute(
+        "SELECT status, SUM(count) FROM ghl_appointments_daily GROUP BY status ORDER BY SUM(count) DESC"
+    ).fetchall()
+    appointments_by_status_all_time = [
+        {"status": row[0], "count": int(row[1] or 0)} for row in appointment_rows_all_time
+    ]
+
+    appointment_daily_rows = con.execute(
+        "SELECT report_date, SUM(count) FROM ghl_appointments_daily "
+        "WHERE report_date BETWEEN ? AND ? GROUP BY report_date ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    appointments_daily = [
+        {"report_date": row[0], "count": int(row[1] or 0)} for row in appointment_daily_rows
+    ]
 
     last_synced_row = con.execute("SELECT MAX(synced_at) FROM ghl_leads_daily").fetchone()
 
     return {
-        "available": bool(daily) or bool(stages),
+        "available": bool(daily) or bool(all_stages),
         "leads_total": leads_total,
         "daily": daily,
         "stages": stages,
+        "all_stages": all_stages,
+        "active_calendars": active_calendars,
+        "appointments_by_status": appointments_by_status,
+        "appointments_by_status_all_time": appointments_by_status_all_time,
+        "appointments_daily": appointments_daily,
         "last_synced_at": last_synced_row[0] if last_synced_row else None,
+    }
+
+
+def full_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Pageview -> Lead -> Booking -> Cancelled/No-show -> Showed -> Sale,
+    for the given range. Built entirely from summaries that already exist
+    (no metric computed twice): site_traffic_summary for pageviews,
+    ghl_summary for leads/bookings/attendance, crm_gap_summary for sales
+    (the MySQL CRM's confirmed-revenue sales, not a GHL pipeline stage
+    guess)."""
+    traffic = site_traffic_summary(con, start_date, end_date)
+    ghl = ghl_summary(con, start_date, end_date)
+    crm_gap = crm_gap_summary(con, start_date, end_date)
+
+    status_counts = {row["status"]: row["count"] for row in ghl.get("appointments_by_status") or []}
+    showed = int(status_counts.get("showed") or 0)
+    cancelled = int(status_counts.get("cancelled") or 0)
+    noshow = int(status_counts.get("noshow") or 0)
+    booked = sum(status_counts.values())
+
+    pageviews = int(traffic.get("sessions") or 0)
+    leads = int(ghl.get("leads_total") or 0)
+    sales = int(crm_gap.get("sale_count") or 0)
+
+    def rate(numerator: int, denominator: int) -> float | None:
+        return round(numerator / denominator * 100, 2) if denominator else None
+
+    steps = [
+        {"key": "pageview", "label": "Pageviews", "value": pageviews},
+        {"key": "lead", "label": "Leads", "value": leads},
+        {"key": "booking", "label": "Bookings", "value": booked},
+        {"key": "cancelled", "label": "Cancelled", "value": cancelled},
+        {"key": "noshow", "label": "No-show", "value": noshow},
+        {"key": "showed", "label": "Showed", "value": showed},
+        {"key": "sale", "label": "Sales", "value": sales},
+    ]
+
+    return {
+        "available": pageviews > 0 or leads > 0 or booked > 0 or sales > 0,
+        "steps": steps,
+        "pageview_to_lead": rate(leads, pageviews),
+        "lead_to_booking": rate(booked, leads),
+        "booking_to_showed": rate(showed, booked),
+        "showed_to_sale": rate(sales, showed),
+        "overall_conversion": rate(sales, pageviews),
     }
 
 
@@ -2187,6 +2296,7 @@ def period_extras(start: str, end: str):
             "google_ads": google_ads_summary(con, start, end),
             "youtube": youtube_summary(con, start, end),
             "ghl": ghl_summary(con, start, end),
+            "full_funnel": full_funnel_summary(con, start, end),
         }
 
 
@@ -2228,6 +2338,7 @@ def dashboard(week_id: int | None = None):
                 "google_ads": None,
                 "youtube": None,
                 "ghl": None,
+                "full_funnel": None,
             }
 
         previous = con.execute(
@@ -2364,6 +2475,7 @@ def dashboard(week_id: int | None = None):
         google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
         youtube = youtube_summary(con, current["week_start"], current["week_end"])
         ghl = ghl_summary(con, current["week_start"], current["week_end"])
+        full_funnel = full_funnel_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -2392,6 +2504,7 @@ def dashboard(week_id: int | None = None):
         "google_ads": google_ads,
         "youtube": youtube,
         "ghl": ghl,
+        "full_funnel": full_funnel,
     }
 
 
