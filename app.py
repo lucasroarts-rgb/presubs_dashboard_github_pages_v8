@@ -502,6 +502,14 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS ghl_bookings_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
     CREATE TABLE IF NOT EXISTS youtube_subscribers_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2225,6 +2233,14 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         {"report_date": row[0], "count": int(row[1] or 0)} for row in appointment_daily_rows
     ]
 
+    bookings_rows = con.execute(
+        "SELECT report_date, count FROM ghl_bookings_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    bookings_daily = [{"report_date": row[0], "count": int(row[1] or 0)} for row in bookings_rows]
+    bookings_total = sum(row["count"] for row in bookings_daily)
+
     campaign_rows = con.execute(
         "SELECT campaign, leads, booked, cancelled, showed, sales FROM ghl_campaign_funnel "
         "ORDER BY leads DESC"
@@ -2269,6 +2285,8 @@ def ghl_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict
         "appointments_by_status": appointments_by_status,
         "appointments_by_status_all_time": appointments_by_status_all_time,
         "appointments_daily": appointments_daily,
+        "bookings_daily": bookings_daily,
+        "bookings_total": bookings_total,
         "campaign_funnel": campaign_funnel,
         "sales_attribution": sales_attribution,
         "sales_attribution_revenue_total": sales_attribution_revenue_total,
@@ -2287,11 +2305,24 @@ def full_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str)
     ghl = ghl_summary(con, start_date, end_date)
     crm_gap = crm_gap_summary(con, start_date, end_date)
 
+    # Attendance (showed/cancelled/noshow) is only knowable on the day of
+    # the meeting itself, so the status breakdown - and the "Bookings" step
+    # shown in the funnel bar chart, which is the direct predecessor of
+    # those three in the visual funnel - are grouped by the event's
+    # startTime (meeting day). "Booked" used for the Lead -> Booking RATE
+    # is a separate, creation-day (dateAdded) count so it lines up with
+    # "Leads" (also creation-day based) instead of mixing a
+    # lead-creation-day count against a meeting-occurrence-day count -
+    # using it for Booking -> Showed too would just move the same
+    # cohort-mismatch problem down one step, since a booking's meeting
+    # date is usually days after the day it was booked.
     status_counts = {row["status"]: row["count"] for row in ghl.get("appointments_by_status") or []}
     showed = int(status_counts.get("showed") or 0)
     cancelled = int(status_counts.get("cancelled") or 0)
     noshow = int(status_counts.get("noshow") or 0)
-    booked = sum(status_counts.values())
+    booked_by_meeting_day = sum(status_counts.values())
+    booked_by_creation_day = int(ghl.get("bookings_total") or 0)
+    booked = booked_by_meeting_day
 
     pageviews = int(traffic.get("sessions") or 0)
     leads = int(ghl.get("leads_total") or 0)
@@ -2321,8 +2352,8 @@ def full_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str)
         "available": pageviews > 0 or leads > 0 or booked > 0 or sales > 0,
         "steps": steps,
         "pageview_to_lead": rate(leads, pageviews),
-        "lead_to_booking": rate(booked, leads),
-        "booking_to_showed": rate(showed, booked),
+        "lead_to_booking": rate(booked_by_creation_day, leads),
+        "booking_to_showed": rate(showed, booked_by_meeting_day),
         "showed_to_sale": rate(sales, showed),
         "overall_conversion": rate(sales, pageviews),
         "spend": spend,

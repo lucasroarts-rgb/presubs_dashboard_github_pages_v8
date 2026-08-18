@@ -840,10 +840,13 @@
 
     <section id="fullFunnel" class="view">
       <div class="section-head" style="margin-top:6px"><div><h2>Full funnel</h2><p>Pageview → Lead → Booking → Cancelled/No-show → Showed → Sale. Pageviews from GA4, leads/bookings/attendance from GoHighLevel, sales from the CRM's confirmed revenue.</p></div></div>
-      <div id="fullFunnelSummary" class="kpi-grid"></div>
-      <article class="card panel" style="margin-top:18px">
+      <article class="card panel">
         <div id="fullFunnelSteps"></div>
       </article>
+      <div class="section-head" style="margin-top:22px"><div><h3>Conversion rates</h3></div></div>
+      <div id="fullFunnelRates" class="kpi-grid kpi-grid-5"></div>
+      <div class="section-head" style="margin-top:22px"><div><h3>Unit economics</h3><p>Sales come from the CRM's "Confirmed" status, which typically lags 2-3 weeks behind the sale date - the most recent 1-2 weeks will often show €0 here until those sales clear validation.</p></div></div>
+      <div id="fullFunnelEconomics" class="kpi-grid kpi-grid-3"></div>
     </section>
 
     <section id="ghl" class="view">

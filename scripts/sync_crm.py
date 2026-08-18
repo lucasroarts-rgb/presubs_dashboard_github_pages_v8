@@ -247,7 +247,20 @@ def store_organic_breakdown(rows: list[tuple[str, str, str, int]]) -> None:
         )
 
 
+SALE_CAMPAIGN_CODE_REGEXP = r"(^|[^a-z0-9])(cpl|l)[0-9]{2}([^0-9]|$)"
+
+
 def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
+    """sales.sale_campaign holds the raw ad-campaign name, not a fixed
+    product tag like leads.utm_campaign - a plain "%presubs%" match only
+    caught the old literal-named campaigns (nothing after 2026-07-16).
+    Every campaign since then uses the same L##/cpl## capture-page code
+    used throughout this dashboard (see CAMPAIGN_SOURCE_PATTERN in
+    sync_ghl.py), so that's matched too. sale_campaign is empty on ~63%
+    of Confirmed rows in the CRM itself (no attribution captured at
+    point of sale) - those are left out; there's no reliable signal to
+    classify them as PreSubs vs another course line from this table
+    alone."""
     query = """
         SELECT sale_date AS report_date,
                COUNT(*) AS sale_count,
@@ -255,13 +268,18 @@ def fetch_sale_counts(connection) -> list[tuple[str, int, float, float]]:
                COALESCE(SUM(total_paid), 0) AS revenue_net
         FROM sales
         WHERE sale_date IS NOT NULL
-          AND LOWER(sale_campaign) LIKE '%presubs%'
           AND sale_status = 'Confirmed'
+          AND (
+            LOWER(sale_campaign) LIKE %s
+            OR LOWER(sale_campaign) LIKE %s
+            OR LOWER(sale_campaign) LIKE %s
+            OR LOWER(sale_campaign) REGEXP %s
+          )
         GROUP BY sale_date
         ORDER BY sale_date
     """
     cursor = connection.cursor()
-    cursor.execute(query)
+    cursor.execute(query, ["%presubs%", "%pre-subs%", "%pre subs%", SALE_CAMPAIGN_CODE_REGEXP])
     return [(str(row[0]), int(row[1]), float(row[2]), float(row[3])) for row in cursor.fetchall()]
 
 

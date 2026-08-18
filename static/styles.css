@@ -102,6 +102,8 @@
     .kpi-grid{
       display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:14px;margin-bottom:18px
     }
+    .kpi-grid-5{grid-template-columns:repeat(5,minmax(150px,1fr))}
+    .kpi-grid-3{grid-template-columns:repeat(3,minmax(150px,1fr))}
     .card{
       background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
       box-shadow:0 7px 24px rgba(34,28,71,.045)
@@ -214,7 +216,7 @@
     .name-cell{font-weight:800;max-width:310px}
     .creative-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;background:#eff0f4}
     .sub-cell{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:3px}
-    .numeric{text-align:right;font-variant-numeric:tabular-nums}
+    th.numeric,td.numeric{text-align:right;font-variant-numeric:tabular-nums}
     .empty{padding:50px;text-align:center;color:var(--muted)}
     .footer-note{color:var(--muted);font-size:12px;text-align:center;padding:24px}
     @media(max-width:1180px){

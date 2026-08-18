@@ -417,7 +417,9 @@ def discover_calendars_and_events(
 
 
 def aggregate_appointments(events: list[dict]) -> list[tuple[str, str, int]]:
-    """(report_date, appointment_status, count) - only the status and date
+    """(report_date, appointment_status, count) - grouped by the meeting's
+    own startTime day, since attendance (showed/cancelled/noshow) is only
+    knowable on the day of the meeting itself. Only the status and date
     of each booking are kept, never the contact name/title in the event."""
     counts: dict[tuple[str, str], int] = {}
     for event in events:
@@ -429,6 +431,23 @@ def aggregate_appointments(events: list[dict]) -> list[tuple[str, str, int]]:
         key = (report_date, status)
         counts[key] = counts.get(key, 0) + 1
     return [(report_date, status, count) for (report_date, status), count in counts.items()]
+
+
+def aggregate_bookings_by_day(events: list[dict]) -> list[tuple[str, int]]:
+    """(report_date, count) - grouped by dateAdded, the day the person
+    actually booked the meeting, not the day of the meeting itself
+    (startTime). This keeps "Bookings" on the same creation-day basis as
+    "Leads", so Lead -> Booking is a same-day-cohort rate instead of
+    mixing a lead-creation-day count against a meeting-occurrence-day
+    count (falls back to startTime if dateAdded is missing)."""
+    counts: dict[str, int] = {}
+    for event in events:
+        booked_at = event.get("dateAdded") or event.get("startTime")
+        if not booked_at:
+            continue
+        report_date = booked_at[:10]
+        counts[report_date] = counts.get(report_date, 0) + 1
+    return sorted(counts.items())
 
 
 def store_calendars(rows: list[tuple[str, str, int, int]]) -> None:
@@ -447,6 +466,16 @@ def store_appointments(rows: list[tuple[str, str, int]]) -> None:
         con.executemany(
             "INSERT INTO ghl_appointments_daily (report_date, status, count, synced_at) "
             "VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+            rows,
+        )
+
+
+def store_bookings_daily(rows: list[tuple[str, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM ghl_bookings_daily")
+        con.executemany(
+            "INSERT INTO ghl_bookings_daily (report_date, count, synced_at) "
+            "VALUES (?, ?, CURRENT_TIMESTAMP)",
             rows,
         )
 
@@ -516,9 +545,11 @@ def main() -> int:
     all_calendars = fetch_all_calendars(env)
     calendar_rows, active_events = discover_calendars_and_events(env, all_calendars)
     appointment_rows = aggregate_appointments(active_events)
+    booking_rows = aggregate_bookings_by_day(active_events)
 
     store_calendars(calendar_rows)
     store_appointments(appointment_rows)
+    store_bookings_daily(booking_rows)
 
     statuses_by_contact = contact_status_map(active_events)
     campaign_funnel = aggregate_campaign_funnel(opportunities, stages, statuses_by_contact)

@@ -479,6 +479,10 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Followers":"Abonnés",
   "Posts":"Publications",
   "Page fans":"Fans de la page",
+  "Conversion rates":"Taux de conversion",
+  "Unit economics":"Économie unitaire",
+  "Same booking-day cohort as Leads":"Même cohorte (jour de réservation) que les leads",
+  "Showed uses the meeting day":"« Présenté » utilise le jour du rendez-vous",
   "Followers by day":"Abonnés par jour",
   "Daily snapshot of the Instagram Business account, this period.":"Instantané quotidien du compte professionnel Instagram, cette période.",
   "Page fans by day":"Fans de la page par jour",
@@ -526,6 +530,7 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Revenue / spend":"Revenus / dépense",
   "CPL":"CPL",
   "Spend / lead":"Dépense / lead",
+  "Sales come from the CRM's \"Confirmed\" status, which typically lags 2-3 weeks behind the sale date - the most recent 1-2 weeks will often show €0 here until those sales clear validation.":"Les ventes proviennent du statut « Confirmed » du CRM, qui accuse généralement 2 à 3 semaines de retard sur la date de vente - les 1-2 dernières semaines afficheront souvent 0 € ici tant que ces ventes n'ont pas passé la validation.",
   "Instagram":"Instagram",
   "Facebook":"Facebook",
   "Not connected yet - needs a token with instagram_basic and instagram_manage_insights scopes on the same Meta System User already used for Ads.":"Pas encore connecté - nécessite un token avec les scopes instagram_basic et instagram_manage_insights sur le même utilisateur système Meta déjà utilisé pour les Ads.",
@@ -670,6 +675,10 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Followers":"Seguidores",
   "Posts":"Publicações",
   "Page fans":"Fãs da página",
+  "Conversion rates":"Taxas de conversão",
+  "Unit economics":"Economia unitária",
+  "Same booking-day cohort as Leads":"Mesma coorte (dia do agendamento) que os leads",
+  "Showed uses the meeting day":"\"Compareceu\" usa o dia da reunião",
   "Followers by day":"Seguidores por dia",
   "Daily snapshot of the Instagram Business account, this period.":"Instantâneo diário da conta profissional do Instagram, este período.",
   "Page fans by day":"Fãs da página por dia",
@@ -717,6 +726,7 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Revenue / spend":"Receita / investimento",
   "CPL":"CPL",
   "Spend / lead":"Investimento / lead",
+  "Sales come from the CRM's \"Confirmed\" status, which typically lags 2-3 weeks behind the sale date - the most recent 1-2 weeks will often show €0 here until those sales clear validation.":"As vendas vêm do status \"Confirmed\" do CRM, que normalmente atrasa de 2 a 3 semanas em relação à data da venda - as últimas 1-2 semanas costumam mostrar €0 aqui até essas vendas passarem pela validação.",
   "Instagram":"Instagram",
   "Facebook":"Facebook",
   "Not connected yet - needs a token with instagram_basic and instagram_manage_insights scopes on the same Meta System User already used for Ads.":"Ainda não conectado - precisa de um token com os escopos instagram_basic e instagram_manage_insights, no mesmo usuário do sistema Meta já usado pros Ads.",
@@ -951,7 +961,7 @@ async function loadWeeks(){
 
 
 function table(container,columns,rows,emptyMessage="No data for this period."){
-  document.getElementById(container).innerHTML=`<div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${c.label}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${columns.map(c=>`<td class="${c.numeric?"numeric":""} ${c.name?"name-cell":""}">${c.render?c.render(row):(row[c.key]??"—")}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${columns.length}" class="empty">${emptyMessage}</td></tr>`}</tbody></table></div>`;
+  document.getElementById(container).innerHTML=`<div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th class="${c.numeric?"numeric":""} ${c.name?"name-cell":""}">${c.label}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${columns.map(c=>`<td class="${c.numeric?"numeric":""} ${c.name?"name-cell":""}">${c.render?c.render(row):(row[c.key]??"—")}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${columns.length}" class="empty">${emptyMessage}</td></tr>`}</tbody></table></div>`;
 }
 
 async function editPreview(ad){
@@ -2527,7 +2537,8 @@ function audienceBarList(rows,valueFn,labelFn,noteFn){
   const max=Math.max(...rows.map(valueFn))||1;
   return `<div class="audience-bar-list">${rows.map(row=>{
     const value=valueFn(row),pct=Math.max(4,value/max*100);
-    return `<div class="audit-hbar-row"><span class="audit-hbar-label">${labelFn(row)}${noteFn?`<br><small class="footnote">${noteFn(row)}</small>`:""}</span><span class="audit-hbar-track"><span class="blue" style="width:${pct}%"></span></span><strong>${number(value)}</strong></div>`;
+    const tip=`${labelFn(row)}: ${number(value)}`;
+    return `<div class="audit-hbar-row" title="${escapeHtml(tip)}"><span class="audit-hbar-label">${labelFn(row)}${noteFn?`<br><small class="footnote">${noteFn(row)}</small>`:""}</span><span class="audit-hbar-track"><span class="blue" style="width:${pct}%"></span></span><strong>${number(value)}</strong></div>`;
   }).join("")}</div>`;
 }
 
@@ -2576,8 +2587,12 @@ function genericDonutHtml(rows,valueFn,labelFn){
   const total=Math.max(1,rows.reduce((sum,row)=>sum+safeNum(valueFn(row)),0));
   let cursor=0;const stops=[];
   rows.forEach((row,i)=>{const start=cursor/total*360;cursor+=safeNum(valueFn(row));const end=cursor/total*360;stops.push(`${GENERIC_DONUT_PALETTE[i%GENERIC_DONUT_PALETTE.length]} ${start}deg ${end}deg`)});
-  const legend=rows.map((row,i)=>`<span><i style="background:${GENERIC_DONUT_PALETTE[i%GENERIC_DONUT_PALETTE.length]}"></i>${labelFn(row)}<strong>${number(valueFn(row))}</strong></span>`).join("");
-  return `<div class="audit-donut-wrap"><div class="audit-css-donut" style="background:conic-gradient(${stops.join(",")})"><div><strong>${number(total)}</strong><span>${t("Total")}</span></div></div></div><div class="audit-donut-legend">${legend}</div>`;
+  const donutTip=rows.map(row=>`${labelFn(row)}: ${number(valueFn(row))} (${percent(safeNum(valueFn(row))/total*100)})`).join("\n");
+  const legend=rows.map((row,i)=>{
+    const value=valueFn(row);
+    return `<span title="${escapeHtml(`${labelFn(row)}: ${number(value)} (${percent(value/total*100)})`)}"><i style="background:${GENERIC_DONUT_PALETTE[i%GENERIC_DONUT_PALETTE.length]}"></i>${labelFn(row)}<strong>${number(value)}</strong></span>`;
+  }).join("");
+  return `<div class="audit-donut-wrap"><div class="audit-css-donut" title="${escapeHtml(donutTip)}" style="background:conic-gradient(${stops.join(",")})"><div><strong>${number(total)}</strong><span>${t("Total")}</span></div></div></div><div class="audit-donut-legend">${legend}</div>`;
 }
 
 function periodExtrasEmpty(defaultMessage){
@@ -2927,13 +2942,15 @@ function renderSocial(){
 
 function renderFullFunnel(){
   const target=document.getElementById("fullFunnelSteps");
-  const summaryEl=document.getElementById("fullFunnelSummary");
+  const ratesEl=document.getElementById("fullFunnelRates");
+  const economicsEl=document.getElementById("fullFunnelEconomics");
   if(!target)return;
   const funnel=dashboard?.full_funnel;
   const empty=periodExtrasEmpty("No funnel data synced for this period.");
   if(!funnel||!funnel.available){
     target.innerHTML=empty;
-    if(summaryEl)summaryEl.innerHTML="";
+    if(ratesEl)ratesEl.innerHTML="";
+    if(economicsEl)economicsEl.innerHTML="";
     return;
   }
   const steps=funnel.steps||[];
@@ -2941,20 +2958,26 @@ function renderFullFunnel(){
   target.innerHTML=steps.map(step=>{
     const pct=Math.max(3,safeNum(step.value)/max*100);
     const isNegative=step.key==="cancelled"||step.key==="noshow";
-    return `<div class="funnel-bar-row ${isNegative?"negative":""}"><span class="funnel-bar-label">${t(step.label)}</span><span class="funnel-bar-track"><span class="funnel-bar-fill" style="width:${pct}%"></span></span><strong>${number(step.value)}</strong></div>`;
+    return `<div class="funnel-bar-row ${isNegative?"negative":""}" title="${escapeHtml(`${t(step.label)}: ${number(step.value)}`)}"><span class="funnel-bar-label">${t(step.label)}</span><span class="funnel-bar-track"><span class="funnel-bar-fill" style="width:${pct}%"></span></span><strong>${number(step.value)}</strong></div>`;
   }).join("");
-  if(summaryEl){
+  const kpiCard=([label,value,note])=>`<article class="card kpi" title="${escapeHtml(`${label}${note?" — "+note:""}: ${value}`)}"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div>${note?`<div class="kpi-note">${note}</div>`:""}</div></article>`;
+  if(ratesEl){
     const rates=[
       [t("Pageview → Lead"),funnel.pageview_to_lead!=null?funnel.pageview_to_lead+"%":"—",null],
-      [t("Lead → Booking"),funnel.lead_to_booking!=null?funnel.lead_to_booking+"%":"—",null],
-      [t("Booking → Showed"),funnel.booking_to_showed!=null?funnel.booking_to_showed+"%":"—",null],
+      [t("Lead → Booking"),funnel.lead_to_booking!=null?funnel.lead_to_booking+"%":"—",t("Same booking-day cohort as Leads")],
+      [t("Booking → Showed"),funnel.booking_to_showed!=null?funnel.booking_to_showed+"%":"—",t("Showed uses the meeting day")],
       [t("Showed → Sale"),funnel.showed_to_sale!=null?funnel.showed_to_sale+"%":"—",null],
-      [t("Overall (Pageview → Sale)"),funnel.overall_conversion!=null?funnel.overall_conversion+"%":"—",null],
+      [t("Overall (Pageview → Sale)"),funnel.overall_conversion!=null?funnel.overall_conversion+"%":"—",null]
+    ];
+    ratesEl.innerHTML=rates.map(kpiCard).join("");
+  }
+  if(economicsEl){
+    const economics=[
       [t("CAC"),money(funnel.cac),t("Spend / sale")],
       [t("ROAS"),funnel.roas!=null?funnel.roas+"x":"—",t("Revenue / spend")],
       [t("CPL"),money(funnel.cpl),t("Spend / lead")]
     ];
-    summaryEl.innerHTML=rates.map(([label,value,note])=>`<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div>${note?`<div class="kpi-note">${note}</div>`:""}</div></article>`).join("");
+    economicsEl.innerHTML=economics.map(kpiCard).join("");
   }
 }
 
