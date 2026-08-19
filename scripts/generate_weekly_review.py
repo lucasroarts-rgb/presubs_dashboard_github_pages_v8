@@ -268,6 +268,28 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     action_items = action_items[:5]
 
     pacing = monthly_pacing(date.fromisoformat(current["week_end"]))
+    pacing_section = (
+        f'''
+  <section class="slide" data-index="14">
+    <p class="eyebrow">Pacing</p>
+    <h2 class="slide-title">Monthly goal pacing</h2>
+    <p class="slide-sub">{escape(pacing["month_label"])}: budget and registrations, actual vs projected month end.</p>
+    <div class="slide-body">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="label">Spend so far</div><div class="value">{money(pacing["spend"])}</div><div class="note">Goal {money(pacing["target_budget"])}{f" · {pct(pacing['budget_progress'])}" if pacing["budget_progress"] is not None else ""}</div></div>
+        <div class="kpi-card"><div class="label">Registrations so far</div><div class="value">{number(pacing["results"])}</div><div class="note">Goal {number(pacing["target_registrations"])}{f" · {pct(pacing['registration_progress'])}" if pacing["registration_progress"] is not None else ""}</div></div>
+        <div class="kpi-card"><div class="label">Projected month-end spend</div><div class="value">{money(pacing["projected_spend"])}</div><div class="note">{f"{'Over' if pacing['budget_variance'] and pacing['budget_variance'] >= 0 else 'Under'} budget by {money(abs(pacing['budget_variance']))}" if pacing["budget_variance"] is not None else "No budget goal set"}</div></div>
+        <div class="kpi-card"><div class="label">Projected month-end registrations</div><div class="value">{number(pacing["projected_results"])}</div><div class="note">{f"{'Above' if pacing['registration_variance'] and pacing['registration_variance'] >= 0 else 'Below'} target by {number(abs(pacing['registration_variance']))}" if pacing["registration_variance"] is not None else "No registration goal set"}</div></div>
+      </div>
+    </div>
+  </section>
+'''
+        if pacing
+        # No monthly goal configured - skip the slide entirely instead of
+        # showing an empty "No monthly goal configured" card (looked like
+        # a broken/blank slide in the deck).
+        else ""
+    )
 
     ads = [a for a in data.get("ads", []) if float(a.get("results") or 0) > 0]
     ads = sorted(ads, key=lambda a: float(a.get("results") or 0), reverse=True)[:4]
@@ -699,20 +721,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="14">
-    <p class="eyebrow">Pacing</p>
-    <h2 class="slide-title">Monthly goal pacing</h2>
-    <p class="slide-sub">{escape(pacing["month_label"]) + ": budget and registrations, actual vs projected month end." if pacing else "No monthly goal configured for this month."}</p>
-    <div class="slide-body">
-      {f'''<div class="kpi-grid">
-        <div class="kpi-card"><div class="label">Spend so far</div><div class="value">{money(pacing["spend"])}</div><div class="note">Goal {money(pacing["target_budget"])}{f" · {pct(pacing['budget_progress'])}" if pacing["budget_progress"] is not None else ""}</div></div>
-        <div class="kpi-card"><div class="label">Registrations so far</div><div class="value">{number(pacing["results"])}</div><div class="note">Goal {number(pacing["target_registrations"])}{f" · {pct(pacing['registration_progress'])}" if pacing["registration_progress"] is not None else ""}</div></div>
-        <div class="kpi-card"><div class="label">Projected month-end spend</div><div class="value">{money(pacing["projected_spend"])}</div><div class="note">{f"{'Over' if pacing['budget_variance'] and pacing['budget_variance']>=0 else 'Under'} budget by {money(abs(pacing['budget_variance']))}" if pacing["budget_variance"] is not None else "No budget goal set"}</div></div>
-        <div class="kpi-card"><div class="label">Projected month-end registrations</div><div class="value">{number(pacing["projected_results"])}</div><div class="note">{f"{'Above' if pacing['registration_variance'] and pacing['registration_variance']>=0 else 'Below'} target by {number(abs(pacing['registration_variance']))}" if pacing["registration_variance"] is not None else "No registration goal set"}</div></div>
-      </div>''' if pacing else '<p class="empty-note">Add the monthly budget, registration target and CPL target in the local admin to see pacing here.</p>'}
-    </div>
-  </section>
-
+  {pacing_section}
   <section class="slide" data-index="15">
     <p class="eyebrow">Timeline</p>
     <h2 class="slide-title">Recent account changes</h2>
