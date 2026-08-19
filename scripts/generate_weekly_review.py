@@ -508,24 +508,6 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
     </div>
   </section>
 
-  <section class="slide" data-index="2">
-    <p class="eyebrow">Findings</p>
-    <h2 class="slide-title">What needs attention this week</h2>
-    <p class="slide-sub">{escape(current["label"])}. {number(len(findings))} finding{"s" if len(findings) != 1 else ""} from wasted spend, CPL and page conversion.</p>
-    <div class="slide-body">
-      {f'<div class="finding-grid">' + "".join(f'<div class="finding-card"><div class="finding-type">{escape(row["type"])}</div><h4>{escape(row["title"])}</h4><p>{escape(row["action"])}</p></div>' for row in findings) + '</div>' if findings else '<p class="empty-note">No findings for this period - account signals are within thresholds.</p>'}
-    </div>
-  </section>
-
-  <section class="slide" data-index="3">
-    <p class="eyebrow">Findings</p>
-    <h2 class="slide-title">Action plan</h2>
-    <p class="slide-sub">Priority order, drawn directly from this week's findings.</p>
-    <div class="slide-body">
-      {f'<ol class="action-list">' + "".join(f'<li><span>{i}</span><div>{escape(action)}</div></li>' for i, action in enumerate(action_items, start=1)) + '</ol>' if action_items else '<p class="empty-note">No action items for this period.</p>'}
-    </div>
-  </section>
-
   <section class="slide" data-index="4">
     <p class="eyebrow">Overview</p>
     <h2 class="slide-title">Where every lead came from</h2>
@@ -588,7 +570,6 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
   <section class="slide" data-index="7">
     <p class="eyebrow">Landing page</p>
     <h2 class="slide-title">Page conversion, this week vs last</h2>
-    <p class="slide-sub">Correlation with the timeline on the next slide, not an isolated cause.</p>
     <div class="slide-body">
       <div class="stat-compare">
         <div class="sc-card">
