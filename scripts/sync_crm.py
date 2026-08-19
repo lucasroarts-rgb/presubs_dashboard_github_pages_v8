@@ -36,6 +36,9 @@ CHANNEL_LABELS = {
     "facebook": "Facebook (organic)",
     "email": "Email",
     "whatsapp": "WhatsApp",
+    "messenger": "Messenger",
+    "fb": "Facebook Ads",
+    "ig": "Instagram",
     "redirect": "Direct/Redirect",
     "visit": "Direct/Other",
 }
@@ -180,9 +183,23 @@ def fetch_organic_foreign_by_channel(connection) -> list[tuple[str, str, int]]:
 
 
 def fetch_channel_counts(connection) -> list[tuple[str, str, int]]:
+    """Source is blank or a generic "visit"/"redirect" value on a lot of
+    rows (booking-widget page views that don't carry a channel forward) -
+    on those, fall back to the utm_source query param embedded in the raw
+    url field, which still has the real channel (facebook-ads, adwords,
+    etc) on about half of the otherwise-generic rows. Verified against
+    live data: this moved ~120 of ~260 previously "Direct/Redirect" /
+    "Direct/Other" leads (90 days) into their real channel."""
     campaign_clause = " OR ".join(["LOWER(utm_campaign) LIKE %s"] * len(PRESUBS_CAMPAIGN_PATTERNS))
     query = f"""
-        SELECT data AS report_date, COALESCE(Source,'') AS source,
+        SELECT data AS report_date,
+               CASE
+                 WHEN Source IS NOT NULL AND Source <> '' AND LOWER(Source) NOT IN ('visit', 'redirect')
+                   THEN Source
+                 WHEN LOWER(REGEXP_REPLACE(REGEXP_SUBSTR(url, 'utm_source=[^&]*'), 'utm_source=', '')) NOT IN ('visit', 'redirect', '')
+                   THEN REGEXP_REPLACE(REGEXP_SUBSTR(url, 'utm_source=[^&]*'), 'utm_source=', '')
+                 ELSE COALESCE(Source, '')
+               END AS source,
                COUNT(DISTINCT LOWER(TRIM(email))) AS lead_count
         FROM leads
         WHERE data IS NOT NULL AND data <> '0000-00-00'
