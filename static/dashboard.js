@@ -509,7 +509,10 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Where searches come from":"D'où viennent les recherches",
   "Clicks by country and by device, this period.":"Clics par pays et par appareil, cette période.",
   "By country":"Par pays",
+  "Where the people who found you on Google are searching from.":"D'où viennent les personnes qui vous trouvent sur Google.",
   "By device":"Par appareil",
+  "Phone, desktop or tablet - where your Google search clicks come from.":"Mobile, ordinateur ou tablette - d'où viennent vos clics de recherche Google.",
+  "What share of people made it to the next step of the funnel above.":"Quelle part des personnes a atteint l'étape suivante de l'entonnoir ci-dessus.",
   "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Non disponible pour des périodes personnalisées sur le site publié. Choisissez une semaine précise, ou utilisez le tableau de bord local.",
   "GoHighLevel":"GoHighLevel",
   "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline.":"Entonnoir PreSubs (Commercial Pipeline) : nouveaux leads et où ils se situent dans le pipeline.",
@@ -533,6 +536,16 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "UTM content":"Contenu UTM",
   "Sales":"Ventes",
   "Revenue":"Revenus",
+  "Customer Acquisition Cost - what it costs to win one sale (ad spend ÷ sales)":"Coût d'Acquisition Client - ce que coûte une vente (dépense ÷ ventes)",
+  "Return On Ad Spend - revenue earned per € spent (revenue ÷ spend)":"Retour sur Investissement Publicitaire - revenus par € dépensé (revenus ÷ dépense)",
+  "Cost Per Lead - ad spend ÷ number of leads":"Coût Par Lead - dépense ÷ nombre de leads",
+  "Click-Through Rate - clicks ÷ impressions":"Taux de Clic - clics ÷ impressions",
+  "Cost Per Click - average amount paid per click":"Coût Par Clic - montant moyen payé par clic",
+  "Cost per 1,000 impressions":"Coût pour 1 000 impressions",
+  "Landing-Page Views":"Vues de la page de destination",
+  "Conversion Rate":"Taux de conversion",
+  "Customer Relationship Management - the lead/sales database (Twilead/GoHighLevel + MySQL)":"Gestion de la Relation Client - la base de données leads/ventes (Twilead/GoHighLevel + MySQL)",
+  "URL tag used to track which campaign/source a visitor came from":"Balise d'URL utilisée pour savoir de quelle campagne/source vient un visiteur",
   "CAC":"CAC",
   "Spend / sale":"Dépense / vente",
   "ROAS":"ROAS",
@@ -730,7 +743,10 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Where searches come from":"De onde vêm as buscas",
   "Clicks by country and by device, this period.":"Cliques por país e por dispositivo, este período.",
   "By country":"Por país",
+  "Where the people who found you on Google are searching from.":"De onde vêm as pessoas que te encontram no Google.",
   "By device":"Por dispositivo",
+  "Phone, desktop or tablet - where your Google search clicks come from.":"Celular, computador ou tablet - de onde vêm os cliques da sua busca no Google.",
+  "What share of people made it to the next step of the funnel above.":"Qual porcentagem de pessoas chegou na próxima etapa do funil acima.",
   "Not available for custom date ranges on the published site. Use a specific week, or the local dashboard.":"Não disponível para períodos personalizados no site publicado. Escolha uma semana específica, ou use o dashboard local.",
   "GoHighLevel":"GoHighLevel",
   "PreSubs funnel (Commercial Pipeline): new leads and where they sit in the pipeline.":"Funil do PreSubs (Commercial Pipeline): novos leads e em que estágio do pipeline estão.",
@@ -754,6 +770,16 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "UTM content":"Conteúdo UTM",
   "Sales":"Vendas",
   "Revenue":"Receita",
+  "Customer Acquisition Cost - what it costs to win one sale (ad spend ÷ sales)":"Custo de Aquisição de Cliente - quanto custa fechar uma venda (investimento ÷ vendas)",
+  "Return On Ad Spend - revenue earned per € spent (revenue ÷ spend)":"Retorno sobre Investimento em Anúncios - receita por € investido (receita ÷ investimento)",
+  "Cost Per Lead - ad spend ÷ number of leads":"Custo Por Lead - investimento ÷ número de leads",
+  "Click-Through Rate - clicks ÷ impressions":"Taxa de Cliques - cliques ÷ impressões",
+  "Cost Per Click - average amount paid per click":"Custo Por Clique - valor médio pago por clique",
+  "Cost per 1,000 impressions":"Custo por 1.000 impressões",
+  "Landing-Page Views":"Visualizações da página de destino",
+  "Conversion Rate":"Taxa de conversão",
+  "Customer Relationship Management - the lead/sales database (Twilead/GoHighLevel + MySQL)":"Gestão de Relacionamento com o Cliente - o banco de leads/vendas (Twilead/GoHighLevel + MySQL)",
+  "URL tag used to track which campaign/source a visitor came from":"Tag de URL usada pra rastrear de qual campanha/fonte o visitante veio",
   "CAC":"CAC",
   "Spend / sale":"Investimento / venda",
   "ROAS":"ROAS",
@@ -853,7 +879,27 @@ function safeRender(label,fn){
 window.addEventListener("error",event=>{console.error("Unhandled dashboard error:",event.error||event.message)});
 window.addEventListener("unhandledrejection",event=>{console.error("Unhandled dashboard promise rejection:",event.reason)});
 
+const METRIC_GLOSSARY={
+  "CAC":"Customer Acquisition Cost - what it costs to win one sale (ad spend ÷ sales)",
+  "ROAS":"Return On Ad Spend - revenue earned per € spent (revenue ÷ spend)",
+  "CPL":"Cost Per Lead - ad spend ÷ number of leads",
+  "CTR":"Click-Through Rate - clicks ÷ impressions",
+  "CPC":"Cost Per Click - average amount paid per click",
+  "CPM":"Cost per 1,000 impressions",
+  "LPV":"Landing-Page Views",
+  "CVR":"Conversion Rate",
+  "CRM":"Customer Relationship Management - the lead/sales database (Twilead/GoHighLevel + MySQL)",
+  "UTM":"URL tag used to track which campaign/source a visitor came from"
+};
+function attachGlossaryTooltips(root){
+  root.querySelectorAll?.(".kpi-label,th").forEach(el=>{
+    if(el.getAttribute("title"))return;
+    const key=el.textContent.trim().toUpperCase();
+    if(METRIC_GLOSSARY[key])el.setAttribute("title",METRIC_GLOSSARY[key]);
+  });
+}
 function applyTranslations(root=document){
+  attachGlossaryTooltips(root);
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement&&!["SCRIPT","STYLE","CODE"].includes(node.parentElement.tagName)&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
   nodes.forEach(node=>{let source=originalTextNodes.get(node);if(source==null){source=node.nodeValue;originalTextNodes.set(node,source)}const trimmed=source.trim(),translated=translatePhrase(trimmed);node.nodeValue=translated===trimmed?source:source.replace(trimmed,translated)});
