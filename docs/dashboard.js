@@ -3,6 +3,18 @@ const IS_STATIC = Boolean(STATIC_DATA);
 
 let currentLang=(localStorage.getItem("peasy_dashboard_language")||"en").toLowerCase();
 if(!["en","fr","pt"].includes(currentLang))currentLang="en";
+
+let currentTheme=(localStorage.getItem("peasy_dashboard_theme")||"light").toLowerCase();
+if(!["light","dark"].includes(currentTheme))currentTheme="light";
+function applyTheme(rerender=false){
+  document.documentElement.setAttribute("data-theme",currentTheme);
+  const btn=document.getElementById("themeToggle");
+  if(btn)btn.textContent=currentTheme==="dark"?"☀️":"🌙";
+  if(rerender&&typeof dashboard!=="undefined"&&dashboard?.current_week&&typeof renderAdvancedCurrent==="function"){
+    try{renderAdvancedCurrent()}catch(error){console.error("Dashboard render error in applyTheme:",error)}
+  }
+}
+applyTheme();
 const localeForLang=()=>({en:"en-IE",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-IE";
 const dateLocaleForLang=()=>({en:"en-GB",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-GB";
 const money = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(value));
@@ -23,7 +35,7 @@ const formatDate = value => value ? new Intl.DateTimeFormat(dateLocaleForLang(),
 const UI_TRANSLATIONS={
   fr:{
     "Audit overview":"Vue d’audit","Overview":"Vue d’ensemble","Daily briefing":"Brief quotidien","Student profile":"Profil des étudiants","Management":"Pilotage","Creative health":"Santé des créatifs","Weekly comparison":"Comparaison hebdomadaire","Date analysis":"Analyse par date","Campaign structure":"Structure des campagnes","Campaigns":"Campagnes","Ad sets":"Ensembles de publicités","Ads":"Publicités","Daily performance":"Performance quotidienne","Page conversion":"Conversion des pages","Data quality":"Qualité des données",
-    "Marketing Performance":"Performance Marketing","Weekly import":"Import hebdomadaire","Language":"Langue","Presentation mode":"Mode présentation","Exit presentation":"Quitter la présentation","Export / Print":"Exporter / Imprimer",
+    "Marketing Performance":"Performance Marketing","Weekly import":"Import hebdomadaire","Language":"Langue","Presentation mode":"Mode présentation","Exit presentation":"Quitter la présentation","Export / Print":"Exporter / Imprimer","Toggle dark mode":"Basculer le mode sombre",
     "PreSubs acquisition review":"Revue d’acquisition PreSubs","Campaign performance, from spend to creative.":"Performance des campagnes, du budget aux créatifs.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Une vue interactive des campagnes, ensembles et publicités : dépenses, inscriptions, efficacité, diffusion et ancienneté des assets.",
     "Reporting period:":"Période :","Comparison:":"Comparaison :","Currency:":"Devise :","Period type:":"Type de période :","Weekly":"Hebdomadaire","Custom dates":"Dates personnalisées","Change period:":"Changer la période :","From:":"Du :","To:":"Au :","Apply":"Appliquer",
     "Period intelligence":"Intelligence de période","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexte rapide pour les réunions : meilleur jour, meilleure campagne, meilleur créatif, meilleure page et concentration des dépenses sur la période sélectionnée.","Selected period":"Période sélectionnée","Data through":"Données jusqu’au","No delivery in this period.":"Aucune diffusion sur cette période.","No campaign funnel data.":"Aucune donnée de funnel par campagne.","No ads with registrations.":"Aucune publicité avec inscription.","Analysis period":"Période d’analyse","Choose a full imported week or any custom date range.":"Choisissez une semaine importée complète ou une plage de dates personnalisée.",
@@ -34,7 +46,7 @@ const UI_TRANSLATIONS={
   },
   pt:{
     "Audit overview":"Visão de auditoria","Overview":"Visão geral","Daily briefing":"Resumo diário","Student profile":"Perfil dos alunos","Management":"Gestão","Creative health":"Saúde dos criativos","Weekly comparison":"Comparação semanal","Date analysis":"Análise por data","Campaign structure":"Estrutura de campanhas","Campaigns":"Campanhas","Ad sets":"Conjuntos","Ads":"Anúncios","Daily performance":"Performance diária","Page conversion":"Conversão das páginas","Data quality":"Qualidade dos dados",
-    "Marketing Performance":"Performance de Marketing","Weekly import":"Importação semanal","Language":"Idioma","Presentation mode":"Modo apresentação","Exit presentation":"Sair da apresentação","Export / Print":"Exportar / Imprimir",
+    "Marketing Performance":"Performance de Marketing","Weekly import":"Importação semanal","Language":"Idioma","Presentation mode":"Modo apresentação","Exit presentation":"Sair da apresentação","Export / Print":"Exportar / Imprimir","Toggle dark mode":"Alternar modo escuro",
     "PreSubs acquisition review":"Revisão de aquisição PreSubs","Campaign performance, from spend to creative.":"Performance das campanhas, do investimento aos criativos.","An interactive view of campaigns, ad sets and ads, including spend, registrations, efficiency, delivery status and how long each asset has been running.":"Uma visão interativa de campanhas, conjuntos e anúncios, incluindo investimento, registros, eficiência, veiculação e tempo de atividade de cada ativo.",
     "Reporting period:":"Período analisado:","Comparison:":"Comparação:","Currency:":"Moeda:","Period type:":"Tipo de período:","Weekly":"Semanal","Custom dates":"Datas personalizadas","Change period:":"Alterar período:","From:":"De:","To:":"Até:","Apply":"Aplicar",
     "Period intelligence":"Inteligência do período","Fast context for meetings: best day, strongest campaign, top creative, page leader and spend concentration for the selected dates.":"Contexto rápido para reuniões: melhor dia, campanha mais forte, melhor criativo, página líder e concentração de investimento nas datas selecionadas.","Selected period":"Período selecionado","Data through":"Dados até","No delivery in this period.":"Sem entrega neste período.","No campaign funnel data.":"Sem dados de funil por campanha.","No ads with registrations.":"Sem anúncios com registros.","Analysis period":"Período de análise","Choose a full imported week or any custom date range.":"Escolha uma semana importada completa ou qualquer intervalo de datas personalizado.",
@@ -2693,7 +2705,9 @@ function renderAudience(){
   renderSiteTraffic();
 }
 
-const GENERIC_DONUT_PALETTE=["#315f9d","#2c7d63","#a66435","#5d4dc5","#c93c45","#248c66","#d5a81e","#3d76cf","#98a2b3","#d89a24"];
+const GENERIC_DONUT_PALETTE_LIGHT=["#2a78d6","#eb6834","#1baf7a","#eda100","#e87ba4","#008300","#4a3aa7","#e34948"];
+const GENERIC_DONUT_PALETTE_DARK=["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];
+const GENERIC_DONUT_PALETTE=new Proxy([],{get(_,prop){const list=currentTheme==="dark"?GENERIC_DONUT_PALETTE_DARK:GENERIC_DONUT_PALETTE_LIGHT;return list[prop]}});
 function genericDonutHtml(rows,valueFn,labelFn){
   if(!rows||!rows.length)return "";
   const total=Math.max(1,rows.reduce((sum,row)=>sum+safeNum(valueFn(row)),0));
@@ -3701,6 +3715,7 @@ function rerenderLanguage(){
   applyTranslations(document);
 }
 document.getElementById("languageSelect")?.addEventListener("change",event=>{currentLang=event.target.value||"en";localStorage.setItem("peasy_dashboard_language",currentLang);rerenderLanguage()});
+document.getElementById("themeToggle")?.addEventListener("click",()=>{currentTheme=currentTheme==="dark"?"light":"dark";localStorage.setItem("peasy_dashboard_theme",currentTheme);applyTheme(true)});
 
 async function bootstrapDashboard(){
   const language=document.getElementById("languageSelect");if(language)language.value=currentLang;
