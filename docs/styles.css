@@ -588,7 +588,7 @@ body[data-active-view="auditOverview"]>.shell>.hero,body[data-active-view="stude
 .hero-apply-btn{height:37px;background:#fff!important;color:#28204d!important;border-color:#fff!important}
 .period-intelligence-card{margin-bottom:22px}
 .period-intelligence-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.period-intel-item{border:1px solid var(--line);border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#fafbfe);min-width:0}
+.period-intel-item{border:1px solid var(--line);border-radius:14px;padding:14px;background:linear-gradient(180deg,var(--panel),var(--panel-soft));min-width:0}
 .period-intel-item span{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .period-intel-item strong{display:block;font-size:18px;line-height:1.2;margin-top:7px;color:var(--ink);overflow-wrap:anywhere}
 .period-intel-item p{margin:6px 0 0;font-size:10px;line-height:1.45;color:var(--muted)}
