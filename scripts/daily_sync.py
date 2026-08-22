@@ -33,6 +33,7 @@ from scripts.sync_youtube import main as sync_youtube  # noqa: E402
 from scripts.sync_youtube_analytics import main as sync_youtube_analytics  # noqa: E402
 from scripts.sync_ghl import main as sync_ghl  # noqa: E402
 from scripts.sync_meta_organic import main as sync_meta_organic  # noqa: E402
+from scripts.sync_video_funnel import main as sync_video_funnel  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
 
@@ -359,6 +360,14 @@ def main() -> int:
             meta_organic_sync_status = f"skipped: {meta_organic_error}"
             print(f"WARNING: Meta organic sync skipped ({meta_organic_error})", file=sys.stderr)
 
+        print("Syncing Video Funnel (Corredor Polones) campaigns...")
+        video_funnel_sync_status = "ok"
+        try:
+            sync_video_funnel()
+        except Exception as video_funnel_error:
+            video_funnel_sync_status = f"skipped: {video_funnel_error}"
+            print(f"WARNING: Video funnel sync skipped ({video_funnel_error})", file=sys.stderr)
+
         weekly_review_status = "not the call day"
         try:
             generate_weekly_review()
@@ -401,6 +410,7 @@ def main() -> int:
                     "youtube_analytics_sync": youtube_analytics_sync_status,
                     "ghl_sync": ghl_sync_status,
                     "meta_organic_sync": meta_organic_sync_status,
+                    "video_funnel_sync": video_funnel_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
                 },

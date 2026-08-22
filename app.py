@@ -512,6 +512,32 @@ def init_db() -> None:
         UNIQUE(report_date)
     );
 
+    CREATE TABLE IF NOT EXISTS video_funnel_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phase TEXT NOT NULL,
+        campaign_id TEXT NOT NULL,
+        campaign_name TEXT NOT NULL,
+        report_date TEXT NOT NULL,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        spend REAL NOT NULL DEFAULT 0,
+        frequency REAL NOT NULL DEFAULT 0,
+        vv25 INTEGER NOT NULL DEFAULT 0,
+        vv50 INTEGER NOT NULL DEFAULT 0,
+        vv75 INTEGER NOT NULL DEFAULT 0,
+        vv95 INTEGER NOT NULL DEFAULT 0,
+        leads INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS video_funnel_demographics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phase TEXT NOT NULL,
+        age TEXT NOT NULL,
+        gender TEXT NOT NULL,
+        vv50 INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS ghl_appointment_slots (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2475,6 +2501,92 @@ def meta_organic_summary(con: sqlite3.Connection, start_date: str, end_date: str
     }
 
 
+PHASE_LABELS = {
+    "P1": "Phase 1 (Unaware)",
+    "P2": "Phase 2 (Problem-Aware)",
+    "P3": "Phase 3 (Solution-Aware)",
+    "P4": "Phase 4 (Conversion)",
+}
+
+
+def video_funnel_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Corredor Polones video-view awareness funnel (Meta Ads) - a
+    separate product from PreSubs, never mixed into PreSubs spend/
+    registration totals. Phases 1-3 are video-view awareness campaigns
+    (VV25/VV50/VV75 = % of video watched); Phase 4 is the conversion/
+    lead campaign."""
+    rows = con.execute(
+        "SELECT phase, campaign_name, report_date, impressions, spend, frequency, vv25, vv50, vv75, vv95, leads "
+        "FROM video_funnel_daily WHERE report_date BETWEEN ? AND ? ORDER BY phase, report_date",
+        (start_date, end_date),
+    ).fetchall()
+    if not rows:
+        return {"available": False, "phases": []}
+
+    by_phase: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        phase = row[0]
+        bucket = by_phase.setdefault(
+            phase,
+            {
+                "phase": phase,
+                "label": PHASE_LABELS.get(phase, phase),
+                "campaign_name": row[1],
+                "impressions": 0,
+                "spend": 0.0,
+                "vv25": 0,
+                "vv50": 0,
+                "vv75": 0,
+                "vv95": 0,
+                "leads": 0,
+                "daily": [],
+            },
+        )
+        bucket["impressions"] += int(row[3] or 0)
+        bucket["spend"] += float(row[4] or 0)
+        bucket["vv25"] += int(row[6] or 0)
+        bucket["vv50"] += int(row[7] or 0)
+        bucket["vv75"] += int(row[8] or 0)
+        bucket["vv95"] += int(row[9] or 0)
+        bucket["leads"] += int(row[10] or 0)
+        bucket["daily"].append(
+            {
+                "report_date": row[2],
+                "impressions": int(row[3] or 0),
+                "spend": float(row[4] or 0),
+                "frequency": float(row[5] or 0),
+                "vv25": int(row[6] or 0),
+                "vv50": int(row[7] or 0),
+                "vv75": int(row[8] or 0),
+                "vv95": int(row[9] or 0),
+                "leads": int(row[10] or 0),
+            }
+        )
+
+    phases = []
+    for phase_key in ("P1", "P2", "P3", "P4"):
+        if phase_key not in by_phase:
+            continue
+        bucket = by_phase[phase_key]
+        bucket["gate_rate"] = round(bucket["vv50"] / bucket["impressions"] * 100, 2) if bucket["impressions"] else None
+        bucket["retention_50_25"] = round(bucket["vv50"] / bucket["vv25"] * 100, 2) if bucket["vv25"] else None
+        bucket["cost_per_vv50"] = round(bucket["spend"] / bucket["vv50"], 4) if bucket["vv50"] else None
+        bucket["cpl"] = round(bucket["spend"] / bucket["leads"], 2) if bucket["leads"] else None
+        demo_rows = con.execute(
+            "SELECT age, gender, vv50 FROM video_funnel_demographics WHERE phase = ? ORDER BY age",
+            (phase_key,),
+        ).fetchall()
+        bucket["demographics"] = [{"age": d[0], "gender": d[1], "vv50": int(d[2] or 0)} for d in demo_rows]
+        phases.append(bucket)
+
+    last_synced_row = con.execute("SELECT MAX(synced_at) FROM video_funnel_daily").fetchone()
+    return {
+        "available": bool(phases),
+        "phases": phases,
+        "last_synced_at": last_synced_row[0] if last_synced_row else None,
+    }
+
+
 def search_console_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
     """Organic search performance from Google Search Console, for the given range."""
     totals_row = con.execute(
@@ -2573,6 +2685,7 @@ def period_extras(start: str, end: str):
             "meta_organic": meta_organic_summary(con, start, end),
             "ghl": ghl_summary(con, start, end),
             "full_funnel": full_funnel_summary(con, start, end),
+            "video_funnel": video_funnel_summary(con, start, end),
         }
 
 
@@ -2616,6 +2729,7 @@ def dashboard(week_id: int | None = None):
                 "meta_organic": None,
                 "ghl": None,
                 "full_funnel": None,
+                "video_funnel": None,
             }
 
         previous = con.execute(
@@ -2754,6 +2868,7 @@ def dashboard(week_id: int | None = None):
         meta_organic = meta_organic_summary(con, current["week_start"], current["week_end"])
         ghl = ghl_summary(con, current["week_start"], current["week_end"])
         full_funnel = full_funnel_summary(con, current["week_start"], current["week_end"])
+        video_funnel = video_funnel_summary(con, current["week_start"], current["week_end"])
 
     current_totals = totals(campaigns)
     previous_totals = totals(previous_campaigns)
@@ -2784,6 +2899,7 @@ def dashboard(week_id: int | None = None):
         "meta_organic": meta_organic,
         "ghl": ghl,
         "full_funnel": full_funnel,
+        "video_funnel": video_funnel,
     }
 
 

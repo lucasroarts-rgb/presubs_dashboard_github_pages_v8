@@ -18,6 +18,7 @@ applyTheme();
 const localeForLang=()=>({en:"en-IE",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-IE";
 const dateLocaleForLang=()=>({en:"en-GB",fr:"fr-FR",pt:"pt-BR"})[currentLang]||"en-GB";
 const money = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(value));
+const microMoney = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:5}).format(Number(value));
 const number = value => new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:0}).format(Number(value)||0);
 const decimal = value => value == null ? "—" : new Intl.NumberFormat(localeForLang(),{maximumFractionDigits:2}).format(Number(value));
 const percent = value => value == null ? "—" : `${decimal(value)}%`;
@@ -594,6 +595,26 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Which Meta campaign / UTM actually sold, and how much - this is the real revenue breakdown, in €.":"Quelle campagne Meta / UTM a réellement vendu, et combien - c'est la vraie répartition des revenus, en €.",
   "Avg. deal size":"Panier moyen",
   "Revenue / sale":"Revenus / vente",
+  "Video Funnel":"Entonnoir vidéo",
+  "\"Corredor Polonês\" awareness campaign - a separate product from PreSubs, never mixed into PreSubs spend/registration totals. Phases 1-3 are video-view awareness campaigns (VV25/VV50/VV75 = % of video watched); Phase 4 is the conversion/lead campaign.":"Campagne de notoriété « Corredor Polonês » - un produit distinct de PreSubs, jamais mélangé aux totaux de dépense/inscription PreSubs. Les phases 1-3 sont des campagnes de notoriété vidéo (VV25/VV50/VV75 = % de vidéo visionnée) ; la phase 4 est la campagne de conversion/lead.",
+  "Phase 1 (Unaware)":"Phase 1 (Non conscient)",
+  "Phase 2 (Problem-Aware)":"Phase 2 (Conscient du problème)",
+  "Phase 3 (Solution-Aware)":"Phase 3 (Conscient de la solution)",
+  "Phase 4 (Conversion)":"Phase 4 (Conversion)",
+  "Leads":"Leads",
+  "VV50":"VV50",
+  "VV25":"VV25",
+  "VV75":"VV75",
+  "Gate Rate":"Taux de passage",
+  "VV50 / impressions":"VV50 / impressions",
+  "Retention 50/25":"Rétention 50/25",
+  "VV50 / VV25":"VV50 / VV25",
+  "Cost per VV50":"Coût par VV50",
+  "Spend / VV50":"Dépense / VV50",
+  "Video watched at 50%":"Vidéo visionnée à 50%",
+  "Daily performance":"Performance quotidienne",
+  "Share of viewers who watched 50%, this period.":"Part des spectateurs ayant regardé 50%, cette période.",
+  "No video funnel data synced for this period.":"Aucune donnée d'entonnoir vidéo synchronisée pour cette période.",
   "Confirmed, this period":"Confirmé, cette période",
   "Save selection":"Enregistrer la sélection",
   "Saving…":"Enregistrement…",
@@ -836,6 +857,26 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Which Meta campaign / UTM actually sold, and how much - this is the real revenue breakdown, in €.":"Qual campanha Meta / UTM realmente vendeu, e quanto - essa é a divisão real de receita, em €.",
   "Avg. deal size":"Ticket médio",
   "Revenue / sale":"Receita / venda",
+  "Video Funnel":"Funil de Vídeo",
+  "\"Corredor Polonês\" awareness campaign - a separate product from PreSubs, never mixed into PreSubs spend/registration totals. Phases 1-3 are video-view awareness campaigns (VV25/VV50/VV75 = % of video watched); Phase 4 is the conversion/lead campaign.":"Campanha de reconhecimento \"Corredor Polonês\" - um produto separado do PreSubs, nunca misturado nos totais de investimento/registro do PreSubs. As fases 1-3 são campanhas de reconhecimento por vídeo (VV25/VV50/VV75 = % do vídeo assistido); a fase 4 é a campanha de conversão/lead.",
+  "Phase 1 (Unaware)":"Fase 1 (Inconsciente)",
+  "Phase 2 (Problem-Aware)":"Fase 2 (Consciente do problema)",
+  "Phase 3 (Solution-Aware)":"Fase 3 (Consciente da solução)",
+  "Phase 4 (Conversion)":"Fase 4 (Conversão)",
+  "Leads":"Leads",
+  "VV50":"VV50",
+  "VV25":"VV25",
+  "VV75":"VV75",
+  "Gate Rate":"Taxa de passagem",
+  "VV50 / impressions":"VV50 / impressões",
+  "Retention 50/25":"Retenção 50/25",
+  "VV50 / VV25":"VV50 / VV25",
+  "Cost per VV50":"Custo por VV50",
+  "Spend / VV50":"Investimento / VV50",
+  "Video watched at 50%":"Vídeo assistido a 50%",
+  "Daily performance":"Performance diária",
+  "Share of viewers who watched 50%, this period.":"Participação dos espectadores que assistiram 50%, este período.",
+  "No video funnel data synced for this period.":"Nenhum dado do funil de vídeo sincronizado para este período.",
   "Confirmed, this period":"Confirmado, este período",
   "Save selection":"Salvar seleção",
   "Saving…":"Salvando…",
@@ -3134,6 +3175,86 @@ function renderSales(){
   }
 }
 
+const videoFunnelState={activePhase:null};
+function renderVideoFunnel(){
+  const tabsEl=document.getElementById("videoFunnelPhaseTabs");
+  const bodyEl=document.getElementById("videoFunnelBody");
+  if(!tabsEl||!bodyEl)return;
+  const vf=dashboard?.video_funnel;
+  const empty=periodExtrasEmpty("No video funnel data synced for this period.");
+  if(!vf||!vf.available||!vf.phases?.length){
+    tabsEl.innerHTML="";
+    bodyEl.innerHTML=empty;
+    return;
+  }
+  const phases=vf.phases;
+  if(!videoFunnelState.activePhase||!phases.some(p=>p.phase===videoFunnelState.activePhase)){
+    videoFunnelState.activePhase=phases[0].phase;
+  }
+  tabsEl.innerHTML=phases.map(p=>`<button class="subtab-btn ${p.phase===videoFunnelState.activePhase?"active":""}" data-phase="${p.phase}">${escapeHtml(t(p.label))}</button>`).join("");
+  tabsEl.querySelectorAll("[data-phase]").forEach(btn=>{
+    btn.addEventListener("click",()=>{videoFunnelState.activePhase=btn.dataset.phase;renderVideoFunnel()});
+  });
+
+  const phase=phases.find(p=>p.phase===videoFunnelState.activePhase);
+  const isConversionPhase=phase.phase==="P4";
+  const kpis=isConversionPhase?[
+    [t("Spend"),money(phase.spend),phase.campaign_name],
+    [t("Leads"),number(phase.leads),t("This period")],
+    [t("CPL"),phase.cpl!=null?money(phase.cpl):"—",t("Spend / lead")],
+    [t("Impressions"),number(phase.impressions),t("This period")]
+  ]:[
+    [t("Spend"),money(phase.spend),phase.campaign_name],
+    [t("Impressions"),number(phase.impressions),t("This period")],
+    [t("VV50"),number(phase.vv50),t("Video watched at 50%")],
+    [t("Gate Rate"),phase.gate_rate!=null?`${phase.gate_rate}%`:"—",t("VV50 / impressions")],
+    [t("Retention 50/25"),phase.retention_50_25!=null?`${phase.retention_50_25}%`:"—",t("VV50 / VV25")],
+    [t("Cost per VV50"),phase.cost_per_vv50!=null?microMoney(phase.cost_per_vv50):"—",t("Spend / VV50")]
+  ];
+  const kpiHtml=`<div class="kpi-grid">${kpis.map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("")}</div>`;
+
+  const dailyRows=[...(phase.daily||[])].reverse();
+  const trendColumns=isConversionPhase?[
+    {label:t("Date"),name:true,render:r=>r.report_date},
+    {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)},
+    {label:t("Spend"),numeric:true,render:r=>money(r.spend)},
+    {label:t("Leads"),numeric:true,render:r=>number(r.leads)}
+  ]:[
+    {label:t("Date"),name:true,render:r=>r.report_date},
+    {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)},
+    {label:t("Spend"),numeric:true,render:r=>money(r.spend)},
+    {label:t("VV25"),numeric:true,render:r=>number(r.vv25)},
+    {label:t("VV50"),numeric:true,render:r=>number(r.vv50)},
+    {label:t("VV75"),numeric:true,render:r=>number(r.vv75)}
+  ];
+
+  let demoHtml="";
+  if(!isConversionPhase&&(phase.demographics||[]).length){
+    const byGender=new Map();
+    const byAge=new Map();
+    phase.demographics.forEach(row=>{
+      byGender.set(row.gender,(byGender.get(row.gender)||0)+safeNum(row.vv50));
+      byAge.set(row.age,(byAge.get(row.age)||0)+safeNum(row.vv50));
+    });
+    const genderRows=[...byGender.entries()].map(([gender,vv50])=>({gender,vv50})).sort((a,b)=>b.vv50-a.vv50);
+    const ageRows=[...byAge.entries()].map(([age,vv50])=>({age,vv50})).sort((a,b)=>a.age.localeCompare(b.age));
+    demoHtml=`<div class="audience-grid" style="margin-top:18px">
+      <article class="card panel"><div class="section-head"><div><h2>${t("Gender")}</h2><p>${t("Share of viewers who watched 50%, this period.")}</p></div></div><div>${genericDonutHtml(genderRows,r=>r.vv50,r=>escapeHtml(r.gender))}</div></article>
+      <article class="card panel"><div class="section-head"><div><h2>${t("Age")}</h2><p>${t("Share of viewers who watched 50%, this period.")}</p></div></div><div>${audienceBarList(ageRows,r=>r.vv50,r=>escapeHtml(r.age))}</div></article>
+    </div>`;
+  }
+
+  bodyEl.innerHTML=`
+    ${kpiHtml}
+    <article class="card panel" style="margin-top:18px">
+      <div class="section-head"><div><h2>${t("Daily performance")}</h2><p>${t("This period.")}</p></div></div>
+      <div id="videoFunnelTrendTable"></div>
+    </article>
+    ${demoHtml}
+  `;
+  table("videoFunnelTrendTable",trendColumns,dailyRows,t("No video funnel data synced for this period."));
+}
+
 function renderSocial(){
   const kpis=document.getElementById("socialYoutubeKpis");
   const trendTable=document.getElementById("socialYoutubeTrend");
@@ -3692,7 +3813,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
