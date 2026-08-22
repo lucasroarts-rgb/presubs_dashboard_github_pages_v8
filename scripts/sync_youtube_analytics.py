@@ -135,6 +135,15 @@ def fetch_top_videos(access_token: str, channel_id: str, api_key: str) -> list[t
     ]
 
 
+def fetch_daily_engagement(access_token: str, channel_id: str) -> list[tuple[str, int, int, int, int, int]]:
+    rows = _query(
+        access_token, channel_id,
+        metrics="likes,dislikes,comments,shares,views", dimensions="day",
+        sort="day",
+    )
+    return [(row[0], int(row[1]), int(row[2]), int(row[3]), int(row[4]), int(row[5])) for row in rows]
+
+
 def fetch_by_demographics(access_token: str, channel_id: str) -> list[tuple[str, str, float]]:
     rows = _query(
         access_token, channel_id,
@@ -191,6 +200,24 @@ def store_top_videos(rows: list[tuple[str, str, int, int, int, int]]) -> None:
         )
 
 
+def store_daily_engagement(rows: list[tuple[str, int, int, int, int, int]]) -> None:
+    with dashboard_app.db() as con:
+        con.executemany(
+            """
+            INSERT INTO youtube_daily_engagement (report_date, likes, dislikes, comments, shares, views, synced_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(report_date) DO UPDATE SET
+                likes = excluded.likes,
+                dislikes = excluded.dislikes,
+                comments = excluded.comments,
+                shares = excluded.shares,
+                views = excluded.views,
+                synced_at = CURRENT_TIMESTAMP
+            """,
+            rows,
+        )
+
+
 def store_demographics(rows: list[tuple[str, str, float]]) -> None:
     with dashboard_app.db() as con:
         con.execute("DELETE FROM youtube_demographics")
@@ -217,17 +244,20 @@ def main() -> int:
     demographics = fetch_by_demographics(access_token, channel_id)
     subscribers_daily = fetch_subscribers_daily(access_token, channel_id)
     top_videos = fetch_top_videos(access_token, channel_id, env["YOUTUBE_API_KEY"])
+    daily_engagement = fetch_daily_engagement(access_token, channel_id)
 
     store_country(countries)
     store_device(devices)
     store_demographics(demographics)
     store_subscribers_daily(subscribers_daily)
     store_top_videos(top_videos)
+    store_daily_engagement(daily_engagement)
 
     print(
         f"YouTube Analytics sync complete: {len(countries)} countries, "
         f"{len(subscribers_daily)} subscriber-days, {len(top_videos)} top videos, "
-        f"{len(devices)} device types, {len(demographics)} age/gender rows."
+        f"{len(devices)} device types, {len(demographics)} age/gender rows, "
+        f"{len(daily_engagement)} engagement-days."
     )
     return 0
 

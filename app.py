@@ -542,6 +542,18 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS youtube_daily_engagement (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        likes INTEGER NOT NULL DEFAULT 0,
+        dislikes INTEGER NOT NULL DEFAULT 0,
+        comments INTEGER NOT NULL DEFAULT 0,
+        shares INTEGER NOT NULL DEFAULT 0,
+        views INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
     CREATE TABLE IF NOT EXISTS meta_organic_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2133,7 +2145,8 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     ).fetchone()
     if not latest_row:
         return {"available": False, "subscriber_count": 0, "view_count": 0, "video_count": 0,
-                "subscriber_growth": None, "view_growth": None, "daily": [], "last_synced_at": None}
+                "subscriber_growth": None, "view_growth": None, "daily": [], "daily_engagement": [],
+                "last_synced_at": None}
 
     subscriber_growth = (daily[-1]["subscriber_count"] - daily[0]["subscriber_count"]) if len(daily) >= 2 else None
     view_growth = (daily[-1]["view_count"] - daily[0]["view_count"]) if len(daily) >= 2 else None
@@ -2188,6 +2201,23 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         ).fetchall()
     ]
 
+    engagement_rows = con.execute(
+        "SELECT report_date, likes, dislikes, comments, shares, views FROM youtube_daily_engagement "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    daily_engagement = [
+        {
+            "report_date": row[0],
+            "likes": int(row[1] or 0),
+            "dislikes": int(row[2] or 0),
+            "comments": int(row[3] or 0),
+            "shares": int(row[4] or 0),
+            "views": int(row[5] or 0),
+        }
+        for row in engagement_rows
+    ]
+
     return {
         "available": True,
         "subscriber_count": int(latest_row[0] or 0),
@@ -2203,6 +2233,7 @@ def youtube_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
         "subscribers_gained_total": gained_total,
         "subscribers_lost_total": lost_total,
         "top_videos": top_videos,
+        "daily_engagement": daily_engagement,
         "last_synced_at": latest_row[3],
     }
 

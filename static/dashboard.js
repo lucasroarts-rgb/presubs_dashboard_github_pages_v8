@@ -620,6 +620,14 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Views":"Vues",
   "Likes":"J'aime",
   "Comments":"Commentaires",
+  "Shares":"Partages",
+  "Views by day of week":"Vues par jour de la semaine",
+  "Which day of the week performs best, this period.":"Quel jour de la semaine performe le mieux, cette période.",
+  "Views share by video":"Répartition des vues par vidéo",
+  "Which videos this period's views are concentrated in.":"Sur quelles vidéos les vues de cette période sont concentrées.",
+  "Daily likes":"J'aime par jour",
+  "Likes per day, this period.":"J'aime par jour, cette période.",
+  "Sunday":"Dimanche","Monday":"Lundi","Tuesday":"Mardi","Wednesday":"Mercredi","Thursday":"Jeudi","Friday":"Vendredi","Saturday":"Samedi",
   "Total":"Total"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
@@ -853,7 +861,15 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Video":"Vídeo",
   "Views":"Visualizações",
   "Likes":"Curtidas",
-  "Comments":"Comentários"
+  "Comments":"Comentários",
+  "Shares":"Compartilhamentos",
+  "Views by day of week":"Visualizações por dia da semana",
+  "Which day of the week performs best, this period.":"Qual dia da semana performa melhor, este período.",
+  "Views share by video":"Participação de visualizações por vídeo",
+  "Which videos this period's views are concentrated in.":"Em quais vídeos as visualizações deste período estão concentradas.",
+  "Daily likes":"Curtidas por dia",
+  "Likes per day, this period.":"Curtidas por dia, este período.",
+  "Sunday":"Domingo","Monday":"Segunda","Tuesday":"Terça","Wednesday":"Quarta","Thursday":"Quinta","Friday":"Sexta","Saturday":"Sábado"
 });
 
 const originalTextNodes=new WeakMap();
@@ -3164,6 +3180,39 @@ function renderSocial(){
       {label:t("Likes"),numeric:true,render:r=>number(r.likes)},
       {label:t("Comments"),numeric:true,render:r=>number(r.comments)}
     ],videos,t("No YouTube data synced for this period."));
+  }
+
+  const weekdayPanel=document.getElementById("socialYoutubeWeekday");
+  if(weekdayPanel){
+    const daily2=yt.subscribers_daily||yt.daily||[];
+    const WEEKDAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const byWeekday=new Map(WEEKDAY_NAMES.map(name=>[name,0]));
+    daily2.forEach(row=>{
+      const d=new Date(`${row.report_date}T00:00:00Z`);
+      if(Number.isNaN(d.getTime()))return;
+      const name=WEEKDAY_NAMES[d.getUTCDay()];
+      byWeekday.set(name,byWeekday.get(name)+safeNum(row.views));
+    });
+    const weekdayRows=[...byWeekday.entries()].map(([day,views])=>({day,views}));
+    const hasData=weekdayRows.some(r=>r.views>0);
+    weekdayPanel.innerHTML=hasData?audienceBarList(weekdayRows,r=>r.views,r=>t(r.day)):empty2;
+  }
+
+  const viewsSharePanel=document.getElementById("socialYoutubeViewsShare");
+  if(viewsSharePanel){
+    const shareVideos=(yt.top_videos||[]).slice(0,8);
+    viewsSharePanel.innerHTML=shareVideos.length?genericDonutHtml(shareVideos,r=>r.views,r=>escapeHtml(r.title.length>28?r.title.slice(0,28)+"…":r.title)):empty2;
+  }
+
+  const likesTrendTable=document.getElementById("socialYoutubeLikesTrend");
+  if(likesTrendTable){
+    const engagementDaily=[...(yt.daily_engagement||[])].reverse();
+    table("socialYoutubeLikesTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Likes"),numeric:true,render:r=>number(r.likes)},
+      {label:t("Comments"),numeric:true,render:r=>number(r.comments)},
+      {label:t("Shares"),numeric:true,render:r=>number(r.shares)}
+    ],engagementDaily,t("No YouTube data synced for this period."));
   }
 
   const mo=dashboard?.meta_organic;
