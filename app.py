@@ -106,10 +106,14 @@ def read_local_credentials() -> dict[str, str]:
 _local_credentials = read_local_credentials()
 ADMIN_USER = os.getenv("ADMIN_USER") or _local_credentials.get("ADMIN_USER") or "lucas"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or _local_credentials.get("ADMIN_PASSWORD") or ""
+DASHBOARD_USER = os.getenv("DASHBOARD_USER") or _local_credentials.get("DASHBOARD_USER") or "peasy"
+DASHBOARD_PASSWORD = (
+    os.getenv("DASHBOARD_PASSWORD") or _local_credentials.get("DASHBOARD_PASSWORD") or ""
+)
 
 
-def has_valid_admin_credentials(request: Request) -> bool:
-    if not ADMIN_PASSWORD:
+def _basic_auth_matches(request: Request, user: str, password: str) -> bool:
+    if not password:
         return False
 
     authorization = request.headers.get("Authorization", "")
@@ -119,12 +123,20 @@ def has_valid_admin_credentials(request: Request) -> bool:
     try:
         encoded = authorization.split(" ", 1)[1].strip()
         decoded = base64.b64decode(encoded).decode("utf-8")
-        username, password = decoded.split(":", 1)
+        username, supplied_password = decoded.split(":", 1)
     except Exception:
         return False
 
-    return hmac.compare_digest(username, ADMIN_USER) and hmac.compare_digest(
-        password, ADMIN_PASSWORD
+    return hmac.compare_digest(username, user) and hmac.compare_digest(supplied_password, password)
+
+
+def has_valid_admin_credentials(request: Request) -> bool:
+    return _basic_auth_matches(request, ADMIN_USER, ADMIN_PASSWORD)
+
+
+def has_valid_dashboard_credentials(request: Request) -> bool:
+    return has_valid_admin_credentials(request) or _basic_auth_matches(
+        request, DASHBOARD_USER, DASHBOARD_PASSWORD
     )
 
 
@@ -133,6 +145,20 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 WEEKLY_REVIEWS_DIR = BASE_DIR / "weekly_reviews"
 WEEKLY_REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/weekly-reviews", StaticFiles(directory=WEEKLY_REVIEWS_DIR), name="weekly-reviews")
+
+
+@app.middleware("http")
+async def protect_dashboard_access(request: Request, call_next):
+    if not DASHBOARD_PASSWORD:
+        return await call_next(request)
+
+    if not has_valid_dashboard_credentials(request):
+        return Response(
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="PreSubs Dashboard"'},
+        )
+
+    return await call_next(request)
 
 
 @app.middleware("http")

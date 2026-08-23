@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import hashlib
 import json
 import math
 import shutil
@@ -11,6 +12,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 STATIC_DIR = ROOT / "static"
 DOCS_DIR = ROOT / "docs"
+
 
 sys.path.insert(0, str(ROOT))
 import app as dashboard_app  # noqa: E402
@@ -46,11 +48,86 @@ def build_public_index() -> str:
     html = html.replace('<a class="btn" href="/admin">Page settings</a>', '')
     html = html.replace('<a class="btn" href="/admin">Edit goals</a>', '')
     html = html.replace('<a class="btn" href="/admin">Configure goals and events</a>', '')
-    html = html.replace(
-        '<script src="dashboard.js?v=10.6.4.2"></script>',
-        '<script src="data.js?v=10.6.4.2"></script>\n  <script src="dashboard.js?v=10.6.4.2"></script>',
+
+    password_hash = (
+        hashlib.sha256(dashboard_app.DASHBOARD_PASSWORD.encode("utf-8")).hexdigest()
+        if dashboard_app.DASHBOARD_PASSWORD
+        else ""
     )
+    if password_hash:
+        html = html.replace('<body data-active-view="auditOverview">', GATE_OVERLAY_HTML, 1)
+        html = html.replace(
+            '<script src="dashboard.js?v=10.6.4.2"></script>',
+            GATE_LOADER_SCRIPT.replace("__PASSWORD_HASH__", password_hash),
+        )
+    else:
+        html = html.replace(
+            '<script src="dashboard.js?v=10.6.4.2"></script>',
+            '<script src="data.js?v=10.6.4.2"></script>\n  <script src="dashboard.js?v=10.6.4.2"></script>',
+        )
     return html
+
+
+GATE_OVERLAY_HTML = """<body data-active-view="auditOverview">
+  <div id="dashLockOverlay" style="position:fixed;inset:0;z-index:99999;background:#0c0f1c;display:flex;align-items:center;justify-content:center;font-family:inherit">
+    <form id="dashLockForm" style="background:#161c30;border:1px solid #2a3350;border-radius:14px;padding:32px 28px;width:min(340px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.4)">
+      <div style="font-size:15px;font-weight:800;color:#f5f6fb;margin-bottom:6px">PreSubs Dashboard</div>
+      <div style="font-size:12px;color:#9aa3bd;margin-bottom:16px">Digite a senha para acessar.</div>
+      <input id="dashLockInput" type="password" placeholder="Senha" autocomplete="current-password" autofocus style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3350;background:#0c0f1c;color:#f5f6fb;font-size:14px;margin-bottom:12px" />
+      <button type="submit" style="width:100%;padding:10px 12px;border-radius:8px;border:none;background:#6a5cff;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Entrar</button>
+      <div id="dashLockError" style="display:none;margin-top:10px;font-size:12px;color:#ff6b6b">Senha incorreta.</div>
+    </form>
+  </div>"""
+
+GATE_LOADER_SCRIPT = """<script>
+(function(){
+  var EXPECTED_HASH="__PASSWORD_HASH__";
+  var STORAGE_KEY="presubs_dash_unlock_v1";
+  function sha256Hex(text){
+    var enc=new TextEncoder().encode(text);
+    return crypto.subtle.digest("SHA-256",enc).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,"0")}).join("");
+    });
+  }
+  function removeOverlay(){
+    var overlay=document.getElementById("dashLockOverlay");
+    if(overlay)overlay.remove();
+  }
+  function loadScripts(){
+    removeOverlay();
+    var s1=document.createElement("script");
+    s1.src="data.js?v=10.6.4.2";
+    s1.onload=function(){
+      var s2=document.createElement("script");
+      s2.src="dashboard.js?v=10.6.4.2";
+      document.body.appendChild(s2);
+    };
+    document.body.appendChild(s1);
+  }
+  var stored=null;
+  try{stored=localStorage.getItem(STORAGE_KEY);}catch(e){}
+  if(stored===EXPECTED_HASH){
+    loadScripts();
+  }else{
+    var form=document.getElementById("dashLockForm");
+    var input=document.getElementById("dashLockInput");
+    var err=document.getElementById("dashLockError");
+    form.addEventListener("submit",function(ev){
+      ev.preventDefault();
+      sha256Hex(input.value).then(function(hash){
+        if(hash===EXPECTED_HASH){
+          try{localStorage.setItem(STORAGE_KEY,hash);}catch(e){}
+          loadScripts();
+        }else{
+          err.style.display="block";
+          input.value="";
+          input.focus();
+        }
+      });
+    });
+  }
+})();
+</script>"""
 
 
 def build_public_javascript() -> str:
