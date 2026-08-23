@@ -31,6 +31,7 @@
 <button class="tab" data-view="creatives" title="Creative health"><svg viewBox="0 0 24 24"><path d="m12 2 2.2 4.5L19 7.2l-3.5 3.4.8 4.8-4.3-2.3-4.3 2.3.8-4.8L5 7.2l4.8-.7L12 2Zm-7 16h14v2H5v-2Z"/></svg><span>Creative health</span></button>
 <button class="tab" data-view="metaAds" title="Meta Ads"><svg viewBox="0 0 24 24"><path d="M10 3h4v4h-1v2h5v3h2v4h-6v-4h2v-1h-8v1h2v4H4v-4h2V9h5V7h-1V3Zm-4 11v2h2v-2H6Zm10 0v2h2v-2h-2ZM12 5h0Z"/></svg><span>Meta Ads</span></button>
 <button class="tab" data-view="videoFunnel" title="Video Funnel"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm4 2.5 5 2.5-5 2.5v-5Z"/></svg><span>Video Funnel</span></button>
+<button class="tab" data-view="competitors" title="Competitors"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 0 1 8 8H4a8 8 0 0 1 8-8Zm-1 4h2v5h-2V8Zm0 6h2v2h-2v-2Z"/></svg><span>Competitors</span></button>
 <button class="tab" data-view="pages" title="Page conversion"><svg viewBox="0 0 24 24"><path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V8h-4V4H7Zm2 7h6v2H9v-2Zm0 4h6v2H9v-2Z"/></svg><span>Page conversion</span></button>
 <button class="tab" data-view="dateAnalysis" title="Date analysis"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10ZM6 6v2h12V6H6Zm2 6h3v3H8v-3Z"/></svg><span>Date analysis</span></button>
 <button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
@@ -598,6 +599,16 @@
       <div class="section-head" style="margin-top:6px"><div><h2>Video Funnel</h2><p>"Corredor Polonês" awareness campaign - a separate product from PreSubs, never mixed into PreSubs spend/registration totals. Phases 1-3 are video-view awareness campaigns (VV25/VV50/VV75 = % of video watched); Phase 4 is the conversion/lead campaign.</p></div></div>
       <div class="subtab-bar" id="videoFunnelPhaseTabs"></div>
       <div id="videoFunnelBody"></div>
+    </section>
+
+    <section id="competitors" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Competitors</h2><p>Public ad-library research (Meta Ads Library, Google Ads Transparency Center) - hooks, offers, formats and observed patterns. Facts and interpretations are kept separate; nothing here is invented or confirms revenue/ROAS.</p></div></div>
+      <div id="competitorsKpis" class="kpi-grid"></div>
+      <article class="card panel">
+        <div class="section-head"><div><h2>Strategic reading</h2><p>What these facts suggest - not proof of performance.</p></div></div>
+        <div id="competitorsStrategicReading"></div>
+      </article>
+      <div id="competitorsList" style="margin-top:18px"></div>
     </section>
 
     <section id="pages" class="view">

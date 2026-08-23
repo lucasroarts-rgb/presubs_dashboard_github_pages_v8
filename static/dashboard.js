@@ -612,6 +612,37 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Daily performance":"Performance quotidienne",
   "Share of viewers who watched 50%, this period.":"Part des spectateurs ayant regardé 50%, cette période.",
   "No video funnel data synced for this period.":"Aucune donnée d'entonnoir vidéo synchronisée pour cette période.",
+  "Competitors":"Concurrents",
+  "Public ad-library research (Meta Ads Library, Google Ads Transparency Center) - hooks, offers, formats and observed patterns. Facts and interpretations are kept separate; nothing here is invented or confirms revenue/ROAS.":"Recherche dans les bibliothèques d'annonces publiques (Meta Ads Library, Google Ads Transparency Center) - hooks, offres, formats et tendances observées. Faits et interprétations sont séparés ; rien ici n'est inventé ni ne confirme le revenu/ROAS.",
+  "Strategic reading":"Lecture stratégique",
+  "What these facts suggest - not proof of performance.":"Ce que ces faits suggèrent - pas une preuve de performance.",
+  "No competitor research recorded yet.":"Aucune recherche concurrentielle enregistrée pour l'instant.",
+  "Competitors tracked":"Concurrents suivis",
+  "Direct, reference and attention":"Direct, référence et attention",
+  "Platforms checked":"Plateformes vérifiées",
+  "Active ad presence found":"Présence publicitaire active trouvée",
+  "Of entries researched so far":"Sur les entrées recherchées jusqu'ici",
+  "Last researched":"Dernière recherche",
+  "Most recent entry date":"Date de l'entrée la plus récente",
+  "Of the competitors checked so far, only Anglify (AYNI.COM) shows a comparable paid-media presence to us - but on Google/YouTube video, not Meta, and with a single creative running almost 2 years straight (2M+ impressions). Wall Street English and Aimigo (formerly Gymglish) show zero Meta ads at all, suggesting they lean on brand, SEO or their physical/organic channels instead of paid social. This is a facts-only read, not proof of what converts - see each entry's notes for the fact/interpretation split.":"Parmi les concurrents vérifiés jusqu'ici, seul Anglify (AYNI.COM) montre une présence média payante comparable à la nôtre - mais sur vidéo Google/YouTube, pas Meta, avec un seul créatif diffusé en continu depuis presque 2 ans (2M+ impressions). Wall Street English et Aimigo (ex-Gymglish) n'ont aucune publicité Meta, suggérant qu'ils misent sur la marque, le SEO ou leurs canaux physiques/organiques plutôt que sur le social payant. C'est une lecture factuelle uniquement, pas une preuve de ce qui convertit - voir les notes de chaque entrée pour la séparation fait/interprétation.",
+  "Baseline (us)":"Référence (nous)",
+  "Direct competitor":"Concurrent direct",
+  "Market reference":"Référence de marché",
+  "Attention competitor":"Concurrent d'attention",
+  "Active":"Actif",
+  "No ads found":"Aucune publicité trouvée",
+  "Inconclusive":"Non concluant",
+  "Inactive":"Inactif",
+  "Found":"Trouvé",
+  "Running since":"En diffusion depuis",
+  "Format":"Format",
+  "Hook":"Accroche",
+  "Angle":"Angle",
+  "Offer":"Offre",
+  "CTA":"CTA",
+  "Proof":"Preuve",
+  "Estimated reach":"Portée estimée",
+  "View source":"Voir la source",
   "Confirmed, this period":"Confirmé, cette période",
   "Save selection":"Enregistrer la sélection",
   "Saving…":"Enregistrement…",
@@ -874,6 +905,37 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Daily performance":"Performance diária",
   "Share of viewers who watched 50%, this period.":"Participação dos espectadores que assistiram 50%, este período.",
   "No video funnel data synced for this period.":"Nenhum dado do funil de vídeo sincronizado para este período.",
+  "Competitors":"Concorrentes",
+  "Public ad-library research (Meta Ads Library, Google Ads Transparency Center) - hooks, offers, formats and observed patterns. Facts and interpretations are kept separate; nothing here is invented or confirms revenue/ROAS.":"Pesquisa nas bibliotecas públicas de anúncios (Meta Ads Library, Google Ads Transparency Center) - hooks, ofertas, formatos e padrões observados. Fatos e interpretações ficam separados; nada aqui é inventado nem confirma receita/ROAS.",
+  "Strategic reading":"Leitura estratégica",
+  "What these facts suggest - not proof of performance.":"O que esses fatos sugerem - não é prova de performance.",
+  "No competitor research recorded yet.":"Nenhuma pesquisa de concorrente registrada ainda.",
+  "Competitors tracked":"Concorrentes rastreados",
+  "Direct, reference and attention":"Direto, referência e atenção",
+  "Platforms checked":"Plataformas verificadas",
+  "Active ad presence found":"Presença ativa de anúncios encontrada",
+  "Of entries researched so far":"Das entradas pesquisadas até agora",
+  "Last researched":"Última pesquisa",
+  "Most recent entry date":"Data da entrada mais recente",
+  "Of the competitors checked so far, only Anglify (AYNI.COM) shows a comparable paid-media presence to us - but on Google/YouTube video, not Meta, and with a single creative running almost 2 years straight (2M+ impressions). Wall Street English and Aimigo (formerly Gymglish) show zero Meta ads at all, suggesting they lean on brand, SEO or their physical/organic channels instead of paid social. This is a facts-only read, not proof of what converts - see each entry's notes for the fact/interpretation split.":"Dos concorrentes verificados até agora, só a Anglify (AYNI.COM) mostra presença em mídia paga comparável à nossa - mas em vídeo Google/YouTube, não Meta, com um único criativo rodando quase 2 anos seguidos (2M+ impressões). Wall Street English e Aimigo (ex-Gymglish) não têm nenhum anúncio Meta, sugerindo que apostam em marca, SEO ou canais físicos/orgânicos em vez de mídia paga social. Essa é uma leitura só de fatos, não prova do que converte - vê as notas de cada entrada pra separação fato/interpretação.",
+  "Baseline (us)":"Base (nós)",
+  "Direct competitor":"Concorrente direto",
+  "Market reference":"Referência de mercado",
+  "Attention competitor":"Concorrente de atenção",
+  "Active":"Ativo",
+  "No ads found":"Nenhum anúncio encontrado",
+  "Inconclusive":"Inconclusivo",
+  "Inactive":"Inativo",
+  "Found":"Encontrado",
+  "Running since":"Rodando desde",
+  "Format":"Formato",
+  "Hook":"Hook",
+  "Angle":"Ângulo",
+  "Offer":"Oferta",
+  "CTA":"CTA",
+  "Proof":"Prova",
+  "Estimated reach":"Alcance estimado",
+  "View source":"Ver fonte",
   "Confirmed, this period":"Confirmado, este período",
   "Save selection":"Salvar seleção",
   "Saving…":"Salvando…",
@@ -3239,6 +3301,80 @@ function renderVideoFunnel(){
   table("videoFunnelTrendTable",trendColumns,dailyRows,t("No video funnel data synced for this period."));
 }
 
+let competitorAdsCache=null;
+const CATEGORY_LABELS={self:"Baseline (us)",direct:"Direct competitor",reference:"Market reference",attention:"Attention competitor"};
+const STATUS_LABELS={active:"Active",not_found:"No ads found",inconclusive:"Inconclusive",inactive:"Inactive"};
+async function renderCompetitors(){
+  const kpis=document.getElementById("competitorsKpis");
+  const listEl=document.getElementById("competitorsList");
+  const readingEl=document.getElementById("competitorsStrategicReading");
+  if(!kpis||!listEl)return;
+  if(!competitorAdsCache){
+    try{
+      const res=await fetch("/api/competitor-ads");
+      competitorAdsCache=res.ok?await res.json():{available:false,ads:[]};
+    }catch(error){
+      console.error("Dashboard render error in renderCompetitors:",error);
+      competitorAdsCache={available:false,ads:[]};
+    }
+  }
+  const data=competitorAdsCache;
+  if(!data.available||!data.ads.length){
+    kpis.innerHTML="";
+    listEl.innerHTML=`<div class="empty">${t("No competitor research recorded yet.")}</div>`;
+    if(readingEl)readingEl.innerHTML="";
+    return;
+  }
+  const ads=data.ads;
+  const competitors=new Set(ads.map(a=>a.competitor));
+  const platforms=new Set(ads.map(a=>a.platform));
+  const activeCount=ads.filter(a=>a.status_observed==="active").length;
+  kpis.innerHTML=[
+    [t("Competitors tracked"),number(competitors.size),t("Direct, reference and attention")],
+    [t("Platforms checked"),number(platforms.size),[...platforms].join(", ")],
+    [t("Active ad presence found"),number(activeCount),t("Of entries researched so far")],
+    [t("Last researched"),data.last_researched_at||"—",t("Most recent entry date")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  if(readingEl){
+    readingEl.innerHTML=`<div class="hint" style="line-height:1.7">${t("Of the competitors checked so far, only Anglify (AYNI.COM) shows a comparable paid-media presence to us - but on Google/YouTube video, not Meta, and with a single creative running almost 2 years straight (2M+ impressions). Wall Street English and Aimigo (formerly Gymglish) show zero Meta ads at all, suggesting they lean on brand, SEO or their physical/organic channels instead of paid social. This is a facts-only read, not proof of what converts - see each entry's notes for the fact/interpretation split.")}</div>`;
+  }
+
+  const byCompetitor=new Map();
+  ads.forEach(ad=>{
+    const key=ad.competitor;
+    if(!byCompetitor.has(key))byCompetitor.set(key,[]);
+    byCompetitor.get(key).push(ad);
+  });
+
+  const fieldRow=(label,value)=>value?`<div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">${t(label)}</span><span style="font-size:12px;font-weight:600;text-align:right;max-width:70%">${escapeHtml(value)}</span></div>`:"";
+
+  listEl.innerHTML=[...byCompetitor.entries()].map(([competitor,entries])=>{
+    const category=entries[0].category;
+    const cardsHtml=entries.map(ad=>`
+      <article class="card panel" style="margin-bottom:12px">
+        <div class="section-head">
+          <div><h2 style="font-size:15px">${escapeHtml(ad.platform)}</h2><p>${t("Found")}: ${ad.date_found}${ad.date_started?` · ${t("Running since")} ${ad.date_started}`:""}</p></div>
+          <span class="pill ${ad.status_observed==="active"?"good":ad.status_observed==="not_found"?"bad":"warn"}">${t(STATUS_LABELS[ad.status_observed]||ad.status_observed)}</span>
+        </div>
+        ${fieldRow("Format",ad.format)}
+        ${fieldRow("Hook",ad.hook)}
+        ${fieldRow("Angle",ad.angle)}
+        ${fieldRow("Offer",ad.offer)}
+        ${fieldRow("CTA",ad.cta)}
+        ${fieldRow("Proof",ad.proof)}
+        ${fieldRow("Estimated reach",ad.impressions_estimate)}
+        ${ad.notes?`<p class="hint" style="margin-top:10px">${escapeHtml(ad.notes)}</p>`:""}
+        ${ad.link?`<a class="ad-link" href="${escapeHtml(ad.link)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:10px;text-decoration:none">${t("View source")} ↗</a>`:""}
+      </article>
+    `).join("");
+    return `<div style="margin-bottom:22px">
+      <div class="section-head"><div><h2 style="font-size:17px">${escapeHtml(competitor)}</h2><p>${t(CATEGORY_LABELS[category]||category)}</p></div></div>
+      ${cardsHtml}
+    </div>`;
+  }).join("");
+}
+
 function renderSocial(){
   const kpis=document.getElementById("socialYoutubeKpis");
   const trendTable=document.getElementById("socialYoutubeTrend");
@@ -3797,7 +3933,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

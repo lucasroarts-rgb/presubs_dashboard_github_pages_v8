@@ -512,6 +512,26 @@ def init_db() -> None:
         UNIQUE(report_date)
     );
 
+    CREATE TABLE IF NOT EXISTS competitor_ads (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        competitor TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'direct',
+        platform TEXT NOT NULL,
+        status_observed TEXT NOT NULL DEFAULT 'active',
+        format TEXT,
+        hook TEXT,
+        angle TEXT,
+        offer TEXT,
+        cta TEXT,
+        proof TEXT,
+        date_started TEXT,
+        impressions_estimate TEXT,
+        link TEXT,
+        notes TEXT,
+        date_found TEXT NOT NULL DEFAULT CURRENT_DATE,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS video_funnel_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         phase TEXT NOT NULL,
@@ -2499,6 +2519,79 @@ def meta_organic_summary(con: sqlite3.Connection, start_date: str, end_date: str
         "daily": daily,
         "last_synced_at": latest_row[3],
     }
+
+
+def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
+    """Manually-curated competitive intelligence (public ad-library
+    research - Meta/Google/TikTok/LinkedIn ad transparency tools), not
+    date-scoped like the rest of the dashboard since it's a periodic
+    research snapshot, not a live metric feed. Never store anything
+    beyond what these public libraries themselves show (no PII, no
+    invented figures)."""
+    rows = con.execute(
+        "SELECT id, competitor, category, platform, status_observed, format, hook, angle, "
+        "offer, cta, proof, date_started, impressions_estimate, link, notes, date_found "
+        "FROM competitor_ads ORDER BY competitor, platform, date_found DESC"
+    ).fetchall()
+    ads = [
+        {
+            "id": r[0], "competitor": r[1], "category": r[2], "platform": r[3],
+            "status_observed": r[4], "format": r[5], "hook": r[6], "angle": r[7],
+            "offer": r[8], "cta": r[9], "proof": r[10], "date_started": r[11],
+            "impressions_estimate": r[12], "link": r[13], "notes": r[14], "date_found": r[15],
+        }
+        for r in rows
+    ]
+    last_row = con.execute("SELECT MAX(date_found) FROM competitor_ads").fetchone()
+    return {"available": bool(ads), "ads": ads, "last_researched_at": last_row[0] if last_row else None}
+
+
+@app.get("/api/competitor-ads")
+def get_competitor_ads():
+    with db() as con:
+        return competitor_ads_summary(con)
+
+
+@app.post("/api/competitor-ads")
+def save_competitor_ad(payload: dict[str, Any]):
+    competitor = str(payload.get("competitor") or "").strip()
+    platform = str(payload.get("platform") or "").strip()
+    if not competitor or not platform:
+        raise HTTPException(400, "Competitor and platform are required.")
+    with db() as con:
+        con.execute(
+            """
+            INSERT INTO competitor_ads
+                (competitor, category, platform, status_observed, format, hook, angle,
+                 offer, cta, proof, date_started, impressions_estimate, link, notes, date_found)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_DATE))
+            """,
+            (
+                competitor,
+                str(payload.get("category") or "direct"),
+                platform,
+                str(payload.get("status_observed") or "active"),
+                payload.get("format"),
+                payload.get("hook"),
+                payload.get("angle"),
+                payload.get("offer"),
+                payload.get("cta"),
+                payload.get("proof"),
+                payload.get("date_started"),
+                payload.get("impressions_estimate"),
+                payload.get("link"),
+                payload.get("notes"),
+                payload.get("date_found"),
+            ),
+        )
+    return {"ok": True}
+
+
+@app.delete("/api/competitor-ads/{ad_id}")
+def delete_competitor_ad(ad_id: int):
+    with db() as con:
+        con.execute("DELETE FROM competitor_ads WHERE id = ?", (ad_id,))
+    return {"ok": True}
 
 
 PHASE_LABELS = {
