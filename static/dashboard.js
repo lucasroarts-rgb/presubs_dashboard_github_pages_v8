@@ -709,7 +709,9 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Link":"Lien",
   "View":"Voir",
   "No posts published in this period.":"Aucune publication publiée pendant cette période.",
-  "No Instagram data synced for this period.":"Aucune donnée Instagram synchronisée pour cette période."
+  "No Instagram data synced for this period.":"Aucune donnée Instagram synchronisée pour cette période.",
+  "Launches":"Lancements",
+  "No launches configured yet.":"Aucun lancement configuré pour l'instant."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -1030,7 +1032,9 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Link":"Link",
   "View":"Ver",
   "No posts published in this period.":"Nenhuma publicação feita neste período.",
-  "No Instagram data synced for this period.":"Nenhum dado do Instagram sincronizado para este período."
+  "No Instagram data synced for this period.":"Nenhum dado do Instagram sincronizado para este período.",
+  "Launches":"Lançamentos",
+  "No launches configured yet.":"Nenhum lançamento configurado ainda."
 });
 
 const originalTextNodes=new WeakMap();
