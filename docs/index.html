@@ -863,11 +863,34 @@
 
       <div id="socialInstagram" class="subview">
         <div id="socialInstagramKpis" class="kpi-grid"></div>
-        <article class="card panel" style="margin-top:16px">
-          <div class="section-head"><div><h2>Followers by day</h2><p>Daily snapshot of the Instagram Business account, this period.</p></div></div>
-          <div id="socialInstagramTrend"></div>
-        </article>
-        <p class="hint" style="margin-top:10px">Post-level engagement (likes/comments per post) needs the instagram_basic and instagram_manage_insights scopes, not yet granted on this token.</p>
+        <div class="audience-grid">
+          <article class="card panel">
+            <div class="section-head"><div><h2>Reach vs views by day</h2><p>This period.</p></div></div>
+            <div id="socialInstagramTrend"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Daily follower growth</h2><p>New followers per day, this period.</p></div></div>
+            <div id="socialInstagramFollowerGrowth"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Gender</h2><p>Follower base, lifetime snapshot.</p></div></div>
+            <div id="socialInstagramGender"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Age</h2><p>Follower base, lifetime snapshot.</p></div></div>
+            <div id="socialInstagramAge"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>Country</h2><p>Follower base, top countries, lifetime snapshot.</p></div></div>
+            <div id="socialInstagramCountry"></div>
+          </article>
+          <article class="card panel">
+            <div class="section-head"><div><h2>City</h2><p>Follower base, top cities, lifetime snapshot.</p></div></div>
+            <div id="socialInstagramCity"></div>
+          </article>
+        </div>
+        <div class="section-head" style="margin-top:22px"><div><h2>Post performance</h2><p>Posts published this period, by reach.</p></div></div>
+        <div id="socialInstagramPosts"></div>
       </div>
 
       <div id="socialFacebook" class="subview">

@@ -680,7 +680,36 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Daily likes":"J'aime par jour",
   "Likes per day, this period.":"J'aime par jour, cette période.",
   "Sunday":"Dimanche","Monday":"Lundi","Tuesday":"Mardi","Wednesday":"Mercredi","Thursday":"Jeudi","Friday":"Vendredi","Saturday":"Samedi",
-  "Total":"Total"
+  "Total":"Total",
+  "Engagement Rate":"Taux d'engagement",
+  "Engagement / reach":"Engagement / couverture",
+  "Media views":"Vues des médias",
+  "Media engagement":"Engagement des médias",
+  "Likes + saves + comments + shares":"J'aime + enregistrements + commentaires + partages",
+  "New Followers":"Nouveaux abonnés",
+  "Profile followers":"Abonnés du profil",
+  "Current total":"Total actuel",
+  "vs previous period":"vs période précédente",
+  "Reach vs views by day":"Couverture vs vues par jour",
+  "Daily follower growth":"Croissance des abonnés par jour",
+  "New followers per day, this period.":"Nouveaux abonnés par jour, cette période.",
+  "New followers":"Nouveaux abonnés",
+  "Profile views":"Visites du profil",
+  "Follower base, lifetime snapshot.":"Base d'abonnés, instantané depuis toujours.",
+  "Follower base, top countries, lifetime snapshot.":"Base d'abonnés, principaux pays, instantané depuis toujours.",
+  "Follower base, top cities, lifetime snapshot.":"Base d'abonnés, principales villes, instantané depuis toujours.",
+  "Country":"Pays",
+  "City":"Ville",
+  "Post performance":"Performance des publications",
+  "Posts published this period, by reach.":"Publications de cette période, par couverture.",
+  "Type":"Type",
+  "Caption":"Légende",
+  "Saved":"Enregistré",
+  "Engagement":"Engagement",
+  "Link":"Lien",
+  "View":"Voir",
+  "No posts published in this period.":"Aucune publication publiée pendant cette période.",
+  "No Instagram data synced for this period.":"Aucune donnée Instagram synchronisée pour cette période."
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -972,7 +1001,36 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Which videos this period's views are concentrated in.":"Em quais vídeos as visualizações deste período estão concentradas.",
   "Daily likes":"Curtidas por dia",
   "Likes per day, this period.":"Curtidas por dia, este período.",
-  "Sunday":"Domingo","Monday":"Segunda","Tuesday":"Terça","Wednesday":"Quarta","Thursday":"Quinta","Friday":"Sexta","Saturday":"Sábado"
+  "Sunday":"Domingo","Monday":"Segunda","Tuesday":"Terça","Wednesday":"Quarta","Thursday":"Quinta","Friday":"Sexta","Saturday":"Sábado",
+  "Engagement Rate":"Taxa de engajamento",
+  "Engagement / reach":"Engajamento / alcance",
+  "Media views":"Visualizações de mídia",
+  "Media engagement":"Engajamento de mídia",
+  "Likes + saves + comments + shares":"Curtidas + salvamentos + comentários + compartilhamentos",
+  "New Followers":"Novos seguidores",
+  "Profile followers":"Seguidores do perfil",
+  "Current total":"Total atual",
+  "vs previous period":"vs período anterior",
+  "Reach vs views by day":"Alcance vs visualizações por dia",
+  "Daily follower growth":"Crescimento de seguidores por dia",
+  "New followers per day, this period.":"Novos seguidores por dia, neste período.",
+  "New followers":"Novos seguidores",
+  "Profile views":"Visitas ao perfil",
+  "Follower base, lifetime snapshot.":"Base de seguidores, retrato desde sempre.",
+  "Follower base, top countries, lifetime snapshot.":"Base de seguidores, principais países, retrato desde sempre.",
+  "Follower base, top cities, lifetime snapshot.":"Base de seguidores, principais cidades, retrato desde sempre.",
+  "Country":"País",
+  "City":"Cidade",
+  "Post performance":"Performance das publicações",
+  "Posts published this period, by reach.":"Publicações deste período, por alcance.",
+  "Type":"Tipo",
+  "Caption":"Legenda",
+  "Saved":"Salvo",
+  "Engagement":"Engajamento",
+  "Link":"Link",
+  "View":"Ver",
+  "No posts published in this period.":"Nenhuma publicação feita neste período.",
+  "No Instagram data synced for this period.":"Nenhum dado do Instagram sincronizado para este período."
 });
 
 const originalTextNodes=new WeakMap();
@@ -3473,32 +3531,18 @@ function renderSocial(){
   }
 
   const mo=dashboard?.meta_organic;
-  const igKpis=document.getElementById("socialInstagramKpis");
-  const igTrend=document.getElementById("socialInstagramTrend");
   const fbKpis=document.getElementById("socialFacebookKpis");
   const fbTrend=document.getElementById("socialFacebookTrend");
   const emptyMo=periodExtrasEmpty("No Instagram/Facebook data synced for this period.");
-  if(igKpis&&fbKpis){
+  if(fbKpis){
     if(!mo||!mo.available){
-      igKpis.innerHTML="";fbKpis.innerHTML="";
-      if(igTrend)igTrend.innerHTML=emptyMo;
+      fbKpis.innerHTML="";
       if(fbTrend)fbTrend.innerHTML=emptyMo;
     }else{
-      igKpis.innerHTML=[
-        [t("Followers"),number(mo.instagram_followers),mo.instagram_growth!=null?`${mo.instagram_growth>=0?"+":""}${number(mo.instagram_growth)} ${t("this period")}`:t("This period")],
-        [t("Posts"),number(mo.instagram_media_count),t("Total published")]
-      ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
       fbKpis.innerHTML=[
         [t("Page fans"),number(mo.facebook_fan_count),mo.facebook_growth!=null?`${mo.facebook_growth>=0?"+":""}${number(mo.facebook_growth)} ${t("this period")}`:t("This period")]
       ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
       const moDaily=[...(mo.daily||[])].reverse();
-      if(igTrend){
-        table("socialInstagramTrend",[
-          {label:t("Date"),name:true,render:r=>r.report_date},
-          {label:t("Followers"),numeric:true,render:r=>r.instagram_followers!=null?number(r.instagram_followers):"—"},
-          {label:t("Posts"),numeric:true,render:r=>r.instagram_media_count!=null?number(r.instagram_media_count):"—"}
-        ],moDaily,t("No Instagram data synced for this period."));
-      }
       if(fbTrend){
         table("socialFacebookTrend",[
           {label:t("Date"),name:true,render:r=>r.report_date},
@@ -3506,6 +3550,87 @@ function renderSocial(){
         ],moDaily,t("No Facebook data synced for this period."));
       }
     }
+  }
+  renderSocialInstagram();
+}
+
+function renderSocialInstagram(){
+  const igKpis=document.getElementById("socialInstagramKpis");
+  if(!igKpis)return;
+  const ig=dashboard?.instagram;
+  const mo=dashboard?.meta_organic;
+  const empty=periodExtrasEmpty("No Instagram data synced for this period.");
+  const trendEl=document.getElementById("socialInstagramTrend");
+  const followerGrowthEl=document.getElementById("socialInstagramFollowerGrowth");
+  const genderEl=document.getElementById("socialInstagramGender");
+  const ageEl=document.getElementById("socialInstagramAge");
+  const countryEl=document.getElementById("socialInstagramCountry");
+  const cityEl=document.getElementById("socialInstagramCity");
+  const postsEl=document.getElementById("socialInstagramPosts");
+
+  if(!ig||!ig.available){
+    igKpis.innerHTML="";
+    [trendEl,followerGrowthEl,genderEl,ageEl,countryEl,cityEl,postsEl].forEach(el=>{if(el)el.innerHTML=empty;});
+    return;
+  }
+
+  const pctNote=pct=>pct==null?t("This period"):`${pct>=0?"+":""}${pct}% ${t("vs previous period")}`;
+  igKpis.innerHTML=[
+    [t("Engagement Rate"),ig.engagement_rate!=null?ig.engagement_rate+"%":"—",t("Engagement / reach")],
+    [t("Media views"),number(ig.views_total),pctNote(ig.views_change_pct)],
+    [t("Reach"),number(ig.reach_total),pctNote(ig.reach_change_pct)],
+    [t("Media engagement"),number(ig.media_engagement_total),t("Likes + saves + comments + shares")],
+    [t("New Followers"),number(ig.new_followers_total),pctNote(ig.new_followers_change_pct)],
+    [t("Profile followers"),mo&&mo.available?number(mo.instagram_followers):"—",t("Current total")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  const daily=[...(ig.daily||[])].reverse();
+  if(trendEl){
+    table("socialInstagramTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Reach"),numeric:true,render:r=>number(r.reach)},
+      {label:t("Views"),numeric:true,render:r=>number(r.views)}
+    ],daily,t("No Instagram data synced for this period."));
+  }
+  if(followerGrowthEl){
+    table("socialInstagramFollowerGrowth",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("New followers"),numeric:true,render:r=>number(r.new_followers)},
+      {label:t("Profile views"),numeric:true,render:r=>number(r.profile_views)}
+    ],daily,t("No Instagram data synced for this period."));
+  }
+
+  const demo=ig.demographics||{};
+  if(genderEl){
+    const gender=demo.gender||[];
+    genderEl.innerHTML=gender.length?genericDonutHtml(gender,r=>r.value,r=>r.key):empty;
+  }
+  if(ageEl){
+    const age=demo.age||[];
+    ageEl.innerHTML=age.length?audienceBarList(age,r=>r.value,r=>r.key):empty;
+  }
+  if(countryEl){
+    const country=(demo.country||[]).slice(0,10);
+    countryEl.innerHTML=country.length?audienceBarList(country,r=>r.value,r=>r.key):empty;
+  }
+  if(cityEl){
+    const city=(demo.city||[]).slice(0,10);
+    cityEl.innerHTML=city.length?audienceBarList(city,r=>r.value,r=>r.key):empty;
+  }
+
+  if(postsEl){
+    const posts=[...(ig.posts||[])];
+    table("socialInstagramPosts",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Type"),render:r=>escapeHtml(r.media_type||"—")},
+      {label:t("Caption"),render:r=>`<span title="${escapeHtml(r.caption||"")}">${escapeHtml((r.caption||"").length>60?r.caption.slice(0,60)+"…":r.caption||"—")}</span>`},
+      {label:t("Reach"),numeric:true,render:r=>number(r.reach)},
+      {label:t("Likes"),numeric:true,render:r=>number(r.likes)},
+      {label:t("Comments"),numeric:true,render:r=>number(r.comments)},
+      {label:t("Saved"),numeric:true,render:r=>number(r.saved)},
+      {label:t("Engagement"),numeric:true,render:r=>number(r.total_interactions)},
+      {label:t("Link"),render:r=>r.permalink?`<a href="${escapeHtml(r.permalink)}" target="_blank" rel="noopener">${t("View")} ↗</a>`:"—"}
+    ],posts,t("No posts published in this period."));
   }
 }
 

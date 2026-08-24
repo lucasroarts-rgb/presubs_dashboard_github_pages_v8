@@ -636,6 +636,41 @@ def init_db() -> None:
         UNIQUE(report_date)
     );
 
+    CREATE TABLE IF NOT EXISTS instagram_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        reach INTEGER,
+        views INTEGER,
+        profile_views INTEGER,
+        new_followers INTEGER,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS instagram_demographics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dimension TEXT NOT NULL,
+        key TEXT NOT NULL,
+        value INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS instagram_media (
+        media_id TEXT PRIMARY KEY,
+        report_date TEXT NOT NULL,
+        media_type TEXT,
+        caption TEXT,
+        permalink TEXT,
+        thumbnail_url TEXT,
+        reach INTEGER NOT NULL DEFAULT 0,
+        saved INTEGER NOT NULL DEFAULT 0,
+        total_interactions INTEGER NOT NULL DEFAULT 0,
+        likes INTEGER NOT NULL DEFAULT 0,
+        comments INTEGER NOT NULL DEFAULT 0,
+        shares INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2547,6 +2582,112 @@ def meta_organic_summary(con: sqlite3.Connection, start_date: str, end_date: str
     }
 
 
+def _period_over_period_growth(con: sqlite3.Connection, start_date: str, end_date: str, columns: list[str]) -> dict[str, float | None]:
+    """Sum each of `columns` in instagram_daily over [start_date, end_date],
+    then over the immediately-preceding period of equal length, and return
+    the percent change - same comparison style as the reference Looker
+    Studio deck ("-53.3%" under each KPI)."""
+    span_days = (date.fromisoformat(end_date) - date.fromisoformat(start_date)).days + 1
+    prev_end = date.fromisoformat(start_date) - pd.Timedelta(days=1)
+    prev_start = prev_end - pd.Timedelta(days=span_days - 1)
+
+    def _sums(lo: str, hi: str) -> dict[str, int]:
+        row = con.execute(
+            f"SELECT {', '.join(f'COALESCE(SUM({c}),0)' for c in columns)} "
+            "FROM instagram_daily WHERE report_date BETWEEN ? AND ?",
+            (lo, hi),
+        ).fetchone()
+        return dict(zip(columns, row))
+
+    current = _sums(start_date, end_date)
+    previous = _sums(prev_start.isoformat(), prev_end.isoformat())
+    growth: dict[str, float | None] = {}
+    for col in columns:
+        growth[f"{col}_total"] = current[col]
+        if previous[col]:
+            growth[f"{col}_change_pct"] = round((current[col] - previous[col]) / previous[col] * 100, 1)
+        else:
+            growth[f"{col}_change_pct"] = None
+    return growth
+
+
+def instagram_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Instagram Business account growth: daily reach/views/profile visits/
+    new followers (from the Insights API, granted 2026-08-24), a snapshot
+    of follower demographics (gender/age/country/city - lifetime totals,
+    not date-scoped, same as any audience-composition metric), and recent
+    post performance for posts published in range."""
+    daily_rows = con.execute(
+        "SELECT report_date, reach, views, profile_views, new_followers FROM instagram_daily "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    if not daily_rows:
+        return {
+            "available": False, "daily": [], "demographics": {}, "posts": [],
+            "reach_total": 0, "views_total": 0, "profile_views_total": 0, "new_followers_total": 0,
+            "media_engagement_total": 0, "media_saved_total": 0, "engagement_rate": None,
+            "last_synced_at": None,
+        }
+
+    daily = [
+        {
+            "report_date": row[0],
+            "reach": int(row[1] or 0),
+            "views": int(row[2] or 0),
+            "profile_views": int(row[3] or 0),
+            "new_followers": int(row[4] or 0),
+        }
+        for row in daily_rows
+    ]
+
+    growth = _period_over_period_growth(con, start_date, end_date, ["reach", "views", "profile_views", "new_followers"])
+
+    demo_rows = con.execute("SELECT dimension, key, value FROM instagram_demographics ORDER BY dimension, value DESC").fetchall()
+    demographics: dict[str, list[dict[str, Any]]] = {}
+    for dimension, key, value in demo_rows:
+        demographics.setdefault(dimension, []).append({"key": key, "value": int(value or 0)})
+
+    post_rows = con.execute(
+        "SELECT media_id, report_date, media_type, caption, permalink, thumbnail_url, "
+        "reach, saved, total_interactions, likes, comments, shares FROM instagram_media "
+        "WHERE report_date BETWEEN ? AND ? ORDER BY report_date DESC",
+        (start_date, end_date),
+    ).fetchall()
+    posts = [
+        {
+            "media_id": row[0], "report_date": row[1], "media_type": row[2], "caption": row[3],
+            "permalink": row[4], "thumbnail_url": row[5], "reach": int(row[6] or 0),
+            "saved": int(row[7] or 0), "total_interactions": int(row[8] or 0),
+            "likes": int(row[9] or 0), "comments": int(row[10] or 0), "shares": int(row[11] or 0),
+        }
+        for row in post_rows
+    ]
+    media_engagement_total = sum(p["total_interactions"] for p in posts)
+    media_saved_total = sum(p["saved"] for p in posts)
+
+    latest_synced = con.execute("SELECT MAX(synced_at) FROM instagram_daily").fetchone()
+
+    return {
+        "available": True,
+        "daily": daily,
+        "demographics": demographics,
+        "posts": posts,
+        "reach_total": growth["reach_total"],
+        "reach_change_pct": growth["reach_change_pct"],
+        "views_total": growth["views_total"],
+        "views_change_pct": growth["views_change_pct"],
+        "profile_views_total": growth["profile_views_total"],
+        "profile_views_change_pct": growth["profile_views_change_pct"],
+        "new_followers_total": growth["new_followers_total"],
+        "new_followers_change_pct": growth["new_followers_change_pct"],
+        "media_engagement_total": media_engagement_total,
+        "media_saved_total": media_saved_total,
+        "engagement_rate": round(media_engagement_total / growth["reach_total"] * 100, 2) if growth["reach_total"] else None,
+        "last_synced_at": latest_synced[0] if latest_synced else None,
+    }
+
+
 def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
     """Manually-curated competitive intelligence (public ad-library
     research - Meta/Google/TikTok/LinkedIn ad transparency tools), not
@@ -2802,6 +2943,7 @@ def period_extras(start: str, end: str):
             "google_ads": google_ads_summary(con, start, end),
             "youtube": youtube_summary(con, start, end),
             "meta_organic": meta_organic_summary(con, start, end),
+            "instagram": instagram_summary(con, start, end),
             "ghl": ghl_summary(con, start, end),
             "full_funnel": full_funnel_summary(con, start, end),
             "video_funnel": video_funnel_summary(con, start, end),
@@ -2846,6 +2988,7 @@ def dashboard(week_id: int | None = None):
                 "google_ads": None,
                 "youtube": None,
                 "meta_organic": None,
+                "instagram": None,
                 "ghl": None,
                 "full_funnel": None,
                 "video_funnel": None,
@@ -2985,6 +3128,7 @@ def dashboard(week_id: int | None = None):
         google_ads = google_ads_summary(con, current["week_start"], current["week_end"])
         youtube = youtube_summary(con, current["week_start"], current["week_end"])
         meta_organic = meta_organic_summary(con, current["week_start"], current["week_end"])
+        instagram = instagram_summary(con, current["week_start"], current["week_end"])
         ghl = ghl_summary(con, current["week_start"], current["week_end"])
         full_funnel = full_funnel_summary(con, current["week_start"], current["week_end"])
         video_funnel = video_funnel_summary(con, current["week_start"], current["week_end"])
@@ -3016,6 +3160,7 @@ def dashboard(week_id: int | None = None):
         "google_ads": google_ads,
         "youtube": youtube,
         "meta_organic": meta_organic,
+        "instagram": instagram,
         "ghl": ghl,
         "full_funnel": full_funnel,
         "video_funnel": video_funnel,
