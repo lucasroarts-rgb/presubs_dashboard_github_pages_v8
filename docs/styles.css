@@ -504,6 +504,9 @@ body{padding-left:264px}
 .sidebar-brand strong,.sidebar-brand span{display:block}.sidebar-brand strong{font-size:14px}.sidebar-brand span{font-size:10px;color:#c7c6dc;margin-top:2px}
 .sidebar-close{display:none;border:0;background:transparent;color:#fff;font-size:28px;line-height:1;padding:2px}
 .sidebar-nav{display:flex;flex-direction:column;gap:4px;padding:16px 0}
+.sidebar-nav-group-label{padding:16px 11px 4px;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:#8f8fae}
+.sidebar-nav-group-label:first-child{padding-top:2px}
+.sidebar-nav-group-empty{padding:2px 11px 12px;font-size:11px;color:#8f8fae;line-height:1.4}
 .sidebar-nav .tab{
   display:grid;grid-template-columns:22px 1fr;gap:11px;align-items:center;
   width:100%;text-align:left;color:#c9cad8;padding:10px 11px;border-radius:11px;
@@ -528,7 +531,7 @@ body{padding-left:264px}
 @media(max-width:1180px){
   body{padding-left:82px}
   .app-sidebar{width:82px;padding:16px 10px}
-  .sidebar-brand{display:block;text-align:center}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span{display:none}
+  .sidebar-brand{display:block;text-align:center}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span,.sidebar-nav-group-label,.sidebar-nav-group-empty{display:none}
   .sidebar-brand .brand-mark{margin:0 auto}.sidebar-nav .tab{display:grid;grid-template-columns:1fr;place-items:center;padding:11px}
   .sidebar-nav .tab svg{width:22px;height:22px}
   .daily-brief-grid{grid-template-columns:1fr}
@@ -538,7 +541,7 @@ body{padding-left:264px}
   .app-sidebar{width:min(310px,88vw);transform:translateX(-105%);transition:transform .22s ease;padding:18px 14px}
   .sidebar-open .app-sidebar{transform:translateX(0)}
   .sidebar-open .sidebar-overlay{display:block;position:fixed;inset:0;background:rgba(15,18,31,.55);z-index:55}
-  .sidebar-brand{display:grid;text-align:left}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span{display:block}
+  .sidebar-brand{display:grid;text-align:left}.sidebar-brand>div:not(.brand-mark),.sidebar-footer,.sidebar-nav .tab span,.sidebar-nav-group-label,.sidebar-nav-group-empty{display:block}
   .sidebar-brand .brand-mark{margin:0}.sidebar-close{display:block}
   .sidebar-nav .tab{display:grid;grid-template-columns:22px 1fr;place-items:initial}
   .sidebar-toggle{display:inline-grid;place-items:center;flex:0 0 auto}
