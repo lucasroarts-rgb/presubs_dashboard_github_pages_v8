@@ -1,14 +1,4 @@
-/*
-Click/scroll tracker for the peasyanglais.fr heatmap feature.
-Install: paste this whole block (with <script type="module"> tags) into a
-WPCode "Insert Headers and Footers" snippet set to load site-wide in the
-footer. It writes one Firestore document per pageview (batched client-side,
-flushed on tab-hide/unload) - no per-click network requests.
-
-No PII collected: only click position as % of page size, page path, a
-random per-tab session id, and max scroll depth.
-*/
-
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -96,3 +86,4 @@ const db = getFirestore(app);
   });
   window.addEventListener("pagehide", flush);
 })();
+</script>
