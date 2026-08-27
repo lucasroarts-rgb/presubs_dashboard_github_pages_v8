@@ -257,6 +257,32 @@ def build_public_javascript() -> str:
         raise RuntimeError("Could not patch renderCompetitors.")
     js = js.replace(old_competitor_ads, new_competitor_ads, 1)
 
+    old_heatmap = """  if(!heatmapCache){
+    try{
+      const res=await fetch("/api/heatmap");
+      heatmapCache=res.ok?await res.json():{available:false};
+    }catch(error){
+      console.error("Dashboard render error in renderHeatmap:",error);
+      heatmapCache={available:false};
+    }
+  }"""
+    new_heatmap = """  if(!heatmapCache){
+    if(IS_STATIC){
+      heatmapCache=STATIC_DATA.heatmap||{available:false};
+    }else{
+      try{
+        const res=await fetch("/api/heatmap");
+        heatmapCache=res.ok?await res.json():{available:false};
+      }catch(error){
+        console.error("Dashboard render error in renderHeatmap:",error);
+        heatmapCache={available:false};
+      }
+    }
+  }"""
+    if old_heatmap not in js:
+        raise RuntimeError("Could not patch renderHeatmap.")
+    js = js.replace(old_heatmap, new_heatmap, 1)
+
     return js
 
 
@@ -265,6 +291,7 @@ def main() -> int:
     with dashboard_app.db() as connection:
         dashboard_app.backfill_relations(connection)
         competitor_ads = dashboard_app.competitor_ads_summary(connection)
+        heatmap = dashboard_app.heatmap_summary(connection)
 
     weeks = dashboard_app.list_weeks()
     dashboards: dict[str, Any] = {}
@@ -280,6 +307,7 @@ def main() -> int:
             "dashboards": dashboards,
             "config": dashboard_app.read_dashboard_config(),
             "competitor_ads": competitor_ads,
+            "heatmap": heatmap,
         }
     )
 

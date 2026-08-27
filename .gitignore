@@ -11,6 +11,7 @@ data/*-error.log
 *.xls
 .env
 google_service_account.json
+data/firebase_service_account.json
 exports/
 logs/
 

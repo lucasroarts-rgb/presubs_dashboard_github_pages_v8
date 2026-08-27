@@ -38,6 +38,7 @@
 <button class="tab" data-view="studentProfile" title="Student profile"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Zm6 1c-.8 0-1.6.1-2.3.3 1.8 1 3.1 2.5 3.3 4.7H22v-1c0-2.4-3-4-7-4Z"/></svg><span>Student profile</span></button>
 <button class="tab" data-view="quality" title="Data quality"><svg viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4Zm0 3.2L6 8v4c0 3.7 2.3 6.2 6 7.6 3.7-1.4 6-3.9 6-7.6V8l-6-2.8Zm-1 9.3-2.5-2.5 1.4-1.4 1.1 1.1 3.1-3.1 1.4 1.4-4.5 4.5Z"/></svg><span>Data quality</span></button>
 <button class="tab" data-view="clarity" title="Clarity"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm0 14c-2.5 0-4.7-1.3-6-3.2.1-2 4-3.1 6-3.1s5.9 1.1 6 3.1c-1.3 1.9-3.5 3.2-6 3.2Z"/></svg><span>Clarity</span></button>
+<button class="tab" data-view="heatmap" title="Heatmap"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3Zm2 2v6h6V5H5Zm8 0v4h6V5h-6Zm0 6v8h6v-8h-6Zm-8 2v6h6v-6H5Z"/></svg><span>Heatmap</span></button>
       <div class="sidebar-nav-group-label">Launches</div>
       <div class="sidebar-nav-group-empty">No launches configured yet.</div>
     </nav>
@@ -758,6 +759,27 @@
           <div id="clarityReferrer"></div>
         </article>
       </div>
+    </section>
+
+    <section id="heatmap" class="view">
+      <div class="section-head" style="margin-top:6px"><div><h2>Heatmap</h2><p>Click density and scroll depth for peasyanglais.fr, from our own tracker (not a screenshot overlay - a coarse density grid built from normalized click positions). Cumulative since the tracker was installed, not date-scoped.</p></div></div>
+      <div id="heatmapKpis" class="kpi-grid"></div>
+      <div class="filterbar" style="margin-top:14px">
+        <select id="heatmapPageSelect"></select>
+        <div class="subtab-bar" id="heatmapDeviceTabs">
+          <button class="subtab-btn active" data-device="desktop">Desktop</button>
+          <button class="subtab-btn" data-device="mobile">Mobile</button>
+          <button class="subtab-btn" data-device="tablet">Tablet</button>
+        </div>
+      </div>
+      <article class="card panel" style="margin-top:16px">
+        <div class="section-head"><div><h2>Click density</h2><p>Darker cells = more clicks landed there, normalized to page width/height.</p></div></div>
+        <div id="heatmapGrid"></div>
+      </article>
+      <article class="card panel" style="margin-top:16px">
+        <div class="section-head"><div><h2>Scroll depth</h2><p>% of tracked pageviews that scrolled at least this far down the page.</p></div></div>
+        <div id="heatmapScroll"></div>
+      </article>
     </section>
 
     <section id="audience" class="view">

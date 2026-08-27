@@ -737,7 +737,23 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "No Clarity data synced for this period.":"Aucune donnée Clarity synchronisée pour cette période.",
   "Direct/None":"Direct/Aucun",
   "Device":"Appareil",
-  "OS":"Système d'exploitation"
+  "OS":"Système d'exploitation",
+  "Heatmap":"Carte de chaleur",
+  "Click density and scroll depth for peasyanglais.fr, from our own tracker (not a screenshot overlay - a coarse density grid built from normalized click positions). Cumulative since the tracker was installed, not date-scoped.":"Densité de clics et profondeur de défilement pour peasyanglais.fr, via notre propre traceur (pas une superposition de capture d'écran - une grille de densité approximative construite à partir de positions de clic normalisées). Cumulatif depuis l'installation du traceur, non limité à une période.",
+  "Click density":"Densité de clics",
+  "Darker cells = more clicks landed there, normalized to page width/height.":"Cellules plus foncées = plus de clics à cet endroit, normalisé à la largeur/hauteur de la page.",
+  "% of tracked pageviews that scrolled at least this far down the page.":"% des pages vues suivies ayant défilé au moins jusqu'à ce point.",
+  "Pages tracked":"Pages suivies",
+  "Distinct URLs seen":"URLs distinctes vues",
+  "Pageviews tracked":"Pages vues suivies",
+  "Since tracker install":"Depuis l'installation du traceur",
+  "Clicks tracked":"Clics suivis",
+  "No heatmap data tracked yet.":"Aucune donnée de carte de chaleur suivie pour l'instant.",
+  "No clicks tracked yet for this page/device.":"Aucun clic suivi pour cette page/cet appareil.",
+  "No scroll data tracked yet for this page/device.":"Aucune donnée de défilement suivie pour cette page/cet appareil.",
+  "Desktop":"Ordinateur",
+  "Mobile":"Mobile",
+  "Tablet":"Tablette"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -1086,7 +1102,23 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "No Clarity data synced for this period.":"Nenhum dado do Clarity sincronizado para este período.",
   "Direct/None":"Direto/Nenhum",
   "Device":"Dispositivo",
-  "OS":"Sistema operacional"
+  "OS":"Sistema operacional",
+  "Heatmap":"Mapa de calor",
+  "Click density and scroll depth for peasyanglais.fr, from our own tracker (not a screenshot overlay - a coarse density grid built from normalized click positions). Cumulative since the tracker was installed, not date-scoped.":"Densidade de cliques e profundidade de scroll pra peasyanglais.fr, via nosso próprio rastreador (não é overlay em cima de print - é uma grade de densidade aproximada construída a partir de posições de clique normalizadas). Cumulativo desde a instalação do rastreador, não filtrado por período.",
+  "Click density":"Densidade de cliques",
+  "Darker cells = more clicks landed there, normalized to page width/height.":"Células mais escuras = mais cliques ali, normalizado pela largura/altura da página.",
+  "% of tracked pageviews that scrolled at least this far down the page.":"% das visualizações rastreadas que rolaram pelo menos até esse ponto.",
+  "Pages tracked":"Páginas rastreadas",
+  "Distinct URLs seen":"URLs distintas vistas",
+  "Pageviews tracked":"Visualizações rastreadas",
+  "Since tracker install":"Desde a instalação do rastreador",
+  "Clicks tracked":"Cliques rastreados",
+  "No heatmap data tracked yet.":"Nenhum dado de mapa de calor rastreado ainda.",
+  "No clicks tracked yet for this page/device.":"Nenhum clique rastreado pra essa página/dispositivo.",
+  "No scroll data tracked yet for this page/device.":"Nenhum dado de scroll rastreado pra essa página/dispositivo.",
+  "Desktop":"Computador",
+  "Mobile":"Celular",
+  "Tablet":"Tablet"
 });
 
 const originalTextNodes=new WeakMap();
@@ -3489,6 +3521,92 @@ async function renderCompetitors(){
   }).join("");
 }
 
+let heatmapCache=null;
+const heatmapState={path:null,device:"desktop"};
+async function renderHeatmap(){
+  const kpis=document.getElementById("heatmapKpis");
+  if(!kpis)return;
+  const gridEl=document.getElementById("heatmapGrid");
+  const scrollEl=document.getElementById("heatmapScroll");
+  const pageSelect=document.getElementById("heatmapPageSelect");
+  const empty=periodExtrasEmpty("No heatmap data tracked yet.");
+
+  if(!heatmapCache){
+    try{
+      const res=await fetch("/api/heatmap");
+      heatmapCache=res.ok?await res.json():{available:false};
+    }catch(error){
+      console.error("Dashboard render error in renderHeatmap:",error);
+      heatmapCache={available:false};
+    }
+  }
+  const data=heatmapCache;
+  if(!data||!data.available){
+    kpis.innerHTML="";
+    if(gridEl)gridEl.innerHTML=empty;
+    if(scrollEl)scrollEl.innerHTML=empty;
+    if(pageSelect)pageSelect.innerHTML="";
+    return;
+  }
+
+  const pages=data.pages||[];
+  const pathTotals=new Map();
+  pages.forEach(p=>{
+    const existing=pathTotals.get(p.path)||{pageview_count:0,click_count:0};
+    existing.pageview_count+=p.pageview_count;
+    existing.click_count+=p.click_count;
+    pathTotals.set(p.path,existing);
+  });
+  const uniquePaths=[...pathTotals.entries()].sort((a,b)=>b[1].pageview_count-a[1].pageview_count);
+  if(!heatmapState.path||!pathTotals.has(heatmapState.path))heatmapState.path=uniquePaths[0]?.[0]||null;
+
+  const totalPageviews=pages.reduce((sum,p)=>sum+p.pageview_count,0);
+  const totalClicks=pages.reduce((sum,p)=>sum+p.click_count,0);
+  kpis.innerHTML=[
+    [t("Pages tracked"),number(uniquePaths.length),t("Distinct URLs seen")],
+    [t("Pageviews tracked"),number(totalPageviews),t("Since tracker install")],
+    [t("Clicks tracked"),number(totalClicks),t("Since tracker install")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  if(pageSelect){
+    pageSelect.innerHTML=uniquePaths.map(([path,totals])=>`<option value="${escapeHtml(path)}" ${path===heatmapState.path?"selected":""}>${escapeHtml(path)} (${number(totals.pageview_count)})</option>`).join("");
+    pageSelect.onchange=()=>{heatmapState.path=pageSelect.value;renderHeatmap();};
+  }
+
+  document.querySelectorAll("#heatmapDeviceTabs .subtab-btn").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.device===heatmapState.device);
+    btn.onclick=()=>{heatmapState.device=btn.dataset.device;renderHeatmap();};
+  });
+
+  const key=`${heatmapState.path}|||${heatmapState.device}`;
+  const cells=data.grid?.[key]||[];
+  const cols=data.grid_cols||20,rows=data.grid_rows||30;
+  if(gridEl){
+    if(!cells.length){
+      gridEl.innerHTML=`<div class="empty">${t("No clicks tracked yet for this page/device.")}</div>`;
+    }else{
+      const max=Math.max(1,...cells.map(c=>c.count));
+      const cellMap=new Map(cells.map(c=>[`${c.col},${c.row}`,c.count]));
+      let html=`<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:1px;aspect-ratio:${cols}/${rows};max-width:520px;border:1px solid var(--line);border-radius:8px;overflow:hidden">`;
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const count=cellMap.get(`${c},${r}`)||0;
+          const intensity=count/max;
+          const bg=count===0?"transparent":`hsla(${Math.max(0,40-intensity*40)},90%,55%,${0.15+intensity*0.75})`;
+          html+=`<div title="${count?escapeHtml(`${count} ${t("clicks")}`):""}" style="background:${bg};aspect-ratio:1"></div>`;
+        }
+      }
+      html+="</div>";
+      gridEl.innerHTML=html;
+    }
+  }
+
+  if(scrollEl){
+    const buckets=(data.scroll?.[key]||[]).slice().sort((a,b)=>a.depth_bucket-b.depth_bucket);
+    scrollEl.innerHTML=buckets.length?audienceBarList(buckets,r=>r.session_count,r=>`${r.depth_bucket}%+`):`<div class="empty">${t("No scroll data tracked yet for this page/device.")}</div>`;
+  }
+}
+
 const CLARITY_BREAKDOWN_PANELS={browser:"clarityBrowser",device:"clarityDevice",os:"clarityOs",country:"clarityCountry",referrer:"clarityReferrer"};
 function renderClarity(){
   const kpis=document.getElementById("clarityKpis");
@@ -4171,7 +4289,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("clarity",renderClarity);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("clarity",renderClarity);safeRender("heatmap",renderHeatmap);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

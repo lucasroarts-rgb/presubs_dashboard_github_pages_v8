@@ -701,6 +701,34 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS heatmap_pages (
+        path TEXT NOT NULL,
+        device TEXT NOT NULL,
+        pageview_count INTEGER NOT NULL DEFAULT 0,
+        click_count INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (path, device)
+    );
+
+    CREATE TABLE IF NOT EXISTS heatmap_click_grid (
+        path TEXT NOT NULL,
+        device TEXT NOT NULL,
+        grid_col INTEGER NOT NULL,
+        grid_row INTEGER NOT NULL,
+        click_count INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (path, device, grid_col, grid_row)
+    );
+
+    CREATE TABLE IF NOT EXISTS heatmap_scroll_depth (
+        path TEXT NOT NULL,
+        device TEXT NOT NULL,
+        depth_bucket INTEGER NOT NULL,
+        session_count INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (path, device, depth_bucket)
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2778,6 +2806,54 @@ def clarity_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> 
     }
 
 
+HEATMAP_GRID_COLS = 20
+HEATMAP_GRID_ROWS = 30
+
+
+def heatmap_summary(con: sqlite3.Connection) -> dict[str, Any]:
+    """Click-density grid and scroll-depth funnel for peasyanglais.fr,
+    built from our own click/scroll tracker (firebase/heatmap-tracker.html
+    on the site, synced from Firestore by scripts/sync_heatmap.py) - not
+    date-scoped, this is a cumulative total since the tracker was
+    installed (2026-08-27), same pattern as the follower-demographics
+    snapshots elsewhere in this dashboard."""
+    pages = [
+        {"path": r[0], "device": r[1], "pageview_count": int(r[2] or 0), "click_count": int(r[3] or 0)}
+        for r in con.execute(
+            "SELECT path, device, pageview_count, click_count FROM heatmap_pages "
+            "ORDER BY pageview_count DESC"
+        ).fetchall()
+    ]
+    if not pages:
+        return {"available": False, "pages": [], "grid": {}, "scroll": {}, "last_synced_at": None}
+
+    grid: dict[str, list[dict[str, Any]]] = {}
+    for path, device, col, row, count in con.execute(
+        "SELECT path, device, grid_col, grid_row, click_count FROM heatmap_click_grid"
+    ).fetchall():
+        key = f"{path}|||{device}"
+        grid.setdefault(key, []).append({"col": int(col), "row": int(row), "count": int(count or 0)})
+
+    scroll: dict[str, list[dict[str, Any]]] = {}
+    for path, device, bucket, count in con.execute(
+        "SELECT path, device, depth_bucket, session_count FROM heatmap_scroll_depth ORDER BY depth_bucket"
+    ).fetchall():
+        key = f"{path}|||{device}"
+        scroll.setdefault(key, []).append({"depth_bucket": int(bucket), "session_count": int(count or 0)})
+
+    latest_synced = con.execute("SELECT MAX(updated_at) FROM heatmap_pages").fetchone()
+
+    return {
+        "available": True,
+        "pages": pages,
+        "grid": grid,
+        "scroll": scroll,
+        "grid_cols": HEATMAP_GRID_COLS,
+        "grid_rows": HEATMAP_GRID_ROWS,
+        "last_synced_at": latest_synced[0] if latest_synced else None,
+    }
+
+
 def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
     """Manually-curated competitive intelligence (public ad-library
     research - Meta/Google/TikTok/LinkedIn ad transparency tools), not
@@ -2801,6 +2877,12 @@ def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
     ]
     last_row = con.execute("SELECT MAX(date_found) FROM competitor_ads").fetchone()
     return {"available": bool(ads), "ads": ads, "last_researched_at": last_row[0] if last_row else None}
+
+
+@app.get("/api/heatmap")
+def get_heatmap():
+    with db() as con:
+        return heatmap_summary(con)
 
 
 @app.get("/api/competitor-ads")
