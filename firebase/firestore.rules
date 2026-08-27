@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /pageviews/{docId} {
+      allow create: if request.resource.data.keys().hasOnly(
+          ['path', 'device', 'viewport_width', 'viewport_height', 'page_width',
+           'page_height', 'clicks', 'max_scroll_pct', 'session_id', 'created_at']
+        )
+        && request.resource.data.path is string
+        && request.resource.data.path.size() < 300
+        && request.resource.data.device in ['mobile', 'tablet', 'desktop']
+        && request.resource.data.clicks is list
+        && request.resource.data.clicks.size() <= 200
+        && request.resource.data.max_scroll_pct is number
+        && request.resource.data.max_scroll_pct >= 0
+        && request.resource.data.max_scroll_pct <= 100
+        && request.resource.data.session_id is string
+        && request.resource.data.session_id.size() < 100;
+      allow read, update, delete: if false;
+    }
+  }
+}
