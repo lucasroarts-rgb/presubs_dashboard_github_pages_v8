@@ -671,6 +671,36 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS clarity_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_date TEXT NOT NULL,
+        sessions_count INTEGER NOT NULL DEFAULT 0,
+        bot_sessions_count INTEGER NOT NULL DEFAULT 0,
+        distinct_users_count INTEGER NOT NULL DEFAULT 0,
+        pages_per_session REAL,
+        engagement_time_total INTEGER NOT NULL DEFAULT 0,
+        engagement_time_active INTEGER NOT NULL DEFAULT 0,
+        scroll_depth_avg REAL,
+        dead_click_sessions INTEGER NOT NULL DEFAULT 0,
+        dead_click_pct REAL,
+        rage_click_sessions INTEGER NOT NULL DEFAULT 0,
+        rage_click_pct REAL,
+        quickback_click_sessions INTEGER NOT NULL DEFAULT 0,
+        excessive_scroll_sessions INTEGER NOT NULL DEFAULT 0,
+        script_error_sessions INTEGER NOT NULL DEFAULT 0,
+        error_click_sessions INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS clarity_breakdown (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dimension TEXT NOT NULL,
+        key TEXT NOT NULL,
+        value INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS search_console_daily (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT NOT NULL,
@@ -2688,6 +2718,66 @@ def instagram_summary(con: sqlite3.Connection, start_date: str, end_date: str) -
     }
 
 
+def clarity_summary(con: sqlite3.Connection, start_date: str, end_date: str) -> dict[str, Any]:
+    """Microsoft Clarity session-quality metrics (rage/dead clicks, scroll
+    depth, engagement time) plus browser/device/OS/country/page/referrer
+    breakdowns. Clarity's own Data Export API only returns a 1-3 day
+    rolling window on each call (no historical range query), so this is
+    built the same way as YouTube/Instagram: one daily snapshot row,
+    accumulated over time by daily_sync.py. The breakdown dimensions are
+    themselves a rolling 1-3 day snapshot from Clarity, not date-scoped -
+    always "most recent sync", same as instagram_demographics."""
+    rows = con.execute(
+        "SELECT report_date, sessions_count, bot_sessions_count, distinct_users_count, "
+        "pages_per_session, engagement_time_total, engagement_time_active, scroll_depth_avg, "
+        "dead_click_sessions, dead_click_pct, rage_click_sessions, rage_click_pct, "
+        "quickback_click_sessions, excessive_scroll_sessions, script_error_sessions, error_click_sessions "
+        "FROM clarity_daily WHERE report_date BETWEEN ? AND ? ORDER BY report_date",
+        (start_date, end_date),
+    ).fetchall()
+    if not rows:
+        return {"available": False, "daily": [], "breakdown": {}, "last_synced_at": None}
+
+    daily = [
+        {
+            "report_date": r[0], "sessions_count": int(r[1] or 0), "bot_sessions_count": int(r[2] or 0),
+            "distinct_users_count": int(r[3] or 0), "pages_per_session": float(r[4]) if r[4] is not None else None,
+            "engagement_time_total": int(r[5] or 0), "engagement_time_active": int(r[6] or 0),
+            "scroll_depth_avg": float(r[7]) if r[7] is not None else None,
+            "dead_click_sessions": int(r[8] or 0), "dead_click_pct": float(r[9]) if r[9] is not None else None,
+            "rage_click_sessions": int(r[10] or 0), "rage_click_pct": float(r[11]) if r[11] is not None else None,
+            "quickback_click_sessions": int(r[12] or 0), "excessive_scroll_sessions": int(r[13] or 0),
+            "script_error_sessions": int(r[14] or 0), "error_click_sessions": int(r[15] or 0),
+        }
+        for r in rows
+    ]
+
+    sessions_total = sum(d["sessions_count"] for d in daily)
+    rage_click_total = sum(d["rage_click_sessions"] for d in daily)
+    dead_click_total = sum(d["dead_click_sessions"] for d in daily)
+    script_error_total = sum(d["script_error_sessions"] for d in daily)
+    scroll_values = [d["scroll_depth_avg"] for d in daily if d["scroll_depth_avg"] is not None]
+
+    demo_rows = con.execute("SELECT dimension, key, value FROM clarity_breakdown ORDER BY dimension, value DESC").fetchall()
+    breakdown: dict[str, list[dict[str, Any]]] = {}
+    for dimension, key, value in demo_rows:
+        breakdown.setdefault(dimension, []).append({"key": key, "value": int(value or 0)})
+
+    latest_synced = con.execute("SELECT MAX(synced_at) FROM clarity_daily").fetchone()
+
+    return {
+        "available": True,
+        "daily": daily,
+        "sessions_total": sessions_total,
+        "rage_click_total": rage_click_total,
+        "dead_click_total": dead_click_total,
+        "script_error_total": script_error_total,
+        "scroll_depth_avg": round(sum(scroll_values) / len(scroll_values), 1) if scroll_values else None,
+        "breakdown": breakdown,
+        "last_synced_at": latest_synced[0] if latest_synced else None,
+    }
+
+
 def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
     """Manually-curated competitive intelligence (public ad-library
     research - Meta/Google/TikTok/LinkedIn ad transparency tools), not
@@ -2944,6 +3034,7 @@ def period_extras(start: str, end: str):
             "youtube": youtube_summary(con, start, end),
             "meta_organic": meta_organic_summary(con, start, end),
             "instagram": instagram_summary(con, start, end),
+            "clarity": clarity_summary(con, start, end),
             "ghl": ghl_summary(con, start, end),
             "full_funnel": full_funnel_summary(con, start, end),
             "video_funnel": video_funnel_summary(con, start, end),
@@ -2989,6 +3080,7 @@ def dashboard(week_id: int | None = None):
                 "youtube": None,
                 "meta_organic": None,
                 "instagram": None,
+                "clarity": None,
                 "ghl": None,
                 "full_funnel": None,
                 "video_funnel": None,
@@ -3129,6 +3221,7 @@ def dashboard(week_id: int | None = None):
         youtube = youtube_summary(con, current["week_start"], current["week_end"])
         meta_organic = meta_organic_summary(con, current["week_start"], current["week_end"])
         instagram = instagram_summary(con, current["week_start"], current["week_end"])
+        clarity = clarity_summary(con, current["week_start"], current["week_end"])
         ghl = ghl_summary(con, current["week_start"], current["week_end"])
         full_funnel = full_funnel_summary(con, current["week_start"], current["week_end"])
         video_funnel = video_funnel_summary(con, current["week_start"], current["week_end"])
@@ -3161,6 +3254,7 @@ def dashboard(week_id: int | None = None):
         "youtube": youtube,
         "meta_organic": meta_organic,
         "instagram": instagram,
+        "clarity": clarity,
         "ghl": ghl,
         "full_funnel": full_funnel,
         "video_funnel": video_funnel,

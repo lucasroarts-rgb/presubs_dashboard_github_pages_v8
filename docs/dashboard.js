@@ -714,7 +714,33 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "No posts published in this period.":"Aucune publication publiée pendant cette période.",
   "No Instagram data synced for this period.":"Aucune donnée Instagram synchronisée pour cette période.",
   "Launches":"Lancements",
-  "No launches configured yet.":"Aucun lancement configuré pour l'instant."
+  "No launches configured yet.":"Aucun lancement configuré pour l'instant.",
+  "Microsoft Clarity session-quality signals for peasyanglais.fr: rage/dead clicks, scroll depth, engagement time. Clarity's own API only exposes a rolling 1-3 day window per call, so this accumulates one daily snapshot per sync - not a full historical backfill.":"Signaux de qualité de session Microsoft Clarity pour peasyanglais.fr : clics de rage/morts, profondeur de défilement, temps d'engagement. L'API de Clarity n'expose qu'une fenêtre glissante de 1 à 3 jours par appel, donc ceci accumule un instantané quotidien à chaque synchronisation - pas un historique complet.",
+  "Sessions by day":"Sessions par jour",
+  "Since tracking started.":"Depuis le début du suivi.",
+  "Most recent sync snapshot.":"Dernier instantané synchronisé.",
+  "Popular pages":"Pages populaires",
+  "By visits, most recent sync snapshot.":"Par visites, dernier instantané synchronisé.",
+  "Referrers":"Référents",
+  "Distinct users":"Utilisateurs distincts",
+  "Sum across synced days":"Somme sur les jours synchronisés",
+  "Avg scroll depth":"Profondeur de défilement moy.",
+  "Average of synced days":"Moyenne des jours synchronisés",
+  "Avg session time":"Temps de session moy.",
+  "active":"actif",
+  "Rage-click sessions":"Sessions avec clics de rage",
+  "Frustration signal - repeated fast clicks":"Signal de frustration - clics rapides répétés",
+  "Dead-click sessions":"Sessions avec clics morts",
+  "Clicks with no visible response":"Clics sans réponse visible",
+  "Script errors":"Erreurs de script",
+  "Sessions that hit a JS error":"Sessions ayant rencontré une erreur JS",
+  "Rage clicks":"Clics de rage",
+  "Dead clicks":"Clics morts",
+  "Scroll depth":"Profondeur de défilement",
+  "No Clarity data synced for this period.":"Aucune donnée Clarity synchronisée pour cette période.",
+  "Direct/None":"Direct/Aucun",
+  "Device":"Appareil",
+  "OS":"Système d'exploitation"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -1037,7 +1063,33 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "No posts published in this period.":"Nenhuma publicação feita neste período.",
   "No Instagram data synced for this period.":"Nenhum dado do Instagram sincronizado para este período.",
   "Launches":"Lançamentos",
-  "No launches configured yet.":"Nenhum lançamento configurado ainda."
+  "No launches configured yet.":"Nenhum lançamento configurado ainda.",
+  "Microsoft Clarity session-quality signals for peasyanglais.fr: rage/dead clicks, scroll depth, engagement time. Clarity's own API only exposes a rolling 1-3 day window per call, so this accumulates one daily snapshot per sync - not a full historical backfill.":"Sinais de qualidade de sessão do Microsoft Clarity pra peasyanglais.fr: rage/dead clicks, profundidade de scroll, tempo de engajamento. A própria API do Clarity só expõe uma janela móvel de 1 a 3 dias por chamada, então isso acumula um retrato diário a cada sincronização - não é um histórico completo.",
+  "Sessions by day":"Sessões por dia",
+  "Since tracking started.":"Desde o início do rastreamento.",
+  "Most recent sync snapshot.":"Retrato da sincronização mais recente.",
+  "Popular pages":"Páginas populares",
+  "By visits, most recent sync snapshot.":"Por visitas, retrato da sincronização mais recente.",
+  "Referrers":"Referenciadores",
+  "Distinct users":"Usuários distintos",
+  "Sum across synced days":"Soma dos dias sincronizados",
+  "Avg scroll depth":"Profundidade de scroll média",
+  "Average of synced days":"Média dos dias sincronizados",
+  "Avg session time":"Tempo médio de sessão",
+  "active":"ativo",
+  "Rage-click sessions":"Sessões com rage click",
+  "Frustration signal - repeated fast clicks":"Sinal de frustração - cliques rápidos repetidos",
+  "Dead-click sessions":"Sessões com dead click",
+  "Clicks with no visible response":"Cliques sem resposta visível",
+  "Script errors":"Erros de script",
+  "Sessions that hit a JS error":"Sessões que bateram num erro de JS",
+  "Rage clicks":"Rage clicks",
+  "Dead clicks":"Dead clicks",
+  "Scroll depth":"Profundidade de scroll",
+  "No Clarity data synced for this period.":"Nenhum dado do Clarity sincronizado para este período.",
+  "Direct/None":"Direto/Nenhum",
+  "Device":"Dispositivo",
+  "OS":"Sistema operacional"
 });
 
 const originalTextNodes=new WeakMap();
@@ -3457,6 +3509,63 @@ async function renderCompetitors(){
   }).join("");
 }
 
+const CLARITY_BREAKDOWN_PANELS={browser:"clarityBrowser",device:"clarityDevice",os:"clarityOs",country:"clarityCountry",referrer:"clarityReferrer"};
+function renderClarity(){
+  const kpis=document.getElementById("clarityKpis");
+  if(!kpis)return;
+  const clarity=dashboard?.clarity;
+  const empty=periodExtrasEmpty("No Clarity data synced for this period.");
+  const trendEl=document.getElementById("clarityTrend");
+  const popularPagesEl=document.getElementById("clarityPopularPages");
+  const breakdownEls=Object.fromEntries(Object.entries(CLARITY_BREAKDOWN_PANELS).map(([dim,id])=>[dim,document.getElementById(id)]));
+
+  if(!clarity||!clarity.available){
+    kpis.innerHTML="";
+    if(trendEl)trendEl.innerHTML=empty;
+    if(popularPagesEl)popularPagesEl.innerHTML=empty;
+    Object.values(breakdownEls).forEach(el=>{if(el)el.innerHTML=empty;});
+    return;
+  }
+
+  const daily=clarity.daily||[];
+  const avgOf=key=>{const values=daily.map(d=>d[key]).filter(v=>v!=null);return values.length?values.reduce((a,b)=>a+b,0)/values.length:null;};
+  const avgSessionTime=avgOf("engagement_time_total");
+  const avgActiveTime=avgOf("engagement_time_active");
+  const formatSeconds=s=>s==null?"—":s>=60?`${Math.floor(s/60)}m ${Math.round(s%60)}s`:`${Math.round(s)}s`;
+
+  kpis.innerHTML=[
+    [t("Sessions"),number(clarity.sessions_total),t("Sum across synced days")],
+    [t("Distinct users"),number(daily.reduce((sum,d)=>sum+d.distinct_users_count,0)),t("Sum across synced days")],
+    [t("Avg scroll depth"),clarity.scroll_depth_avg!=null?clarity.scroll_depth_avg+"%":"—",t("Average of synced days")],
+    [t("Avg session time"),formatSeconds(avgSessionTime),formatSeconds(avgActiveTime)!=="—"?`${formatSeconds(avgActiveTime)} ${t("active")}`:t("Average of synced days")],
+    [t("Rage-click sessions"),number(clarity.rage_click_total),t("Frustration signal - repeated fast clicks")],
+    [t("Dead-click sessions"),number(clarity.dead_click_total),t("Clicks with no visible response")],
+    [t("Script errors"),number(clarity.script_error_total),t("Sessions that hit a JS error")]
+  ].map(item=>`<article class="card kpi"><div class="kpi-label">${item[0]}</div><div><div class="kpi-value">${item[1]}</div><div class="kpi-note">${item[2]}</div></div></article>`).join("");
+
+  if(trendEl){
+    const rows=[...daily].reverse();
+    table("clarityTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Sessions"),numeric:true,render:r=>number(r.sessions_count)},
+      {label:t("Rage clicks"),numeric:true,render:r=>number(r.rage_click_sessions)},
+      {label:t("Dead clicks"),numeric:true,render:r=>number(r.dead_click_sessions)},
+      {label:t("Scroll depth"),numeric:true,render:r=>r.scroll_depth_avg!=null?r.scroll_depth_avg+"%":"—"}
+    ],rows,t("No Clarity data synced for this period."));
+  }
+
+  const breakdown=clarity.breakdown||{};
+  Object.entries(breakdownEls).forEach(([dimension,el])=>{
+    if(!el)return;
+    const rows=(breakdown[dimension]||[]).slice(0,8);
+    el.innerHTML=rows.length?audienceBarList(rows,r=>r.value,r=>r.key||t("Direct/None")):empty;
+  });
+  if(popularPagesEl){
+    const rows=(breakdown.popular_page||[]).slice(0,8);
+    popularPagesEl.innerHTML=rows.length?audienceBarList(rows,r=>r.value,r=>r.key.replace(/^https?:\/\/[^/]+/,"")||"/"):empty;
+  }
+}
+
 function renderSocial(){
   const kpis=document.getElementById("socialYoutubeKpis");
   const trendTable=document.getElementById("socialYoutubeTrend");
@@ -4082,7 +4191,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("clarity",renderClarity);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){
