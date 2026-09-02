@@ -414,11 +414,6 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
                 f'<div class="note">{"was " + pct(previous_conv.get("conversion_rate")) if previous_conv.get("conversion_rate") is not None else "no prior week"}</div>',
             ),
             kpi_card(
-                "CRM vs Meta gap",
-                signed_pct(gap_now) if gap_now is not None else "—",
-                f'<div class="note">{f"was {signed_pct(gap_prev)}" if gap_prev is not None else "no CRM data for prior week"}</div>',
-            ),
-            kpi_card(
                 "Site visitors",
                 number(site_traffic.get("active_users")) if site_traffic.get("available") else "—",
                 '<div class="note">Home page, GA4</div>',
