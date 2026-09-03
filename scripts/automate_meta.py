@@ -165,10 +165,10 @@ def status_value(value: Any) -> str:
     return "active" if str(value or "").upper() == "ACTIVE" else "inactive"
 
 
-def last_completed_friday_thursday(today: date | None = None) -> tuple[date, date]:
+def last_completed_monday_sunday(today: date | None = None) -> tuple[date, date]:
     current = today or date.today()
-    thursday = 3
-    delta = (current.weekday() - thursday) % 7
+    sunday = 6  # date.weekday(): Monday=0 ... Sunday=6
+    delta = (current.weekday() - sunday) % 7
     if delta == 0:
         delta = 7
     end = current - timedelta(days=delta)
@@ -1351,7 +1351,7 @@ def main() -> int:
             start_date = date.fromisoformat(args.start)
             end_date = date.fromisoformat(args.end)
         else:
-            start_date, end_date = last_completed_friday_thursday()
+            start_date, end_date = last_completed_monday_sunday()
 
         if end_date < start_date:
             raise AutomationError("The end date cannot be before the start date.")

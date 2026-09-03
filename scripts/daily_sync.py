@@ -41,9 +41,9 @@ from scripts.sync_video_funnel import main as sync_video_funnel  # noqa: E402
 LOGS_DIR = ROOT / "logs"
 
 
-def friday_thursday_bounds(day: date) -> tuple[date, date]:
-    days_since_friday = (day.weekday() - 4) % 7
-    start = day - timedelta(days=days_since_friday)
+def monday_sunday_bounds(day: date) -> tuple[date, date]:
+    days_since_monday = day.weekday()  # Monday=0
+    start = day - timedelta(days=days_since_monday)
     return start, start + timedelta(days=6)
 
 
@@ -188,7 +188,7 @@ def main() -> int:
 
         account_now = datetime.now(account_tz)
         data_through = account_now.date() - timedelta(days=1)
-        week_start, week_end = friday_thursday_bounds(data_through)
+        week_start, week_end = monday_sunday_bounds(data_through)
 
         print("")
         print("PreSubs daily Meta update")
@@ -211,7 +211,7 @@ def main() -> int:
         start_text = week_start.isoformat()
         data_text = data_through.isoformat()
 
-        print("Downloading current Friday-to-yesterday data...")
+        print("Downloading current Monday-to-yesterday data...")
         weekly_campaigns = resilient_insights(
             client,
             metadata,
