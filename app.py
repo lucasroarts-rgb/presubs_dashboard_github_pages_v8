@@ -701,6 +701,25 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS l24_daily (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_name TEXT NOT NULL,
+        campaign_id TEXT NOT NULL,
+        campaign_name TEXT NOT NULL,
+        report_date TEXT NOT NULL,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        spend REAL NOT NULL DEFAULT 0,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        leads INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS l24_crm_daily (
+        report_date TEXT PRIMARY KEY,
+        leads INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS heatmap_pages (
         path TEXT NOT NULL,
         device TEXT NOT NULL,
@@ -2854,6 +2873,98 @@ def heatmap_summary(con: sqlite3.Connection) -> dict[str, Any]:
     }
 
 
+L24_LAUNCH_TARGETS = {
+    "cpl_capturing_start": "2026-09-14",
+    "cpl_capturing_end": "2026-10-05",
+    "cpl_capturing_budget": 54000.0,
+    "cpl_capturing_leads": 1190,
+    "total_budget": 60000.0,
+    "total_leads": 25000,
+    "organic_leads": 5000,
+    "paid_leads": 20000,
+    "blended_cpl_target": 2.16,
+    "paid_cpl_target": 2.70,
+    "sales_goal": 251,
+    "income_goal": 218000.0,
+}
+
+
+def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
+    """L24 launch progress (Meta Ads, "L24 -" campaigns) against the
+    planning-sheet targets in L24_LAUNCH_TARGETS - not date-scoped like
+    the rest of the dashboard, since this tracks a single launch's own
+    fixed timeline (2026-09-14 to 2026-10-05 for the CPL-capturing budget)
+    rather than a rolling week."""
+    rows = con.execute(
+        "SELECT group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, leads "
+        "FROM l24_daily ORDER BY report_date"
+    ).fetchall()
+    if not rows:
+        return {"available": False, "daily": [], "groups": {}, "targets": L24_LAUNCH_TARGETS, "last_synced_at": None}
+
+    daily_by_date: dict[str, dict[str, Any]] = {}
+    groups: dict[str, dict[str, float]] = {}
+    for group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, leads in rows:
+        group_totals = groups.setdefault(group_name, {"spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0})
+        group_totals["spend"] += float(spend or 0)
+        group_totals["leads"] += int(leads or 0)
+        group_totals["impressions"] += int(impressions or 0)
+        group_totals["clicks"] += int(clicks or 0)
+
+        day = daily_by_date.setdefault(report_date, {"report_date": report_date, "spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0})
+        day["spend"] += float(spend or 0)
+        day["leads"] += int(leads or 0)
+        day["impressions"] += int(impressions or 0)
+        day["clicks"] += int(clicks or 0)
+
+    for group_totals in groups.values():
+        group_totals["cpl"] = round(group_totals["spend"] / group_totals["leads"], 2) if group_totals["leads"] else None
+
+    daily = sorted(daily_by_date.values(), key=lambda d: d["report_date"])
+
+    cold_spend = groups.get("cold", {}).get("spend", 0.0)
+    cold_leads = groups.get("cold", {}).get("leads", 0)
+    cold_cpl = round(cold_spend / cold_leads, 2) if cold_leads else None
+
+    crm_rows = con.execute("SELECT report_date, leads FROM l24_crm_daily ORDER BY report_date").fetchall()
+    crm_daily = [{"report_date": r[0], "leads": int(r[1] or 0)} for r in crm_rows]
+    crm_leads_total = sum(r["leads"] for r in crm_daily)
+    crm_cpl = round(cold_spend / crm_leads_total, 2) if crm_leads_total else None
+
+    window_start = date.fromisoformat(L24_LAUNCH_TARGETS["cpl_capturing_start"])
+    window_end = date.fromisoformat(L24_LAUNCH_TARGETS["cpl_capturing_end"])
+    today = date.today()
+    days_total = (window_end - window_start).days + 1
+    days_elapsed = max(0, min(days_total, (today - window_start).days + 1))
+    days_remaining = max(0, (window_end - today).days) if today <= window_end else 0
+    pace_fraction = days_elapsed / days_total if days_total else 0
+
+    projected_leads = round(cold_leads / pace_fraction) if pace_fraction > 0 else None
+    projected_spend = round(cold_spend / pace_fraction, 2) if pace_fraction > 0 else None
+
+    latest_synced = con.execute("SELECT MAX(synced_at) FROM l24_daily").fetchone()
+
+    return {
+        "available": True,
+        "daily": daily,
+        "groups": groups,
+        "cold_spend": round(cold_spend, 2),
+        "cold_leads": cold_leads,
+        "cold_cpl": cold_cpl,
+        "crm_daily": crm_daily,
+        "crm_leads_total": crm_leads_total,
+        "crm_cpl": crm_cpl,
+        "days_elapsed": days_elapsed,
+        "days_total": days_total,
+        "days_remaining": days_remaining,
+        "pace_fraction": round(pace_fraction * 100, 1),
+        "projected_leads": projected_leads,
+        "projected_spend": projected_spend,
+        "targets": L24_LAUNCH_TARGETS,
+        "last_synced_at": latest_synced[0] if latest_synced else None,
+    }
+
+
 def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
     """Manually-curated competitive intelligence (public ad-library
     research - Meta/Google/TikTok/LinkedIn ad transparency tools), not
@@ -2883,6 +2994,12 @@ def competitor_ads_summary(con: sqlite3.Connection) -> dict[str, Any]:
 def get_heatmap():
     with db() as con:
         return heatmap_summary(con)
+
+
+@app.get("/api/l24-launch")
+def get_l24_launch():
+    with db() as con:
+        return l24_launch_summary(con)
 
 
 @app.get("/api/competitor-ads")

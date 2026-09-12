@@ -283,6 +283,32 @@ def build_public_javascript() -> str:
         raise RuntimeError("Could not patch renderHeatmap.")
     js = js.replace(old_heatmap, new_heatmap, 1)
 
+    old_l24_launch = """  if(!l24LaunchCache){
+    try{
+      const res=await fetch("/api/l24-launch");
+      l24LaunchCache=res.ok?await res.json():{available:false};
+    }catch(error){
+      console.error("Dashboard render error in renderL24Launch:",error);
+      l24LaunchCache={available:false};
+    }
+  }"""
+    new_l24_launch = """  if(!l24LaunchCache){
+    if(IS_STATIC){
+      l24LaunchCache=STATIC_DATA.l24_launch||{available:false};
+    }else{
+      try{
+        const res=await fetch("/api/l24-launch");
+        l24LaunchCache=res.ok?await res.json():{available:false};
+      }catch(error){
+        console.error("Dashboard render error in renderL24Launch:",error);
+        l24LaunchCache={available:false};
+      }
+    }
+  }"""
+    if old_l24_launch not in js:
+        raise RuntimeError("Could not patch renderL24Launch.")
+    js = js.replace(old_l24_launch, new_l24_launch, 1)
+
     return js
 
 
@@ -292,6 +318,7 @@ def main() -> int:
         dashboard_app.backfill_relations(connection)
         competitor_ads = dashboard_app.competitor_ads_summary(connection)
         heatmap = dashboard_app.heatmap_summary(connection)
+        l24_launch = dashboard_app.l24_launch_summary(connection)
 
     weeks = dashboard_app.list_weeks()
     dashboards: dict[str, Any] = {}
@@ -308,6 +335,7 @@ def main() -> int:
             "config": dashboard_app.read_dashboard_config(),
             "competitor_ads": competitor_ads,
             "heatmap": heatmap,
+            "l24_launch": l24_launch,
         }
     )
 

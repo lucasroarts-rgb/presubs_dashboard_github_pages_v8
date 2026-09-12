@@ -753,7 +753,47 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "No scroll data tracked yet for this page/device.":"Aucune donnée de défilement suivie pour cette page/cet appareil.",
   "Desktop":"Ordinateur",
   "Mobile":"Mobile",
-  "Tablet":"Tablette"
+  "Tablet":"Tablette",
+  "L24 launch":"Lancement L24",
+  "Meta Ads: campaigns named \"L24 -\" in the same ad account, kept separate from the main PreSubs funnel. CRM leads matched via the [L21] capture-page tag, from 2026-09-11 onward only (L-numbers get reused for different launches on the CRM side).":"Meta Ads : campagnes nommées \"L24 -\" dans le même compte publicitaire, séparées de l'entonnoir PreSubs principal. Leads CRM associés via le tag de page de capture [L21], uniquement à partir du 2026-09-11 (les numéros L sont réutilisés pour différents lancements côté CRM).",
+  "Pacing vs the CPL-capturing budget":"Rythme vs le budget de capture CPL",
+  "€54,000 / 1,190 leads over 2026-09-14 to 2026-10-05 - the COLD campaign's own committed window.":"54 000 € / 1 190 leads du 2026-09-14 au 2026-10-05 - la période propre engagée par la campagne COLD.",
+  "Overall launch targets":"Objectifs globaux du lancement",
+  "Full launch plan, for reference - not all of this is trackable day-to-day yet.":"Plan complet du lancement, pour référence - tout n'est pas encore suivable au jour le jour.",
+  "Meta spend & leads by day":"Dépenses et leads Meta par jour",
+  "COLD campaign, this launch only.":"Campagne COLD, ce lancement uniquement.",
+  "CRM leads by day":"Leads CRM par jour",
+  "[L21] capture-page tag, from 2026-09-11.":"Tag de page de capture [L21], à partir du 2026-09-11.",
+  "No L24 launch data synced yet.":"Aucune donnée du lancement L24 synchronisée pour l'instant.",
+  "No CRM leads tagged [L21] yet.":"Aucun lead CRM tagué [L21] pour l'instant.",
+  "Meta spend":"Dépenses Meta",
+  "Meta leads":"Leads Meta",
+  "Meta CPL":"CPL Meta",
+  "COLD campaign, all-time":"Campagne COLD, depuis toujours",
+  "Pixel-reported, COLD campaign":"Signalé par le pixel, campagne COLD",
+  "Spend / Meta leads":"Dépenses / leads Meta",
+  "CRM leads":"Leads CRM",
+  "[L21] tag, ground truth":"Tag [L21], donnée de référence",
+  "CRM CPL":"CPL CRM",
+  "Spend / CRM leads":"Dépenses / leads CRM",
+  "Days elapsed":"Jours écoulés",
+  "days remaining":"jours restants",
+  "Budget used":"Budget utilisé",
+  "of":"sur",
+  "Leads vs target":"Leads vs objectif",
+  "Projected leads":"Leads projetés",
+  "At current CRM lead pace":"Au rythme actuel des leads CRM",
+  "Projected spend":"Dépenses projetées",
+  "At current spend pace":"Au rythme actuel des dépenses",
+  "Total budget":"Budget total",
+  "Full launch":"Lancement complet",
+  "Total leads target":"Objectif total de leads",
+  "organic":"organique",
+  "paid":"payant",
+  "Blended CPL target":"Objectif CPL mixte",
+  "Paid":"Payant",
+  "Sales goal":"Objectif de ventes",
+  "income":"revenu"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -1118,7 +1158,47 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "No scroll data tracked yet for this page/device.":"Nenhum dado de scroll rastreado pra essa página/dispositivo.",
   "Desktop":"Computador",
   "Mobile":"Celular",
-  "Tablet":"Tablet"
+  "Tablet":"Tablet",
+  "L24 launch":"Lançamento L24",
+  "Meta Ads: campaigns named \"L24 -\" in the same ad account, kept separate from the main PreSubs funnel. CRM leads matched via the [L21] capture-page tag, from 2026-09-11 onward only (L-numbers get reused for different launches on the CRM side).":"Meta Ads: campanhas com nome \"L24 -\" na mesma conta de anúncios, separadas do funil principal do PreSubs. Leads do CRM combinados via a tag de página de captura [L21], só a partir de 2026-09-11 (os números L são reutilizados pra lançamentos diferentes do lado do CRM).",
+  "Pacing vs the CPL-capturing budget":"Ritmo vs o orçamento de captação de CPL",
+  "€54,000 / 1,190 leads over 2026-09-14 to 2026-10-05 - the COLD campaign's own committed window.":"€54.000 / 1.190 leads entre 2026-09-14 e 2026-10-05 - a janela própria comprometida da campanha COLD.",
+  "Overall launch targets":"Metas gerais do lançamento",
+  "Full launch plan, for reference - not all of this is trackable day-to-day yet.":"Plano completo do lançamento, pra referência - nem tudo isso dá pra acompanhar dia a dia ainda.",
+  "Meta spend & leads by day":"Investimento e leads do Meta por dia",
+  "COLD campaign, this launch only.":"Campanha COLD, só deste lançamento.",
+  "CRM leads by day":"Leads do CRM por dia",
+  "[L21] capture-page tag, from 2026-09-11.":"Tag de página de captura [L21], a partir de 2026-09-11.",
+  "No L24 launch data synced yet.":"Nenhum dado do lançamento L24 sincronizado ainda.",
+  "No CRM leads tagged [L21] yet.":"Nenhum lead do CRM com tag [L21] ainda.",
+  "Meta spend":"Investimento Meta",
+  "Meta leads":"Leads Meta",
+  "Meta CPL":"CPL Meta",
+  "COLD campaign, all-time":"Campanha COLD, desde sempre",
+  "Pixel-reported, COLD campaign":"Reportado pelo pixel, campanha COLD",
+  "Spend / Meta leads":"Investimento / leads Meta",
+  "CRM leads":"Leads do CRM",
+  "[L21] tag, ground truth":"Tag [L21], dado real",
+  "CRM CPL":"CPL do CRM",
+  "Spend / CRM leads":"Investimento / leads do CRM",
+  "Days elapsed":"Dias passados",
+  "days remaining":"dias restantes",
+  "Budget used":"Orçamento usado",
+  "of":"de",
+  "Leads vs target":"Leads vs meta",
+  "Projected leads":"Leads projetados",
+  "At current CRM lead pace":"No ritmo atual de leads do CRM",
+  "Projected spend":"Investimento projetado",
+  "At current spend pace":"No ritmo atual de investimento",
+  "Total budget":"Orçamento total",
+  "Full launch":"Lançamento completo",
+  "Total leads target":"Meta total de leads",
+  "organic":"orgânico",
+  "paid":"pago",
+  "Blended CPL target":"Meta de CPL misto",
+  "Paid":"Pago",
+  "Sales goal":"Meta de vendas",
+  "income":"receita"
 });
 
 const originalTextNodes=new WeakMap();
@@ -3521,6 +3601,79 @@ async function renderCompetitors(){
   }).join("");
 }
 
+let l24LaunchCache=null;
+async function renderL24Launch(){
+  const kpis=document.getElementById("l24LaunchKpis");
+  if(!kpis)return;
+  const pacingEl=document.getElementById("l24LaunchPacing");
+  const targetsEl=document.getElementById("l24LaunchTargets");
+  const metaTrendEl=document.getElementById("l24LaunchMetaTrend");
+  const crmTrendEl=document.getElementById("l24LaunchCrmTrend");
+  const empty=periodExtrasEmpty("No L24 launch data synced yet.");
+
+  if(!l24LaunchCache){
+    try{
+      const res=await fetch("/api/l24-launch");
+      l24LaunchCache=res.ok?await res.json():{available:false};
+    }catch(error){
+      console.error("Dashboard render error in renderL24Launch:",error);
+      l24LaunchCache={available:false};
+    }
+  }
+  const data=l24LaunchCache;
+  if(!data||!data.available){
+    kpis.innerHTML="";pacingEl.innerHTML="";targetsEl.innerHTML="";
+    if(metaTrendEl)metaTrendEl.innerHTML=empty;
+    if(crmTrendEl)crmTrendEl.innerHTML=empty;
+    return;
+  }
+
+  const targets=data.targets||{};
+  const kpiCard=([label,value,note])=>`<article class="card kpi"><div class="kpi-label">${label}</div><div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div></div></article>`;
+
+  kpis.innerHTML=[
+    [t("Meta spend"),money(data.cold_spend),t("COLD campaign, all-time")],
+    [t("Meta leads"),number(data.cold_leads),t("Pixel-reported, COLD campaign")],
+    [t("Meta CPL"),data.cold_cpl!=null?money(data.cold_cpl):"—",t("Spend / Meta leads")],
+    [t("CRM leads"),number(data.crm_leads_total),t("[L21] tag, ground truth")],
+    [t("CRM CPL"),data.crm_cpl!=null?money(data.crm_cpl):"—",t("Spend / CRM leads")]
+  ].map(kpiCard).join("");
+
+  const budgetPct=targets.cpl_capturing_budget?Math.round(data.cold_spend/targets.cpl_capturing_budget*1000)/10:null;
+  const leadsPct=targets.cpl_capturing_leads?Math.round(data.crm_leads_total/targets.cpl_capturing_leads*1000)/10:null;
+  pacingEl.innerHTML=[
+    [t("Days elapsed"),`${data.days_elapsed} / ${data.days_total}`,`${data.days_remaining} ${t("days remaining")}`],
+    [t("Budget used"),budgetPct!=null?budgetPct+"%":"—",`${money(data.cold_spend)} ${t("of")} ${money(targets.cpl_capturing_budget)}`],
+    [t("Leads vs target"),leadsPct!=null?leadsPct+"%":"—",`${number(data.crm_leads_total)} ${t("of")} ${number(targets.cpl_capturing_leads)}`],
+    [t("Projected leads"),data.projected_leads!=null?number(data.projected_leads):"—",t("At current CRM lead pace")],
+    [t("Projected spend"),data.projected_spend!=null?money(data.projected_spend):"—",t("At current spend pace")]
+  ].map(kpiCard).join("");
+
+  targetsEl.innerHTML=[
+    [t("Total budget"),money(targets.total_budget),t("Full launch")],
+    [t("Total leads target"),number(targets.total_leads),`${number(targets.organic_leads)} ${t("organic")} + ${number(targets.paid_leads)} ${t("paid")}`],
+    [t("Blended CPL target"),money(targets.blended_cpl_target),`${t("Paid")}: ${money(targets.paid_cpl_target)}`],
+    [t("Sales goal"),number(targets.sales_goal),`${money(targets.income_goal)} ${t("income")}`]
+  ].map(kpiCard).join("");
+
+  if(metaTrendEl){
+    const rows=[...(data.daily||[])].reverse();
+    table("l24LaunchMetaTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Spend"),numeric:true,render:r=>money(r.spend)},
+      {label:t("Leads"),numeric:true,render:r=>number(r.leads)},
+      {label:t("Impressions"),numeric:true,render:r=>number(r.impressions)}
+    ],rows,t("No L24 launch data synced yet."));
+  }
+  if(crmTrendEl){
+    const rows=[...(data.crm_daily||[])].reverse();
+    table("l24LaunchCrmTrend",[
+      {label:t("Date"),name:true,render:r=>r.report_date},
+      {label:t("Leads"),numeric:true,render:r=>number(r.leads)}
+    ],rows,t("No CRM leads tagged [L21] yet."));
+  }
+}
+
 let heatmapCache=null;
 const heatmapState={path:null,device:"desktop"};
 async function renderHeatmap(){
@@ -4289,7 +4442,7 @@ function renderAuditOverview(){
 
 function renderAdvancedCurrent(){
   if(!dashboard?.current_week)return;
-  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("clarity",renderClarity);safeRender("heatmap",renderHeatmap);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
+  renderGoalProgress();renderAlerts();renderMonthlyGoalHistory();renderTimeline("managementTimeline");renderCreativeHealth();renderQuality();safeRender("audience",renderAudience);safeRender("organic",renderOrganic);safeRender("seo",renderSeo);safeRender("googleAds",renderGoogleAds);safeRender("social",renderSocial);safeRender("ghl",renderGhl);safeRender("meetings",renderMeetings);safeRender("sales",renderSales);safeRender("videoFunnel",renderVideoFunnel);safeRender("competitors",renderCompetitors);safeRender("clarity",renderClarity);safeRender("heatmap",renderHeatmap);safeRender("l24Launch",renderL24Launch);safeRender("fullFunnel",renderFullFunnel);renderPageFunnels();renderDailyBrief();renderAuditOverview();
 }
 
 async function initializeAdvancedFeatures(){

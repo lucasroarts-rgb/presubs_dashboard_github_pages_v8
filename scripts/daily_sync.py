@@ -36,6 +36,7 @@ from scripts.sync_meta_organic import main as sync_meta_organic  # noqa: E402
 from scripts.sync_instagram_growth import main as sync_instagram_growth  # noqa: E402
 from scripts.sync_clarity import main as sync_clarity  # noqa: E402
 from scripts.sync_heatmap import main as sync_heatmap  # noqa: E402
+from scripts.sync_l24_launch import main as sync_l24_launch  # noqa: E402
 from scripts.sync_video_funnel import main as sync_video_funnel  # noqa: E402
 
 LOGS_DIR = ROOT / "logs"
@@ -387,6 +388,14 @@ def main() -> int:
             heatmap_sync_status = f"skipped: {heatmap_error}"
             print(f"WARNING: Heatmap sync skipped ({heatmap_error})", file=sys.stderr)
 
+        print("Syncing L24 launch campaigns...")
+        l24_sync_status = "ok"
+        try:
+            sync_l24_launch()
+        except Exception as l24_error:
+            l24_sync_status = f"skipped: {l24_error}"
+            print(f"WARNING: L24 launch sync skipped ({l24_error})", file=sys.stderr)
+
         print("Syncing Video Funnel (Corredor Polones) campaigns...")
         video_funnel_sync_status = "ok"
         try:
@@ -440,6 +449,7 @@ def main() -> int:
                     "instagram_sync": instagram_sync_status,
                     "clarity_sync": clarity_sync_status,
                     "heatmap_sync": heatmap_sync_status,
+                    "l24_sync": l24_sync_status,
                     "video_funnel_sync": video_funnel_sync_status,
                     "weekly_review": weekly_review_status,
                     "git": result,
