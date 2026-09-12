@@ -145,6 +145,9 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 WEEKLY_REVIEWS_DIR = BASE_DIR / "weekly_reviews"
 WEEKLY_REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/weekly-reviews", StaticFiles(directory=WEEKLY_REVIEWS_DIR), name="weekly-reviews")
+L24_REVIEWS_DIR = BASE_DIR / "l24_reviews"
+L24_REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/l24-reviews", StaticFiles(directory=L24_REVIEWS_DIR), name="l24-reviews")
 
 
 @app.middleware("http")

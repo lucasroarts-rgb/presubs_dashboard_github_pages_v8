@@ -36,6 +36,8 @@ def build_public_index() -> str:
     html = html.replace('/static/assets/peasy-logo.png', 'assets/peasy-logo.png')
     html = html.replace('/static/weekly-review.html', 'weekly-review.html')
     html = html.replace('/weekly-reviews/index.html', 'weekly-reviews/index.html')
+    html = html.replace('/static/l24-review.html', 'l24-review.html')
+    html = html.replace('/l24-reviews/index.html', 'l24-reviews/index.html')
     html = html.replace('<a class="btn" href="/admin">Weekly import</a>', '')
     html = html.replace(
         'No reporting period has been imported. Open <a href="/admin">Weekly import</a>.',
@@ -364,6 +366,14 @@ def main() -> int:
     weekly_reviews_dir = ROOT / "weekly_reviews"
     if weekly_reviews_dir.exists():
         shutil.copytree(weekly_reviews_dir, DOCS_DIR / "weekly-reviews")
+    if (STATIC_DIR / "l24-review.html").exists():
+        (DOCS_DIR / "l24-review.html").write_text(
+            (STATIC_DIR / "l24-review.html").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+    l24_reviews_dir = ROOT / "l24_reviews"
+    if l24_reviews_dir.exists():
+        shutil.copytree(l24_reviews_dir, DOCS_DIR / "l24-reviews")
     if (STATIC_DIR / "assets").exists():
         shutil.copytree(STATIC_DIR / "assets", DOCS_DIR / "assets")
 

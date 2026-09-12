@@ -25,6 +25,7 @@ from scripts.automate_meta import (  # noqa: E402
 )
 from scripts.generate_public_site import main as generate_public_site  # noqa: E402
 from scripts.generate_weekly_review import main as generate_weekly_review  # noqa: E402
+from scripts.generate_l24_review import main as generate_l24_review  # noqa: E402
 from scripts.sync_crm import main as sync_crm  # noqa: E402
 from scripts.sync_ga4 import main as sync_ga4  # noqa: E402
 from scripts.sync_gsc import main as sync_gsc  # noqa: E402
@@ -412,6 +413,14 @@ def main() -> int:
             weekly_review_status = f"skipped: {weekly_review_error}"
             print(f"WARNING: Weekly review generation skipped ({weekly_review_error})", file=sys.stderr)
 
+        l24_review_status = "not an L24 review day"
+        try:
+            generate_l24_review()
+            l24_review_status = "ok"
+        except Exception as l24_review_error:
+            l24_review_status = f"skipped: {l24_review_error}"
+            print(f"WARNING: L24 review generation skipped ({l24_review_error})", file=sys.stderr)
+
         print("Generating the GitHub Pages site...")
         if generate_public_site() != 0:
             raise AutomationError("The public site generator failed.")
@@ -452,6 +461,7 @@ def main() -> int:
                     "l24_sync": l24_sync_status,
                     "video_funnel_sync": video_funnel_sync_status,
                     "weekly_review": weekly_review_status,
+                    "l24_review": l24_review_status,
                     "git": result,
                 },
                 ensure_ascii=False,

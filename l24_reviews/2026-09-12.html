@@ -1,0 +1,525 @@
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<title>L24 — Launch Review — 12 Sep 2026</title>
+<style>
+  :root{
+    --bg:#f7f3ea;
+    --surface:#ffffff;
+    --surface-2:#f0ead9;
+    --ink:#102a43;
+    --ink-muted:#4a6178;
+    --ink-faint:#8296a8;
+    --accent:#2a6e99;
+    --accent-ink:#ffffff;
+    --chart-meta:#1f7ab0;
+    --chart-crm:#c97b2e;
+    --good:#2f8f63;
+    --good-bg:#e3f2ea;
+    --critical:#b8483f;
+    --critical-bg:#fbe9e7;
+    --warn:#b9772f;
+    --warn-bg:#faf0e0;
+    --rule:#dcd2ba;
+    --shadow:0 18px 45px rgba(16,42,67,0.10), 0 2px 8px rgba(16,42,67,0.06);
+    --font-display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b1d2e;
+    --surface:#132c42;
+    --surface-2:#0f2537;
+    --ink:#eef3f7;
+    --ink-muted:#a7bdd0;
+    --ink-faint:#6f8aa0;
+    --accent:#5aa3d0;
+    --accent-ink:#0b1d2e;
+    --chart-meta:#4a92c4;
+    --chart-crm:#c9822e;
+    --good:#4bbf8f;
+    --good-bg:#123a2e;
+    --critical:#e07272;
+    --critical-bg:#3d1c1c;
+    --warn:#d9ac5e;
+    --warn-bg:#3a2c14;
+    --rule:#22405a;
+    --shadow:0 18px 45px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0b1d2e;
+      --surface:#132c42;
+      --surface-2:#0f2537;
+      --ink:#eef3f7;
+      --ink-muted:#a7bdd0;
+      --ink-faint:#6f8aa0;
+      --accent:#5aa3d0;
+      --accent-ink:#0b1d2e;
+      --chart-meta:#4a92c4;
+      --chart-crm:#c9822e;
+      --good:#4bbf8f;
+      --good-bg:#123a2e;
+      --critical:#e07272;
+      --critical-bg:#3d1c1c;
+      --warn:#d9ac5e;
+      --warn-bg:#3a2c14;
+      --rule:#22405a;
+      --shadow:0 18px 45px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;min-height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    overflow:hidden;
+  }
+  .deck{
+    position:relative;
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    min-height:480px;
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    padding:clamp(20px,4vw,72px) clamp(24px,6vw,110px) calc(clamp(20px,4vw,72px) + 60px);
+    opacity:0;
+    transform:translateX(24px);
+    transition:opacity .45s ease, transform .45s ease;
+    pointer-events:none;
+    overflow-y:auto;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .slide{transition:opacity .01s linear;transform:none;}
+  }
+  .slide.active{
+    opacity:1;
+    transform:translateX(0);
+    pointer-events:auto;
+    z-index:2;
+  }
+  .slide.prev{transform:translateX(-24px);}
+
+  .eyebrow{
+    font-family:var(--font-body);
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  h1,h2{
+    font-family:var(--font-display);
+    font-weight:600;
+    text-wrap:balance;
+    margin:0;
+    color:var(--ink);
+  }
+  .slide-title{
+    font-size:clamp(26px,3.2vw,42px);
+    line-height:1.14;
+    margin-bottom:6px;
+  }
+  .slide-sub{
+    font-family:var(--font-body);
+    font-size:15px;
+    color:var(--ink-muted);
+    margin:0 0 clamp(18px,2.6vw,30px);
+    max-width:64ch;
+  }
+  .slide-body{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    min-height:0;
+  }
+
+  /* ---- Cover ---- */
+  .cover{align-items:flex-start;justify-content:center;}
+  .cover .mark{
+    display:flex;align-items:center;gap:10px;
+    color:var(--accent);font-weight:700;letter-spacing:.14em;
+    font-size:13px;text-transform:uppercase;margin-bottom:28px;
+  }
+  .cover .mark svg{width:22px;height:22px;}
+  .cover h1{
+    font-size:clamp(38px,5.8vw,78px);
+    line-height:1.04;
+    max-width:15ch;
+  }
+  .cover .cover-sub{
+    font-family:var(--font-body);
+    font-size:clamp(15px,1.6vw,19px);
+    color:var(--ink-muted);
+    margin-top:18px;
+    max-width:50ch;
+  }
+  .cover .cover-period{
+    margin-top:auto;
+    display:flex;gap:36px;flex-wrap:wrap;
+    padding-top:28px;border-top:1px solid var(--rule);
+    width:100%;
+  }
+  .cover .cover-period div{font-size:13px;color:var(--ink-faint);}
+  .cover .cover-period strong{
+    display:block;font-family:var(--font-display);font-size:19px;color:var(--ink);font-weight:600;margin-top:2px;
+  }
+
+  /* ---- KPI grid ---- */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+  }
+  .kpi-card{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:22px 24px;
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .kpi-card .label{
+    font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .kpi-card .value{
+    font-family:var(--font-display);font-size:clamp(28px,2.8vw,38px);font-weight:600;
+    font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.05;
+  }
+  .kpi-card .delta{
+    font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;
+  }
+  .kpi-card .delta.good{color:var(--good);}
+  .kpi-card .delta.crit{color:var(--critical);}
+  .kpi-card .note{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+
+  /* ---- Bar chart ---- */
+  .chart-wrap{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:26px 30px 18px;
+    box-shadow:var(--shadow);
+  }
+  .chart-legend{display:flex;gap:18px;margin-bottom:14px;font-size:12.5px;color:var(--ink-muted);}
+  .chart-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .chart-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .bar-val{font-family:var(--font-body);font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;fill:var(--ink);}
+  .bar-axis-label{font-size:11.5px;fill:var(--ink-faint);font-family:var(--font-body);}
+  .grid-line{stroke:var(--rule);stroke-width:1;}
+
+  /* ---- Gap comparison ---- */
+  .gap-compare{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:26px;align-items:stretch;
+  }
+  .gap-block{
+    background:var(--surface);border:1px solid var(--rule);border-radius:14px;
+    padding:26px 28px;box-shadow:var(--shadow);
+  }
+  .gap-block .gap-eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin-bottom:14px;}
+  .gap-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);}
+  .gap-row:last-child{border-bottom:none;}
+  .gap-row .k{font-size:13.5px;color:var(--ink-muted);}
+  .gap-row .v{font-family:var(--font-display);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .gap-block .gap-result{
+    margin-top:16px;padding-top:14px;border-top:2px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .gap-block .gap-result .v{font-size:26px;}
+  .gap-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--ink-faint);}
+  .gap-arrow svg{width:34px;height:34px;}
+  .gap-arrow span{font-size:11px;text-align:center;max-width:9ch;color:var(--ink-muted);}
+
+  /* ---- Stat compare (page conversion) ---- */
+  .stat-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .sc-card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .sc-card .label{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:16px;}
+  .sc-track{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .sc-old{font-family:var(--font-display);font-size:22px;color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--ink-faint);text-decoration-thickness:1.5px;}
+  .sc-arrow-inline{color:var(--ink-faint);font-size:16px;}
+  .sc-new{font-family:var(--font-display);font-size:30px;font-weight:700;color:var(--ink);}
+  .sc-delta{margin-top:10px;font-size:13px;font-weight:700;color:var(--good);}
+
+  /* ---- Table ---- */
+  .top-table{width:100%;border-collapse:collapse;}
+  .top-table th{
+    text-align:left;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-faint);padding:0 14px 10px;border-bottom:1px solid var(--rule);
+  }
+  .top-table td{padding:14px 14px;border-bottom:1px solid var(--rule);font-size:14.5px;}
+  .top-table tr:last-child td{border-bottom:none;}
+  .top-table td.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600;}
+  .top-table td.name{font-weight:600;color:var(--ink);}
+  .rank-pill{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+    font-size:11.5px;font-weight:700;margin-right:10px;
+  }
+  .creative-thumb-slide{
+    width:34px;height:34px;border-radius:6px;object-fit:cover;
+    vertical-align:middle;margin-right:10px;background:var(--surface-2);
+  }
+  .campaign-strip{
+    margin-top:18px;padding:16px 20px;border-radius:12px;background:var(--surface-2);
+    display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .campaign-strip .cs-name{font-weight:700;font-size:14.5px;}
+  .campaign-strip .cs-figs{display:flex;gap:22px;font-size:13px;color:var(--ink-muted);}
+  .campaign-strip .cs-figs b{color:var(--ink);font-variant-numeric:tabular-nums;}
+
+  /* ---- Audience bars ---- */
+  .audience-panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .audience-panels-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .audience-panels-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
+  .audience-panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
+  .audience-panel h3{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:0 0 14px;}
+  .abar-row{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(70px,1.4fr) 34px;gap:10px;align-items:center;padding:6px 0;}
+  .abar-label{font-size:13px;color:var(--ink);}
+  .abar-label small{display:block;font-size:11px;color:var(--ink-muted);font-weight:400;}
+  .abar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .abar-track span{display:block;height:100%;background:var(--chart-meta);border-radius:6px;}
+  .abar-value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:13px;}
+
+  /* ---- Findings & action plan ---- */
+  .finding-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .finding-card{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);}
+  .finding-card .finding-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--warn);margin-bottom:6px;}
+  .finding-card h4{font-family:var(--font-display);font-size:16px;font-weight:600;margin:0 0 8px;color:var(--ink);}
+  .finding-card p{font-size:13px;color:var(--ink-muted);margin:0;}
+  .action-list{display:flex;flex-direction:column;gap:0;}
+  .action-list li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px;color:var(--ink);}
+  .action-list li:last-child{border-bottom:none;}
+  .action-list li span{font-family:var(--font-display);font-weight:600;color:var(--accent);}
+
+  /* ---- Timeline ---- */
+  .timeline{display:flex;flex-direction:column;gap:0;position:relative;}
+  .tl-item{
+    display:grid;grid-template-columns:110px 20px 1fr;gap:0;padding:16px 0;
+  }
+  .tl-item .tl-date{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);padding-top:1px;}
+  .tl-item .tl-line{position:relative;display:flex;justify-content:center;}
+  .tl-item .tl-line::before{
+    content:"";position:absolute;top:22px;bottom:-16px;width:1px;background:var(--rule);
+  }
+  .tl-item:last-child .tl-line::before{display:none;}
+  .tl-dot{width:11px;height:11px;border-radius:50%;background:var(--accent);margin-top:5px;border:2px solid var(--surface);box-shadow:0 0 0 1.5px var(--accent);}
+  .tl-content .tl-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:3px;}
+  .tl-content .tl-title{font-size:15px;font-weight:600;color:var(--ink);}
+  .tl-content .tl-note{font-size:13px;color:var(--ink-muted);margin-top:2px;}
+  .tl-badge{
+    display:inline-block;margin-left:10px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;
+    background:var(--good-bg);color:var(--good);vertical-align:middle;text-transform:uppercase;letter-spacing:.04em;
+  }
+
+  /* ---- Next steps ---- */
+  .steps{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .step-card{
+    background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);
+    display:flex;gap:16px;
+  }
+  .step-num{
+    font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--accent);flex-shrink:0;
+    line-height:1;
+  }
+  .step-card h3{margin:0 0 6px;font-family:var(--font-body);font-size:15px;font-weight:700;color:var(--ink);}
+  .step-card p{margin:0;font-size:13.5px;color:var(--ink-muted);line-height:1.5;}
+  .status-chip{
+    display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-size:11.5px;font-weight:700;
+    padding:3px 9px;border-radius:20px;
+  }
+  .status-chip.pending{background:var(--warn-bg);color:var(--warn);}
+  .status-chip.open{background:var(--critical-bg);color:var(--critical);}
+  .status-chip.watch{background:var(--good-bg);color:var(--good);}
+
+  /* ---- Closing ---- */
+  .closing{align-items:flex-start;justify-content:center;}
+  .closing h1{font-size:clamp(34px,4.6vw,58px);max-width:16ch;}
+  .closing .closing-sub{font-family:var(--font-body);font-size:16px;color:var(--ink-muted);margin-top:16px;max-width:50ch;}
+
+  /* ---- Nav chrome ---- */
+  .chrome{
+    position:absolute;left:0;right:0;bottom:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px clamp(24px,6vw,110px) 20px;
+    z-index:5;pointer-events:none;
+    background:linear-gradient(to top, var(--bg) 40%, transparent);
+  }
+  .chrome > *{pointer-events:auto;}
+  .dots{display:flex;gap:8px;}
+  .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--rule);border:none;cursor:pointer;padding:0;
+    transition:transform .2s ease,background .2s ease;
+  }
+  .dot.active{background:var(--accent);transform:scale(1.35);}
+  .slide-count{font-size:12px;color:var(--ink-faint);font-variant-numeric:tabular-nums;letter-spacing:.03em;}
+  .nav-btns{display:flex;gap:8px;align-items:center;}
+  .nav-btn{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--rule);background:var(--surface);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:var(--shadow);transition:opacity .2s ease;
+  }
+  .nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .nav-btn:disabled{opacity:.35;cursor:default;}
+  .nav-btn svg{width:16px;height:16px;}
+  .click-zone{position:absolute;top:0;bottom:64px;width:14%;z-index:4;cursor:pointer;background:transparent;border:none;padding:0;margin:0;-webkit-appearance:none;appearance:none;}
+  .click-zone:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+  .click-zone.left{left:0;}
+  .click-zone.right{right:0;}
+
+  @media (max-width:860px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .gap-compare{grid-template-columns:1fr;}
+    .gap-arrow{flex-direction:row;}
+    .stat-compare{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr;}
+    .tl-item{grid-template-columns:86px 16px 1fr;}
+    .audience-panels{grid-template-columns:1fr;}
+    .audience-panels-3,.audience-panels-4{grid-template-columns:1fr;}
+  }
+
+  @media print{
+    :root{
+      --bg:#f7f3ea;--surface:#ffffff;--surface-2:#f0ead9;--ink:#102a43;--ink-muted:#4a6178;--ink-faint:#8296a8;
+      --accent:#2a6e99;--accent-ink:#ffffff;--chart-meta:#1f7ab0;--chart-crm:#c97b2e;--good:#2f8f63;--good-bg:#e3f2ea;
+      --critical:#b8483f;--critical-bg:#fbe9e7;--warn:#b9772f;--warn-bg:#faf0e0;--rule:#dcd2ba;
+      --shadow:none;
+    }
+    @page{size:A4 landscape;margin:0;}
+    html,body{height:auto;overflow:visible;background:var(--bg);}
+    .deck{position:static;height:auto;overflow:visible;}
+    .chrome,.click-zone{display:none !important;}
+    .slide{
+      position:relative;inset:auto;opacity:1 !important;transform:none !important;pointer-events:none;
+      width:297mm;height:210mm;padding:14mm 18mm;overflow:hidden;
+      page-break-after:always;break-after:page;
+      display:flex !important;
+    }
+    .slide:last-child{page-break-after:auto;break-after:auto;}
+  }
+</style>
+
+<div class="deck" id="deck" lang="en" translate="no">
+
+  <section class="slide cover active" data-index="0">
+    <div class="slide-body">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 20 6v6c0 5.5-3.5 9.4-8 11-4.5-1.6-8-5.5-8-11V6l8-4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Peasy Anglais · L24
+      </div>
+      <h1>L24 launch review</h1>
+      <p class="cover-sub">Page conversion, cost per lead, where leads come from, and creative performance - what's working, what isn't.</p>
+    </div>
+    <div class="cover-period">
+      <div>Snapshot date<strong>12 Sep 2026</strong></div>
+      <div>CPL-capturing window<strong>2026-09-14 – 2026-10-05</strong></div>
+      <div>Funnel<strong>L24 · Meta Ads (COLD)</strong></div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="1">
+    <p class="eyebrow">Snapshot</p>
+    <h2 class="slide-title">Spend, leads, page conversion</h2>
+    <p class="slide-sub">Cumulative since launch start.</p>
+    <div class="slide-body">
+      <div class="kpi-grid"><article class="kpi"><div class="kpi-label">Meta spend</div><div class="kpi-value">€1,333.86</div><div class="note">COLD campaign</div></article><article class="kpi"><div class="kpi-label">Meta leads</div><div class="kpi-value">409</div><div class="note">Pixel-reported</div></article><article class="kpi"><div class="kpi-label">Meta CPL</div><div class="kpi-value">€3.26</div><div class="note">Spend / Meta leads</div></article><article class="kpi"><div class="kpi-label">CRM leads</div><div class="kpi-value">1</div><div class="note">[L21] tag, ground truth</div></article><article class="kpi"><div class="kpi-label">CRM CPL</div><div class="kpi-value">€1,333.86</div><div class="note">Spend / CRM leads</div></article><article class="kpi"><div class="kpi-label">Click → LPV</div><div class="kpi-value">77.10%</div><div class="note">Page conversion (step 1)</div></article><article class="kpi"><div class="kpi-label">LPV → Lead</div><div class="kpi-value">27.36%</div><div class="note">Page conversion (step 2)</div></article></div>
+    </div>
+  </section>
+
+  <section class="slide" data-index="2">
+    <p class="eyebrow">Where leads come from</p>
+    <h2 class="slide-title">Performance by ad set</h2>
+    <p class="slide-sub">COLD campaign, all 6 ad sets.</p>
+    <div class="slide-body">
+      <table class="top-table"><thead><tr><th>Ad set</th><th class="num">Spend</th><th class="num">Leads</th><th class="num">CPL</th><th class="num">CTR</th></tr></thead><tbody><tr><td class='name'>L24 - COLD PF - BROAD - 30-55 - WOMEN</td><td class='num'>€527.45</td><td class='num'>184</td><td class='num'>€2.87</td><td class='num'>2.51%</td></tr><tr><td class='name'>L24 - COLD PF - LAL1% LEADS L23 - 25-55</td><td class='num'>€256.67</td><td class='num'>46</td><td class='num'>€5.58</td><td class='num'>2.17%</td></tr><tr><td class='name'>L24 - COLD PF - LAL1% BUYERS PACK PREMIUM - 25-55</td><td class='num'>€179.99</td><td class='num'>53</td><td class='num'>€3.40</td><td class='num'>3.03%</td></tr><tr><td class='name'>L24 - COLD PF - LAL1% PAGEVIEW PRESUBS 180D - 25-55</td><td class='num'>€151.58</td><td class='num'>46</td><td class='num'>€3.30</td><td class='num'>2.02%</td></tr><tr><td class='name'>L24 - COLD PF - LAL1% LEADS L22 - 25-55</td><td class='num'>€111.07</td><td class='num'>27</td><td class='num'>€4.11</td><td class='num'>2.40%</td></tr><tr><td class='name'>L24 - COLD PF - EXPLORACAO - BROAD 50-65 - WOMEN</td><td class='num'>€107.48</td><td class='num'>53</td><td class='num'>€2.03</td><td class='num'>1.86%</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <section class="slide" data-index="3">
+    <p class="eyebrow">Creative performance</p>
+    <h2 class="slide-title">Best creatives (lowest CPL)</h2>
+    <p class="slide-sub">Ads with at least one lead, sorted by CPL.</p>
+    <div class="slide-body">
+      <table class="top-table"><thead><tr><th>Ad</th><th>Ad set</th><th class="num">CPL</th><th class="num">CTR</th><th class="num">Spend</th><th class="num">Leads</th></tr></thead><tbody><tr><td class='name'>AD1919</td><td class='name'>L24 - COLD PF - LAL1% LEADS L22 - 25-55</td><td class='num'>€1.21</td><td class='num'>3.84%</td><td class='num'>€7.28</td><td class='num'>6</td></tr><tr><td class='name'>AD1863</td><td class='name'>L24 - COLD PF - EXPLORACAO - BROAD 50-65 - WOMEN</td><td class='num'>€1.41</td><td class='num'>1.93%</td><td class='num'>€16.86</td><td class='num'>12</td></tr><tr><td class='name'>AD1843</td><td class='name'>L24 - COLD PF - EXPLORACAO - BROAD 50-65 - WOMEN</td><td class='num'>€1.91</td><td class='num'>1.99%</td><td class='num'>€57.38</td><td class='num'>30</td></tr><tr><td class='name'>AD1864</td><td class='name'>L24 - COLD PF - LAL1% PAGEVIEW PRESUBS 180D - 25-55</td><td class='num'>€1.91</td><td class='num'>2.38%</td><td class='num'>€19.08</td><td class='num'>10</td></tr><tr><td class='name'>AD1850</td><td class='name'>L24 - COLD PF - BROAD - 30-55 - WOMEN</td><td class='num'>€2.06</td><td class='num'>1.72%</td><td class='num'>€160.73</td><td class='num'>78</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <section class="slide" data-index="4">
+    <p class="eyebrow">Creative performance</p>
+    <h2 class="slide-title">Worst creatives (highest CPL)</h2>
+    <p class="slide-sub">Ads with at least one lead, sorted by CPL descending.</p>
+    <div class="slide-body">
+      <table class="top-table"><thead><tr><th>Ad</th><th>Ad set</th><th class="num">CPL</th><th class="num">CTR</th><th class="num">Spend</th><th class="num">Leads</th></tr></thead><tbody><tr><td class='name'>AD1831-H2</td><td class='name'>L24 - COLD PF - LAL1% LEADS L23 - 25-55</td><td class='num'>€13.00</td><td class='num'>1.91%</td><td class='num'>€13.00</td><td class='num'>1</td></tr><tr><td class='name'>AD1852</td><td class='name'>L24 - COLD PF - LAL1% LEADS L23 - 25-55</td><td class='num'>€5.65</td><td class='num'>1.76%</td><td class='num'>€67.75</td><td class='num'>12</td></tr><tr><td class='name'>AD1831-H1</td><td class='name'>L24 - COLD PF - LAL1% LEADS L23 - 25-55</td><td class='num'>€5.19</td><td class='num'>2.43%</td><td class='num'>€171.43</td><td class='num'>33</td></tr><tr><td class='name'>AD1877</td><td class='name'>L24 - COLD PF - LAL1% LEADS L22 - 25-55</td><td class='num'>€5.08</td><td class='num'>2.33%</td><td class='num'>€96.54</td><td class='num'>19</td></tr><tr><td class='name'>AD1828</td><td class='name'>L24 - COLD PF - LAL1% BUYERS PACK PREMIUM - 25-55</td><td class='num'>€4.87</td><td class='num'>4.07%</td><td class='num'>€77.88</td><td class='num'>16</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <section class="slide" data-index="5">
+    <p class="eyebrow">Recommendations</p>
+    <h2 class="slide-title">Improvement suggestions</h2>
+    <p class="slide-sub">Data-grounded, from this snapshot only - not proof, a starting point for review.</p>
+    <div class="slide-body">
+      <ul class="suggestion-list"><li>Ad set &quot;L24 - COLD PF - LAL1% LEADS L23 - 25-55&quot; está com CPL €5.58 (1.7x a média geral de €3.26) - candidato a revisão ou pausa.</li><li>AD1828 tem CTR acima da média (4.07%) mas CPL alto (€4.87) - o criativo atrai clique mas não converte; revisar alinhamento oferta/página.</li></ul>
+    </div>
+  </section>
+
+  <button class="click-zone left" aria-label="Previous slide" onclick="go(-1)"></button>
+  <button class="click-zone right" aria-label="Next slide" onclick="go(1)"></button>
+
+  <div class="chrome">
+    <div class="nav-btns">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous slide" onclick="go(-1)">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="slide-count" id="slideCount">1 / 6</span>
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+</div>
+
+<!-- generated 2026-09-12 18:53 UTC -->
+<style>.suggestion-list{font-size:16px;line-height:1.7;padding-left:22px}.suggestion-list li{margin-bottom:14px}</style>
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var current = 0;
+  var dotsEl = document.getElementById('dots');
+  var countEl = document.getElementById('slideCount');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  slides.forEach(function(_, i){
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+    d.onclick = function(){ render(i); };
+    dotsEl.appendChild(d);
+  });
+
+  function render(i){
+    current = Math.max(0, Math.min(total - 1, i));
+    slides.forEach(function(s, idx){ s.classList.toggle('active', idx === current); });
+    Array.prototype.forEach.call(dotsEl.children, function(d, idx){ d.classList.toggle('active', idx === current); });
+    countEl.textContent = (current + 1) + ' / ' + total;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+  window.go = function(delta){ render(current + delta); };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight') go(1);
+    if(e.key === 'ArrowLeft') go(-1);
+  });
+  render(0);
+})();
+</script>
