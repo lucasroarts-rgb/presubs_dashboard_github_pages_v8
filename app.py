@@ -715,6 +715,19 @@ def init_db() -> None:
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS l24_ad_performance (
+        ad_id TEXT PRIMARY KEY,
+        ad_name TEXT,
+        adset_name TEXT,
+        spend REAL NOT NULL DEFAULT 0,
+        impressions INTEGER NOT NULL DEFAULT 0,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        ctr REAL NOT NULL DEFAULT 0,
+        leads INTEGER NOT NULL DEFAULT 0,
+        cpl REAL,
+        synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS l24_crm_daily (
         report_date TEXT PRIMARY KEY,
         leads INTEGER NOT NULL DEFAULT 0,
@@ -2938,6 +2951,19 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
     click_to_lpv_pct = round(cold_lpv / cold_clicks * 100, 1) if cold_clicks else None
     lpv_to_lead_pct = round(cold_leads / cold_lpv * 100, 2) if cold_lpv else None
 
+    ad_rows = con.execute(
+        "SELECT ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl "
+        "FROM l24_ad_performance ORDER BY spend DESC"
+    ).fetchall()
+    creatives = [
+        {
+            "ad_id": r[0], "ad_name": r[1], "adset_name": r[2], "spend": round(float(r[3] or 0), 2),
+            "impressions": int(r[4] or 0), "clicks": int(r[5] or 0), "ctr": round(float(r[6] or 0), 2),
+            "leads": int(r[7] or 0), "cpl": round(float(r[8]), 2) if r[8] is not None else None,
+        }
+        for r in ad_rows
+    ]
+
     crm_rows = con.execute("SELECT report_date, leads FROM l24_crm_daily ORDER BY report_date").fetchall()
     crm_daily = [{"report_date": r[0], "leads": int(r[1] or 0)} for r in crm_rows]
     crm_leads_total = sum(r["leads"] for r in crm_daily)
@@ -2967,6 +2993,7 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
         "cold_landing_page_views": cold_lpv,
         "click_to_lpv_pct": click_to_lpv_pct,
         "lpv_to_lead_pct": lpv_to_lead_pct,
+        "creatives": creatives,
         "crm_daily": crm_daily,
         "crm_leads_total": crm_leads_total,
         "crm_cpl": crm_cpl,

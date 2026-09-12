@@ -159,6 +159,68 @@ def store_daily(group: str, campaign_id: str, campaign_name: str, rows: list[dic
         )
 
 
+def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
+    """Ad-level lifetime performance for one campaign - used for the
+    best/worst creative breakdown in the L24 review slide. Ad-level
+    insights don't hit the time_increment pagination issue since there's
+    no per-day breakdown requested here (one row per ad, lifetime)."""
+    import requests
+
+    token = env["META_ACCESS_TOKEN"]
+    version = env.get("META_API_VERSION", "v25.0")
+    url = f"https://graph.facebook.com/{version}/{campaign_id}/insights"
+    since = (date.today() - timedelta(days=LOOKBACK_DAYS)).isoformat()
+    until = (date.today() + timedelta(days=1)).isoformat()
+    params = {
+        "access_token": token,
+        "level": "ad",
+        "fields": "ad_id,ad_name,adset_name,spend,clicks,impressions,ctr,actions",
+        "time_range": json.dumps({"since": since, "until": until}),
+        "limit": 100,
+    }
+    rows: list[dict] = []
+    while url:
+        response = requests.get(url, params=params, timeout=30)
+        payload = response.json()
+        if not response.ok:
+            raise L24SyncError(f"Meta ad-level insights error ({response.status_code}): {payload}")
+        for row in payload.get("data") or []:
+            leads = _action_value(row, "lead", "offsite_conversion.fb_pixel_lead")
+            spend = float(row.get("spend") or 0)
+            rows.append(
+                {
+                    "ad_id": row.get("ad_id"),
+                    "ad_name": row.get("ad_name"),
+                    "adset_name": row.get("adset_name"),
+                    "spend": spend,
+                    "impressions": int(row.get("impressions") or 0),
+                    "clicks": int(row.get("clicks") or 0),
+                    "ctr": float(row.get("ctr") or 0),
+                    "leads": leads,
+                    "cpl": round(spend / leads, 2) if leads else None,
+                }
+            )
+        next_page = (payload.get("paging") or {}).get("next")
+        url, params = (next_page, None) if next_page else (None, None)
+    return rows
+
+
+def store_ad_performance(rows: list[dict]) -> None:
+    with dashboard_app.db() as con:
+        con.execute("DELETE FROM l24_ad_performance")
+        con.executemany(
+            """
+            INSERT INTO l24_ad_performance
+                (ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl, synced_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            [
+                (r["ad_id"], r["ad_name"], r["adset_name"], r["spend"], r["impressions"], r["clicks"], r["ctr"], r["leads"], r["cpl"])
+                for r in rows
+            ],
+        )
+
+
 def fetch_crm_leads(env: dict[str, str]) -> list[tuple[str, int]]:
     """Daily lead counts from GHL opportunities tagged [L21], created on
     or after CRM_LAUNCH_START - the real ground-truth CRM count for this
@@ -204,11 +266,17 @@ def main() -> int:
         return 0
 
     total_rows = 0
+    ad_rows_count = 0
     for campaign in campaigns:
         group = group_from_name(campaign["name"])
         daily = fetch_daily(env, campaign["id"])
         store_daily(group, campaign["id"], campaign["name"], daily)
         total_rows += len(daily)
+
+        if group == "cold":
+            ad_rows = fetch_ad_performance(env, campaign["id"])
+            store_ad_performance(ad_rows)
+            ad_rows_count = len(ad_rows)
 
     crm_leads = fetch_crm_leads(env)
     store_crm_leads(crm_leads)
@@ -216,6 +284,7 @@ def main() -> int:
     print(
         f"L24 sync complete: {len(campaigns)} campaigns "
         f"({', '.join(c['name'] for c in campaigns)}), {total_rows} Meta daily rows, "
+        f"{ad_rows_count} ad-level rows, "
         f"{sum(count for _, count in crm_leads)} CRM leads ([{CRM_CAMPAIGN_TAG}] since {CRM_LAUNCH_START})."
     )
     return 0
