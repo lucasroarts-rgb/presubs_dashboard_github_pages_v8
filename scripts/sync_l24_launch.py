@@ -130,6 +130,7 @@ def fetch_daily(env: dict[str, str], campaign_id: str) -> list[dict]:
                 "impressions": int(row.get("impressions") or 0),
                 "spend": float(row.get("spend") or 0),
                 "clicks": _action_value(row, "link_click"),
+                "landing_page_views": _action_value(row, "landing_page_view"),
                 "leads": _action_value(row, "lead", "offsite_conversion.fb_pixel_lead"),
             }
         )
@@ -145,11 +146,14 @@ def store_daily(group: str, campaign_id: str, campaign_name: str, rows: list[dic
         con.executemany(
             """
             INSERT INTO l24_daily
-                (group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, leads, synced_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                (group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, landing_page_views, leads, synced_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """,
             [
-                (group, campaign_id, campaign_name, row["report_date"], row["impressions"], row["spend"], row["clicks"], row["leads"])
+                (
+                    group, campaign_id, campaign_name, row["report_date"], row["impressions"],
+                    row["spend"], row["clicks"], row["landing_page_views"], row["leads"],
+                )
                 for row in rows
             ],
         )

@@ -710,6 +710,7 @@ def init_db() -> None:
         impressions INTEGER NOT NULL DEFAULT 0,
         spend REAL NOT NULL DEFAULT 0,
         clicks INTEGER NOT NULL DEFAULT 0,
+        landing_page_views INTEGER NOT NULL DEFAULT 0,
         leads INTEGER NOT NULL DEFAULT 0,
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -804,6 +805,11 @@ def init_db() -> None:
         }
         if "creative_image_url" not in ad_columns:
             con.execute("ALTER TABLE ad_metrics ADD COLUMN creative_image_url TEXT")
+        l24_columns = {
+            row["name"] for row in con.execute("PRAGMA table_info(l24_daily)").fetchall()
+        }
+        if "landing_page_views" not in l24_columns:
+            con.execute("ALTER TABLE l24_daily ADD COLUMN landing_page_views INTEGER NOT NULL DEFAULT 0")
 
 
 
@@ -2896,7 +2902,7 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
     fixed timeline (2026-09-14 to 2026-10-05 for the CPL-capturing budget)
     rather than a rolling week."""
     rows = con.execute(
-        "SELECT group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, leads "
+        "SELECT group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, landing_page_views, leads "
         "FROM l24_daily ORDER BY report_date"
     ).fetchall()
     if not rows:
@@ -2904,18 +2910,20 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
 
     daily_by_date: dict[str, dict[str, Any]] = {}
     groups: dict[str, dict[str, float]] = {}
-    for group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, leads in rows:
-        group_totals = groups.setdefault(group_name, {"spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0})
+    for group_name, campaign_id, campaign_name, report_date, impressions, spend, clicks, landing_page_views, leads in rows:
+        group_totals = groups.setdefault(group_name, {"spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0, "landing_page_views": 0})
         group_totals["spend"] += float(spend or 0)
         group_totals["leads"] += int(leads or 0)
         group_totals["impressions"] += int(impressions or 0)
         group_totals["clicks"] += int(clicks or 0)
+        group_totals["landing_page_views"] += int(landing_page_views or 0)
 
-        day = daily_by_date.setdefault(report_date, {"report_date": report_date, "spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0})
+        day = daily_by_date.setdefault(report_date, {"report_date": report_date, "spend": 0.0, "leads": 0, "impressions": 0, "clicks": 0, "landing_page_views": 0})
         day["spend"] += float(spend or 0)
         day["leads"] += int(leads or 0)
         day["impressions"] += int(impressions or 0)
         day["clicks"] += int(clicks or 0)
+        day["landing_page_views"] += int(landing_page_views or 0)
 
     for group_totals in groups.values():
         group_totals["cpl"] = round(group_totals["spend"] / group_totals["leads"], 2) if group_totals["leads"] else None
@@ -2924,7 +2932,11 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
 
     cold_spend = groups.get("cold", {}).get("spend", 0.0)
     cold_leads = groups.get("cold", {}).get("leads", 0)
+    cold_clicks = groups.get("cold", {}).get("clicks", 0)
+    cold_lpv = groups.get("cold", {}).get("landing_page_views", 0)
     cold_cpl = round(cold_spend / cold_leads, 2) if cold_leads else None
+    click_to_lpv_pct = round(cold_lpv / cold_clicks * 100, 1) if cold_clicks else None
+    lpv_to_lead_pct = round(cold_leads / cold_lpv * 100, 2) if cold_lpv else None
 
     crm_rows = con.execute("SELECT report_date, leads FROM l24_crm_daily ORDER BY report_date").fetchall()
     crm_daily = [{"report_date": r[0], "leads": int(r[1] or 0)} for r in crm_rows]
@@ -2951,6 +2963,10 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
         "cold_spend": round(cold_spend, 2),
         "cold_leads": cold_leads,
         "cold_cpl": cold_cpl,
+        "cold_clicks": cold_clicks,
+        "cold_landing_page_views": cold_lpv,
+        "click_to_lpv_pct": click_to_lpv_pct,
+        "lpv_to_lead_pct": lpv_to_lead_pct,
         "crm_daily": crm_daily,
         "crm_leads_total": crm_leads_total,
         "crm_cpl": crm_cpl,

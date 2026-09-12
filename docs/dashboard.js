@@ -796,7 +796,11 @@ Object.assign(UI_TRANSLATIONS.fr,{
   "Blended CPL target":"Objectif CPL mixte",
   "Paid":"Payant",
   "Sales goal":"Objectif de ventes",
-  "income":"revenu"
+  "income":"revenu",
+  "Click → LPV":"Clic → LPV",
+  "LPV → Lead":"LPV → Lead",
+  "Landing page conversion":"Conversion de la page de destination",
+  "Page conversion rate":"Taux de conversion de la page"
 });
 Object.assign(UI_TRANSLATIONS.pt,{
   "CRM tracking gap":"Gap de rastreamento do CRM",
@@ -1201,7 +1205,11 @@ Object.assign(UI_TRANSLATIONS.pt,{
   "Blended CPL target":"Meta de CPL misto",
   "Paid":"Pago",
   "Sales goal":"Meta de vendas",
-  "income":"receita"
+  "income":"receita",
+  "Click → LPV":"Clique → LPV",
+  "LPV → Lead":"LPV → Lead",
+  "Landing page conversion":"Conversão da página de destino",
+  "Page conversion rate":"Taxa de conversão da página"
 });
 
 const originalTextNodes=new WeakMap();
@@ -3660,7 +3668,9 @@ async function renderL24Launch(){
     [t("Meta leads"),number(data.cold_leads),t("Pixel-reported, COLD campaign")],
     [t("Meta CPL"),data.cold_cpl!=null?money(data.cold_cpl):"—",t("Spend / Meta leads")],
     [t("CRM leads"),number(data.crm_leads_total),t("[L21] tag, ground truth")],
-    [t("CRM CPL"),data.crm_cpl!=null?money(data.crm_cpl):"—",t("Spend / CRM leads")]
+    [t("CRM CPL"),data.crm_cpl!=null?money(data.crm_cpl):"—",t("Spend / CRM leads")],
+    [t("Click → LPV"),data.click_to_lpv_pct!=null?data.click_to_lpv_pct+"%":"—",t("Landing page conversion")],
+    [t("LPV → Lead"),data.lpv_to_lead_pct!=null?data.lpv_to_lead_pct+"%":"—",t("Page conversion rate")]
   ].map(kpiCard).join("");
 
   const budgetPct=targets.cpl_capturing_budget?Math.round(data.cold_spend/targets.cpl_capturing_budget*1000)/10:null;
