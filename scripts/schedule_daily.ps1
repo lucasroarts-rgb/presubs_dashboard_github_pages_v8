@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 $TaskName = "PreSubs Dashboard Daily Sync 06h"
-$BatPath = Join-Path $Root "AUTOMATIZAR_DIARIO.bat"
+$ScriptPath = Join-Path $Root "scripts\run_daily_sync.ps1"
 
 Write-Host ""
 Write-Host "Schedule the daily PreSubs automation" -ForegroundColor Cyan
@@ -17,8 +17,8 @@ try {
 }
 
 $action = New-ScheduledTaskAction `
-    -Execute "cmd.exe" `
-    -Argument "/c `"$BatPath`"" `
+    -Execute "powershell.exe" `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`"" `
     -WorkingDirectory $Root
 
 $trigger = New-ScheduledTaskTrigger -Daily -At $time
@@ -27,6 +27,7 @@ $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
+    -Hidden `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2)
 
 Register-ScheduledTask `
