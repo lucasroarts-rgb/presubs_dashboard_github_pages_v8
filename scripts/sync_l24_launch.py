@@ -27,17 +27,25 @@ sys.path.insert(0, str(ROOT))
 
 import app as dashboard_app  # noqa: E402
 from scripts.automate_meta import load_env_file  # noqa: E402
-from scripts.sync_ghl import extract_campaign, fetch_opportunities_in_window  # noqa: E402
+from scripts.sync_crm import _connect as connect_crm_mysql  # noqa: E402
 
 LOOKBACK_DAYS = 90
 CAMPAIGN_NAME_PATTERN = "L24 -"
 
-# The Meta side of this launch is tagged "L24", but the CRM capture-page
-# tag for it is "[L21]" (confirmed with the user 2026-09-11 - L-numbers
-# get reused across launches on the CRM side, so this is NOT the same
-# thing as any earlier L21 launch). Leads before this date belong to
-# whatever that earlier L21 was, not this launch, so they're excluded.
-CRM_CAMPAIGN_TAG = "L21"
+# CRM ground truth for this launch's leads is the launch17db.leads_l21
+# MySQL table (legacy name, reused across L21/L22/L23/L24 - it's not
+# per-launch, just the raw landing-page capture table), confirmed with
+# the sibling "L24 criativos Meta Ads" session on 2026-09-16. No tag or
+# campaign filter needed - the table itself only holds captures from
+# this launch's pages, just a date floor at launch start.
+#
+# An earlier version of this filtered GHL "Commercial Pipeline"
+# opportunities by a [L21]/[L24] source tag instead - that was reading
+# a completely different, much-later funnel stage (booking/sales
+# pipeline, not raw capture) and undercounted leads by ~2 orders of
+# magnitude (2-5 vs the ~1,450 that actually landed on the page). Left
+# as a cautionary note, not code: don't reintroduce a GHL-opportunities
+# based lead count here.
 CRM_LAUNCH_START = "2026-09-11"
 
 
@@ -255,22 +263,21 @@ def store_ad_performance(rows: list[dict]) -> None:
 
 
 def fetch_crm_leads(env: dict[str, str]) -> list[tuple[str, int]]:
-    """Daily lead counts from GHL opportunities tagged [L21], created on
-    or after CRM_LAUNCH_START - the real ground-truth CRM count for this
-    launch, comparable against Meta's own pixel-reported leads the same
-    way the rest of the dashboard compares CRM vs Meta."""
-    opportunities = fetch_opportunities_in_window(env)
-    start = date.fromisoformat(CRM_LAUNCH_START)
-    counts: dict[str, int] = {}
-    for opp in opportunities:
-        if extract_campaign(opp.get("source")) != CRM_CAMPAIGN_TAG:
-            continue
-        created_at = opp.get("created_at")
-        if not created_at or created_at.date() < start:
-            continue
-        report_date = created_at.date().isoformat()
-        counts[report_date] = counts.get(report_date, 0) + 1
-    return sorted(counts.items())
+    """Daily lead counts straight from launch17db.leads_l21 - see the
+    module-level note on why this isn't a GHL opportunities query."""
+    connection = connect_crm_mysql(env)
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT data AS report_date, COUNT(*) AS lead_count "
+            "FROM launch17db.leads_l21 "
+            "WHERE data IS NOT NULL AND data <> '0000-00-00' AND data >= %s "
+            "GROUP BY data ORDER BY data",
+            (CRM_LAUNCH_START,),
+        )
+        return [(str(row[0]), int(row[1])) for row in cursor.fetchall()]
+    finally:
+        connection.close()
 
 
 def store_crm_leads(rows: list[tuple[str, int]]) -> None:
@@ -287,7 +294,10 @@ def main() -> int:
     dashboard_app.init_db()
 
     missing = [
-        key for key in ("META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID", "GHL_API_KEY", "GHL_LOCATION_ID", "GHL_PIPELINE_ID")
+        key for key in (
+            "META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID",
+            "CRM_MYSQL_HOST", "CRM_MYSQL_DATABASE", "CRM_MYSQL_USER", "CRM_MYSQL_PASSWORD",
+        )
         if not env.get(key)
     ]
     if missing:
@@ -326,7 +336,7 @@ def main() -> int:
         f"L24 sync complete: {len(campaigns)} campaigns "
         f"({', '.join(c['name'] for c in campaigns)}), {total_rows} Meta daily rows, "
         f"{ad_rows_count} ad-level rows, "
-        f"{sum(count for _, count in crm_leads)} CRM leads ([{CRM_CAMPAIGN_TAG}] since {CRM_LAUNCH_START})."
+        f"{sum(count for _, count in crm_leads)} CRM leads (launch17db.leads_l21 since {CRM_LAUNCH_START})."
     )
     return 0
 

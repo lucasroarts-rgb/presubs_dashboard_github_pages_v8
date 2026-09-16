@@ -4,7 +4,8 @@ Entirely separate from generate_weekly_review.py (the PreSubs weekly
 deck) per the user's explicit instruction not to mix the two - own
 output file, own archive directory (l24_reviews/, not weekly_reviews/),
 own data source (dashboard_app.l24_launch_summary()), own cadence
-(Monday/Wednesday/Friday, not Wednesday-only).
+(daily, not Wednesday-only - changed from Mon/Wed/Fri to daily on
+2026-09-16 per user request).
 
 The visual style is borrowed read-only from static/weekly-review.html's
 <style> block (same brand look), but this script never writes to that
@@ -29,7 +30,7 @@ import app as dashboard_app  # noqa: E402
 
 STATIC_DIR = ROOT / "static"
 ARCHIVE_DIR = ROOT / "l24_reviews"  # outside docs/ - survives generate_public_site.py's docs/ wipe
-CALL_WEEKDAYS = {0, 2, 4}  # Monday, Wednesday, Friday
+CALL_WEEKDAYS = {0, 1, 2, 3, 4, 5, 6}  # every day - user asked for a daily refresh 2026-09-16
 
 
 def money(value: float | None) -> str:
@@ -323,7 +324,7 @@ def build_deck(l24: dict[str, Any]) -> str:
 
 def main(*, force: bool = False) -> int:
     if not force and not should_run_today():
-        print("Not an L24 review day (Mon/Wed/Fri) - skipping.")
+        print("Not an L24 review day - skipping.")
         return 0
 
     dashboard_app.init_db()
@@ -357,7 +358,7 @@ def main(*, force: bool = False) -> int:
   a:hover{{text-decoration:underline;}}
 </style>
 <h1>L24 review archive</h1>
-<p>One snapshot per Mon/Wed/Fri.</p>
+<p>One snapshot per day.</p>
 <table>{index_rows}</table>
 """
     (ARCHIVE_DIR / "index.html").write_text(index_html, encoding="utf-8")
