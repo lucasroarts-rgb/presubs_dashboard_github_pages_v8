@@ -81,11 +81,13 @@ def adset_breakdown(creatives: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda r: r["spend"], reverse=True)
 
 
-def ad_link_html(ad_name: str | None, preview_url: str | None) -> str:
+def ad_link_html(ad_name: str | None, preview_url: str | None, thumb_html: str = "") -> str:
+    """thumb_html goes INSIDE the <a> when there's a link, so the image
+    is part of the click target too, not just the small text next to it."""
     name = escape(ad_name or "")
     if preview_url:
-        return f'<a href="{escape(preview_url)}" target="_blank" rel="noopener">{name}</a>'
-    return name
+        return f'<a href="{escape(preview_url)}" target="_blank" rel="noopener">{thumb_html}{name}</a>'
+    return f"{thumb_html}{name}"
 
 
 def build_suggestions(creatives: list[dict[str, Any]], adsets: list[dict[str, Any]], overall_cpl: float | None, lpv_to_lead_pct: float | None) -> list[str]:
@@ -158,7 +160,7 @@ def build_deck(l24: dict[str, Any]) -> str:
             thumb = a.get("creative_image_url")
             thumb_html = f'<img src="{escape(thumb)}" class="creative-thumb-slide" alt="" />' if thumb else ""
             out.append(
-                f"<tr><td class='name'>{thumb_html}{ad_link_html(a['ad_name'], a.get('preview_url'))}</td>"
+                f"<tr><td class='name'>{ad_link_html(a['ad_name'], a.get('preview_url'), thumb_html)}</td>"
                 f"<td class='name'>{escape(a['adset_name'] or '')}</td>"
                 f"<td class='num'>{money(a['cpl'])}</td>"
                 f"<td class='num'>{pct(a['ctr'])}</td>"
@@ -265,7 +267,23 @@ def build_deck(l24: dict[str, Any]) -> str:
 </div>
 
 <!-- generated {generated_at} -->
-<style>.suggestion-list{{font-size:16px;line-height:1.7;padding-left:22px}}.suggestion-list li{{margin-bottom:14px}}</style>
+<style>
+  .suggestion-list{{font-size:16px;line-height:1.7;padding-left:22px}}
+  .suggestion-list li{{margin-bottom:14px}}
+  /* The fix that keeps these links out of the left/right click-zone's
+     dead area lives in weekly-review.html's shared .slide padding and
+     .click-zone width - this part is just making the hit area (and the
+     thumbnail, now inside the link) big enough to actually hit. */
+  .top-table td.name a, .suggestion-list a{{
+    color:var(--accent);text-decoration:underline;text-underline-offset:2px;
+  }}
+  .top-table td.name a{{
+    display:inline-flex;align-items:center;padding:8px 6px;margin:-8px -6px;
+    border-radius:8px;
+  }}
+  .top-table td.name a:hover{{background:var(--surface-2);}}
+  .top-table .creative-thumb-slide{{width:44px;height:44px;}}
+</style>
 <script>
 (function(){{
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));

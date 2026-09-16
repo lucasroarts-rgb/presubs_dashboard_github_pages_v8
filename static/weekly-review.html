@@ -89,7 +89,16 @@
     inset:0;
     display:flex;
     flex-direction:column;
-    padding:clamp(20px,4vw,72px) clamp(24px,6vw,110px) calc(clamp(20px,4vw,72px) + 60px);
+    /* Horizontal padding min raised from 24px to 64px: the left/right
+       click-zone nav strips below are 56px wide, and content padded by
+       less than that sits inside them - any link there (e.g. an ad
+       thumbnail) becomes unclickable, permanently shadowed by the
+       prev/next click zone regardless of its own z-index (.slide creates
+       its own stacking context, so a child's z-index can never win
+       against a sibling of .slide like .click-zone anyway). Keeping
+       content padding wider than the click-zone avoids the overlap
+       instead of fighting stacking contexts. */
+    padding:clamp(20px,4vw,72px) clamp(64px,6vw,110px) calc(clamp(20px,4vw,72px) + 60px);
     opacity:0;
     transform:translateX(24px);
     transition:opacity .45s ease, transform .45s ease;
@@ -370,7 +379,7 @@
   .nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .nav-btn:disabled{opacity:.35;cursor:default;}
   .nav-btn svg{width:16px;height:16px;}
-  .click-zone{position:absolute;top:0;bottom:64px;width:14%;z-index:4;cursor:pointer;background:transparent;border:none;padding:0;margin:0;-webkit-appearance:none;appearance:none;}
+  .click-zone{position:absolute;top:0;bottom:64px;width:56px;z-index:4;cursor:pointer;background:transparent;border:none;padding:0;margin:0;-webkit-appearance:none;appearance:none;}
   .click-zone:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
   .click-zone.left{left:0;}
   .click-zone.right{right:0;}
