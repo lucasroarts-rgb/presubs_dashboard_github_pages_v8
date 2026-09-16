@@ -159,6 +159,31 @@ def store_daily(group: str, campaign_id: str, campaign_name: str, rows: list[dic
         )
 
 
+def fetch_ad_creative_info(env: dict[str, str], ad_id: str) -> dict:
+    """Thumbnail image (works for both image and video ads - video ads
+    return a poster frame) and a shareable preview link (renders the real
+    ad, video included, no login needed) - so the review deck and any
+    dashboard row that cites an ad can link straight to it instead of
+    just naming it."""
+    import requests
+
+    token = env["META_ACCESS_TOKEN"]
+    version = env.get("META_API_VERSION", "v25.0")
+    url = f"https://graph.facebook.com/{version}/{ad_id}"
+    params = {
+        "access_token": token,
+        "fields": "creative{thumbnail_url},preview_shareable_link",
+    }
+    response = requests.get(url, params=params, timeout=30)
+    payload = response.json()
+    if not response.ok:
+        return {"creative_image_url": None, "preview_url": None}
+    return {
+        "creative_image_url": (payload.get("creative") or {}).get("thumbnail_url"),
+        "preview_url": payload.get("preview_shareable_link"),
+    }
+
+
 def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
     """Ad-level lifetime performance for one campaign - used for the
     best/worst creative breakdown in the L24 review slide. Ad-level
@@ -187,6 +212,7 @@ def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
         for row in payload.get("data") or []:
             leads = _action_value(row, "lead", "offsite_conversion.fb_pixel_lead")
             spend = float(row.get("spend") or 0)
+            creative_info = fetch_ad_creative_info(env, row.get("ad_id"))
             rows.append(
                 {
                     "ad_id": row.get("ad_id"),
@@ -198,6 +224,8 @@ def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
                     "ctr": float(row.get("ctr") or 0),
                     "leads": leads,
                     "cpl": round(spend / leads, 2) if leads else None,
+                    "creative_image_url": creative_info["creative_image_url"],
+                    "preview_url": creative_info["preview_url"],
                 }
             )
         next_page = (payload.get("paging") or {}).get("next")
@@ -211,11 +239,16 @@ def store_ad_performance(rows: list[dict]) -> None:
         con.executemany(
             """
             INSERT INTO l24_ad_performance
-                (ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl, synced_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                (ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl,
+                 creative_image_url, preview_url, synced_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """,
             [
-                (r["ad_id"], r["ad_name"], r["adset_name"], r["spend"], r["impressions"], r["clicks"], r["ctr"], r["leads"], r["cpl"])
+                (
+                    r["ad_id"], r["ad_name"], r["adset_name"], r["spend"], r["impressions"],
+                    r["clicks"], r["ctr"], r["leads"], r["cpl"],
+                    r.get("creative_image_url"), r.get("preview_url"),
+                )
                 for r in rows
             ],
         )
@@ -266,7 +299,7 @@ def main() -> int:
         return 0
 
     total_rows = 0
-    ad_rows_count = 0
+    all_cold_ad_rows: list[dict] = []
     for campaign in campaigns:
         group = group_from_name(campaign["name"])
         daily = fetch_daily(env, campaign["id"])
@@ -274,9 +307,17 @@ def main() -> int:
         total_rows += len(daily)
 
         if group == "cold":
-            ad_rows = fetch_ad_performance(env, campaign["id"])
-            store_ad_performance(ad_rows)
-            ad_rows_count = len(ad_rows)
+            # Accumulate across ALL cold campaigns before writing - there
+            # can be more than one (e.g. "COLD PF - General" and "COLD -
+            # BEST SELLERS" running at once). store_ad_performance() does
+            # a full DELETE+INSERT, so calling it per-campaign inside this
+            # loop would wipe out the previous cold campaign's ads on
+            # every iteration but the last.
+            all_cold_ad_rows.extend(fetch_ad_performance(env, campaign["id"]))
+
+    if all_cold_ad_rows:
+        store_ad_performance(all_cold_ad_rows)
+    ad_rows_count = len(all_cold_ad_rows)
 
     crm_leads = fetch_crm_leads(env)
     store_crm_leads(crm_leads)

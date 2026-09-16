@@ -728,6 +728,8 @@ def init_db() -> None:
         ctr REAL NOT NULL DEFAULT 0,
         leads INTEGER NOT NULL DEFAULT 0,
         cpl REAL,
+        creative_image_url TEXT,
+        preview_url TEXT,
         synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -826,6 +828,13 @@ def init_db() -> None:
         }
         if "landing_page_views" not in l24_columns:
             con.execute("ALTER TABLE l24_daily ADD COLUMN landing_page_views INTEGER NOT NULL DEFAULT 0")
+        l24_ad_columns = {
+            row["name"] for row in con.execute("PRAGMA table_info(l24_ad_performance)").fetchall()
+        }
+        if "creative_image_url" not in l24_ad_columns:
+            con.execute("ALTER TABLE l24_ad_performance ADD COLUMN creative_image_url TEXT")
+        if "preview_url" not in l24_ad_columns:
+            con.execute("ALTER TABLE l24_ad_performance ADD COLUMN preview_url TEXT")
 
 
 
@@ -2955,7 +2964,8 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
     lpv_to_lead_pct = round(cold_leads / cold_lpv * 100, 2) if cold_lpv else None
 
     ad_rows = con.execute(
-        "SELECT ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl "
+        "SELECT ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl, "
+        "creative_image_url, preview_url "
         "FROM l24_ad_performance ORDER BY spend DESC"
     ).fetchall()
     creatives = [
@@ -2963,6 +2973,7 @@ def l24_launch_summary(con: sqlite3.Connection) -> dict[str, Any]:
             "ad_id": r[0], "ad_name": r[1], "adset_name": r[2], "spend": round(float(r[3] or 0), 2),
             "impressions": int(r[4] or 0), "clicks": int(r[5] or 0), "ctr": round(float(r[6] or 0), 2),
             "leads": int(r[7] or 0), "cpl": round(float(r[8]), 2) if r[8] is not None else None,
+            "creative_image_url": r[9], "preview_url": r[10],
         }
         for r in ad_rows
     ]

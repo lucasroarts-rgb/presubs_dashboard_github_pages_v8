@@ -81,6 +81,13 @@ def adset_breakdown(creatives: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda r: r["spend"], reverse=True)
 
 
+def ad_link_html(ad_name: str | None, preview_url: str | None) -> str:
+    name = escape(ad_name or "")
+    if preview_url:
+        return f'<a href="{escape(preview_url)}" target="_blank" rel="noopener">{name}</a>'
+    return name
+
+
 def build_suggestions(creatives: list[dict[str, Any]], adsets: list[dict[str, Any]], overall_cpl: float | None, lpv_to_lead_pct: float | None) -> list[str]:
     """Data-grounded observations only - every line traces to a real
     number computed from this sync's own data, nothing invented."""
@@ -91,8 +98,8 @@ def build_suggestions(creatives: list[dict[str, Any]], adsets: list[dict[str, An
         underperforming = [a for a in adsets if a["cpl"] and a["cpl"] > overall_cpl * 1.5]
         for adset in underperforming:
             suggestions.append(
-                f"Ad set \"{adset['adset_name']}\" está com CPL {money(adset['cpl'])} "
-                f"({round(adset['cpl']/overall_cpl,1)}x a média geral de {money(overall_cpl)}) - candidato a revisão ou pausa."
+                f"Ad set \"{escape(adset['adset_name'])}\" is running at CPL {money(adset['cpl'])} "
+                f"({round(adset['cpl']/overall_cpl,1)}x the account average of {money(overall_cpl)}) - candidate for review or pause."
             )
 
     if ads_with_leads:
@@ -100,18 +107,18 @@ def build_suggestions(creatives: list[dict[str, Any]], adsets: list[dict[str, An
         for ad in ads_with_leads:
             if overall_cpl and ad["ctr"] > avg_ctr * 1.3 and ad["cpl"] and ad["cpl"] > overall_cpl * 1.3:
                 suggestions.append(
-                    f"{ad['ad_name']} tem CTR acima da média ({pct(ad['ctr'])}) mas CPL alto ({money(ad['cpl'])}) - "
-                    "o criativo atrai clique mas não converte; revisar alinhamento oferta/página."
+                    f"{ad_link_html(ad['ad_name'], ad.get('preview_url'))} has above-average CTR ({pct(ad['ctr'])}) but high CPL ({money(ad['cpl'])}) - "
+                    "the creative attracts clicks but doesn't convert; review offer/page alignment."
                 )
 
     if lpv_to_lead_pct is not None and lpv_to_lead_pct < 20:
         suggestions.append(
-            f"Conversão da página (LPV → Lead) está em {pct(lpv_to_lead_pct)} - abaixo do que se espera de uma "
-            "landing page de captura direta; vale revisar formulário/oferta na página."
+            f"Page conversion (LPV → Lead) is at {pct(lpv_to_lead_pct)} - below what's expected for a "
+            "direct-capture landing page; worth reviewing the form/offer on the page."
         )
 
     if not suggestions:
-        suggestions.append("Nenhum padrão de baixa performance destacado ainda - amostra ainda pequena para conclusões.")
+        suggestions.append("No underperformance pattern flagged yet - sample still too small to draw conclusions.")
     return suggestions
 
 
@@ -146,18 +153,25 @@ def build_deck(l24: dict[str, Any]) -> str:
     worst = list(reversed(ads_with_leads[-5:])) if len(ads_with_leads) > 5 else list(reversed(ads_with_leads))
 
     def creative_rows(rows: list[dict[str, Any]]) -> str:
-        return "".join(
-            f"<tr><td class='name'>{escape(a['ad_name'] or '')}</td>"
-            f"<td class='name'>{escape(a['adset_name'] or '')}</td>"
-            f"<td class='num'>{money(a['cpl'])}</td>"
-            f"<td class='num'>{pct(a['ctr'])}</td>"
-            f"<td class='num'>{money(a['spend'])}</td>"
-            f"<td class='num'>{number(a['leads'])}</td></tr>"
-            for a in rows
-        ) or "<tr><td colspan='6' class='name'>No creatives with leads yet.</td></tr>"
+        out = []
+        for a in rows:
+            thumb = a.get("creative_image_url")
+            thumb_html = f'<img src="{escape(thumb)}" class="creative-thumb-slide" alt="" />' if thumb else ""
+            out.append(
+                f"<tr><td class='name'>{thumb_html}{ad_link_html(a['ad_name'], a.get('preview_url'))}</td>"
+                f"<td class='name'>{escape(a['adset_name'] or '')}</td>"
+                f"<td class='num'>{money(a['cpl'])}</td>"
+                f"<td class='num'>{pct(a['ctr'])}</td>"
+                f"<td class='num'>{money(a['spend'])}</td>"
+                f"<td class='num'>{number(a['leads'])}</td></tr>"
+            )
+        return "".join(out) or "<tr><td colspan='6' class='name'>No creatives with leads yet.</td></tr>"
 
     suggestions = build_suggestions(creatives, adsets, l24.get("cold_cpl"), l24.get("lpv_to_lead_pct"))
-    suggestions_html = "".join(f"<li>{escape(s)}</li>" for s in suggestions)
+    # Each suggestion string is already HTML-safe: literal text is escaped
+    # inline (ad_link_html, adset_name) at construction time, so no second
+    # escape() pass here - that would mangle the <a> tags into text.
+    suggestions_html = "".join(f"<li>{s}</li>" for s in suggestions)
 
     css = (STATIC_DIR / "weekly-review.html").read_text(encoding="utf-8")
     style_block = css.split("<style>", 1)[1].split("</style>", 1)[0]
