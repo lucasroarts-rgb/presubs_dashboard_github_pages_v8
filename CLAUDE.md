@@ -10,7 +10,7 @@ Remote/identidade corretos pra esse repo (deploy do dashboard, review decks, etc
 
 Stack real do projeto (checado direto): FastAPI + pandas + pymysql (MySQL CRM) + Playwright + Google Analytics Data API (GA4) + Google Search Console + Google Ads API, front estático GitHub Pages, gera review decks (weekly_reviews/, l24_reviews/).
 
-Skills instaladas pra ele, usar sempre que a tarefa se aplicar:
+Skills instaladas pra ele — usar PROATIVAMENTE sempre que a tarefa se aplicar, sem esperar comando explícito do tipo "usa a skill X":
 - **`data:*`** (analyze, build-dashboard, create-viz, explore-data, sql-queries, statistical-analysis, validate-data, data-context-extractor) — qualquer análise, query SQL na base MySQL/CRM, construção/ajuste do dashboard, gráfico novo.
 - **`searchfit-seo:*`** (seo-audit, technical-seo, on-page-seo, keyword-clustering, content-strategy, schema-markup, broken-links, ai-visibility, content-brief, internal-linking) — qualquer trabalho envolvendo os dados de GSC (Search Console) que o projeto já integra, ou SEO do blog WordPress ligado a ele.
 - **`marketing:*`** (performance-report, campaign-plan, content-creation, brand-review, seo-audit) — geração dos review decks semanais/L24 (weekly_reviews, l24_reviews), relatório de performance cross-canal.
