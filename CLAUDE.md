@@ -10,7 +10,9 @@ Remote/identidade corretos pra esse repo (deploy do dashboard, review decks, etc
 
 Stack real do projeto (checado direto): FastAPI + pandas + pymysql (MySQL CRM) + Playwright + Google Analytics Data API (GA4) + Google Search Console + Google Ads API, front estático GitHub Pages, gera review decks (weekly_reviews/, l24_reviews/).
 
-Skills instaladas pra ele — usar PROATIVAMENTE sempre que a tarefa se aplicar, sem esperar comando explícito do tipo "usa a skill X":
+Skills instaladas pra ele — usar PROATIVAMENTE sempre que a tarefa se aplicar, sem esperar comando explícito do tipo "usa a skill X".
+
+**IMPORTANTE (2026-09-18, corrigido depois de eu ter instalado tudo e não usado nenhuma na prática):** invocar de verdade via Skill tool, não só ter a skill instalada como referência mental. Não fazer manual (curl/grep/screenshot solto) quando a skill cobre a tarefa — chamar a skill primeiro e seguir o fluxo dela até o fim (não abandonar no meio se distrair com outra coisa). Antes de qualquer mudança de CSS/HTML/layout nas landing pages ou no dashboard: `design:accessibility-review` e/ou `web-design-guidelines` primeiro, sem exceção.
 - **`data:*`** (analyze, build-dashboard, create-viz, explore-data, sql-queries, statistical-analysis, validate-data, data-context-extractor) — qualquer análise, query SQL na base MySQL/CRM, construção/ajuste do dashboard, gráfico novo.
 - **`searchfit-seo:*`** (seo-audit, technical-seo, on-page-seo, keyword-clustering, content-strategy, schema-markup, broken-links, ai-visibility, content-brief, internal-linking) — qualquer trabalho envolvendo os dados de GSC (Search Console) que o projeto já integra, ou SEO do blog WordPress ligado a ele.
 - **`marketing:*`** (performance-report, campaign-plan, content-creation, brand-review, seo-audit) — geração dos review decks semanais/L24 (weekly_reviews, l24_reviews), relatório de performance cross-canal.
