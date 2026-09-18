@@ -217,7 +217,7 @@ def build_deck(l24: dict[str, Any]) -> str:
   <section class="slide" data-index="2">
     <p class="eyebrow">Where leads come from</p>
     <h2 class="slide-title">Performance by ad set</h2>
-    <p class="slide-sub">COLD campaign, all 6 ad sets.</p>
+    <p class="slide-sub">L24 traffic, all {len(adsets)} ad sets (COLD + BEST SELLERS).</p>
     <div class="slide-body">
       <table class="top-table"><thead><tr><th>Ad set</th><th class="num">Spend</th><th class="num">Leads</th><th class="num">CPL</th><th class="num">CTR</th></tr></thead><tbody>{adset_rows}</tbody></table>
     </div>
