@@ -219,6 +219,7 @@ def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
             raise L24SyncError(f"Meta ad-level insights error ({response.status_code}): {payload}")
         for row in payload.get("data") or []:
             leads = _action_value(row, "lead", "offsite_conversion.fb_pixel_lead")
+            landing_page_views = _action_value(row, "landing_page_view")
             spend = float(row.get("spend") or 0)
             creative_info = fetch_ad_creative_info(env, row.get("ad_id"))
             rows.append(
@@ -230,6 +231,7 @@ def fetch_ad_performance(env: dict[str, str], campaign_id: str) -> list[dict]:
                     "impressions": int(row.get("impressions") or 0),
                     "clicks": int(row.get("clicks") or 0),
                     "ctr": float(row.get("ctr") or 0),
+                    "landing_page_views": landing_page_views,
                     "leads": leads,
                     "cpl": round(spend / leads, 2) if leads else None,
                     "creative_image_url": creative_info["creative_image_url"],
@@ -247,14 +249,14 @@ def store_ad_performance(rows: list[dict]) -> None:
         con.executemany(
             """
             INSERT INTO l24_ad_performance
-                (ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, leads, cpl,
+                (ad_id, ad_name, adset_name, spend, impressions, clicks, ctr, landing_page_views, leads, cpl,
                  creative_image_url, preview_url, synced_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """,
             [
                 (
                     r["ad_id"], r["ad_name"], r["adset_name"], r["spend"], r["impressions"],
-                    r["clicks"], r["ctr"], r["leads"], r["cpl"],
+                    r["clicks"], r["ctr"], r["landing_page_views"], r["leads"], r["cpl"],
                     r.get("creative_image_url"), r.get("preview_url"),
                 )
                 for r in rows

@@ -151,6 +151,19 @@ def build_deck(l24: dict[str, Any]) -> str:
         for a in adsets
     ) or "<tr><td colspan='5' class='name'>No adset data synced yet.</td></tr>"
 
+    page_test_rows_data = sorted(
+        [a for a in creatives if (a.get("ad_name") or "").upper().startswith("PAGE-TEST")],
+        key=lambda a: (a.get("page_conversion_pct") is None, -(a.get("page_conversion_pct") or 0)),
+    )
+    page_test_rows = "".join(
+        f"<tr><td class='name'>{escape(a['ad_name'] or '')}</td>"
+        f"<td class='num'>{number(a.get('landing_page_views') or 0)}</td>"
+        f"<td class='num'>{number(a['leads'])}</td>"
+        f"<td class='num'>{pct(a['page_conversion_pct']) if a.get('page_conversion_pct') is not None else '—'}</td>"
+        f"<td class='num'>{money(a['cpl']) if a['cpl'] is not None else '—'}</td></tr>"
+        for a in page_test_rows_data
+    ) or "<tr><td colspan='5' class='name'>Page test not active or no data synced yet.</td></tr>"
+
     ads_with_leads = sorted([a for a in creatives if a["leads"] > 0], key=lambda a: a["cpl"])
     best = ads_with_leads[:5]
     worst = list(reversed(ads_with_leads[-5:])) if len(ads_with_leads) > 5 else list(reversed(ads_with_leads))
@@ -224,6 +237,15 @@ def build_deck(l24: dict[str, Any]) -> str:
   </section>
 
   <section class="slide" data-index="3">
+    <p class="eyebrow">Page conversion</p>
+    <h2 class="slide-title">Which landing page converts best</h2>
+    <p class="slide-sub">Split test — same audience/creative/budget, only the landing page differs. LPV → Lead conversion.</p>
+    <div class="slide-body">
+      <table class="top-table"><thead><tr><th>Page</th><th class="num">LPV</th><th class="num">Leads</th><th class="num">Conversion</th><th class="num">CPL</th></tr></thead><tbody>{page_test_rows}</tbody></table>
+    </div>
+  </section>
+
+  <section class="slide" data-index="4">
     <p class="eyebrow">Creative performance</p>
     <h2 class="slide-title">Best creatives (lowest CPL)</h2>
     <p class="slide-sub">Ads with at least one lead, sorted by CPL.</p>
@@ -232,7 +254,7 @@ def build_deck(l24: dict[str, Any]) -> str:
     </div>
   </section>
 
-  <section class="slide" data-index="4">
+  <section class="slide" data-index="5">
     <p class="eyebrow">Creative performance</p>
     <h2 class="slide-title">Worst creatives (highest CPL)</h2>
     <p class="slide-sub">Ads with at least one lead, sorted by CPL descending.</p>
@@ -241,7 +263,7 @@ def build_deck(l24: dict[str, Any]) -> str:
     </div>
   </section>
 
-  <section class="slide" data-index="5">
+  <section class="slide" data-index="6">
     <p class="eyebrow">Recommendations</p>
     <h2 class="slide-title">Improvement suggestions</h2>
     <p class="slide-sub">Data-grounded, from this snapshot only - not proof, a starting point for review.</p>
@@ -261,7 +283,7 @@ def build_deck(l24: dict[str, Any]) -> str:
       <button class="nav-btn" id="nextBtn" aria-label="Next slide" onclick="go(1)">
         <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="slide-count" id="slideCount">1 / 6</span>
+      <span class="slide-count" id="slideCount">1 / 7</span>
     </div>
     <div class="dots" id="dots"></div>
   </div>
