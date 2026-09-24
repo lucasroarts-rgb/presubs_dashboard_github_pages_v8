@@ -17,3 +17,4 @@ logs/
 
 data/dashboard_config.json
 backups/
+google_gtm_service_account.json
