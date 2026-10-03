@@ -121,3 +121,75 @@ def send_complete_registration(
     )
     response.raise_for_status()
     return response.json()
+
+
+def send_lead(
+    *,
+    pixel_id: str,
+    access_token: str,
+    event_id: str,
+    event_time: int,
+    email: str | None = None,
+    first_name: str | None = None,
+    phone: str | None = None,
+    client_ip_address: str | None = None,
+    client_user_agent: str | None = None,
+    fbc: str | None = None,
+    fbp: str | None = None,
+    event_source_url: str | None = None,
+    test_event_code: str | None = None,
+    timeout: float = 15.0,
+) -> dict[str, Any]:
+    """POST a server-side Lead event to Meta CAPI, carrying hashed identity data.
+
+    Unlike send_complete_registration, there is no shared event_id with the
+    browser-side pixel that Twilead's form fires (that pixel is on a
+    third-party iframe we don't control), so Meta cannot dedupe this against
+    the browser event. Sending this in production will make Meta report a
+    second Lead per submission, inflating lead counts and understating CPL
+    account-wide. Always pass test_event_code until that gap is resolved.
+    """
+    user_data: dict[str, Any] = {}
+    if email:
+        user_data["em"] = [_hash(email)]
+    if first_name:
+        user_data["fn"] = [_hash(first_name)]
+    if phone:
+        user_data["ph"] = [_hash(phone)]
+    if client_ip_address:
+        user_data["client_ip_address"] = client_ip_address
+    if client_user_agent:
+        user_data["client_user_agent"] = client_user_agent
+    if fbc:
+        user_data["fbc"] = fbc
+    if fbp:
+        user_data["fbp"] = fbp
+
+    if not user_data:
+        raise ValueError(
+            "At least one of email, phone, fbc or fbp is required for Meta "
+            "to be able to match this event to a person."
+        )
+
+    event: dict[str, Any] = {
+        "event_name": "Lead",
+        "event_time": event_time,
+        "event_id": event_id,
+        "action_source": "website",
+        "user_data": user_data,
+    }
+    if event_source_url:
+        event["event_source_url"] = event_source_url
+
+    payload: dict[str, Any] = {"data": [event]}
+    if test_event_code:
+        payload["test_event_code"] = test_event_code
+
+    response = requests.post(
+        CAPI_URL.format(pixel_id=pixel_id),
+        params={"access_token": access_token},
+        json=payload,
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    return response.json()
