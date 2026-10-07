@@ -118,6 +118,49 @@ def monthly_pacing(reference_date: date) -> dict[str, Any] | None:
     }
 
 
+def l24_calendar_leads(start_date: str, end_date: str) -> dict[str, Any] | None:
+    """L24 leads that entered the PreSubs CRM through the Atelier d'Anglais
+    booking calendars (url contains "rrsda", e.g. rrsdaind-atelier-anglais-ind).
+
+    These rows carry utm_campaign cpl24, so the PreSubs filter in
+    sync_crm.py leaves them out of every PreSubs number; the deck shows them
+    as a separate note. Read straight from the CRM MySQL, counts only.
+    Returns None when the CRM is unreachable so the deck still renders.
+    """
+    try:
+        from scripts.automate_meta import load_env_file
+        from scripts.sync_crm import _connect
+
+        connection = _connect(load_env_file())
+    except Exception as error:  # noqa: BLE001 - optional enrichment
+        print(f"WARNING: L24 calendar note skipped ({error})", file=sys.stderr)
+        return None
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT REGEXP_SUBSTR(LOWER(url), 'rrsda[a-z0-9-]*') AS calendar,
+                   COUNT(DISTINCT LOWER(TRIM(email)))
+            FROM leads
+            WHERE data BETWEEN %s AND %s AND LOWER(url) LIKE %s
+            GROUP BY calendar WITH ROLLUP
+            """,
+            (start_date, end_date, "%rrsda%"),
+        )
+        rows = cursor.fetchall()
+    finally:
+        connection.close()
+    total = 0
+    calendars: list[dict[str, Any]] = []
+    for calendar_slug, count in rows:
+        if calendar_slug is None:  # ROLLUP row: unique people across calendars
+            total = int(count or 0)
+        else:
+            calendars.append({"calendar": calendar_slug, "lead_count": int(count or 0)})
+    calendars.sort(key=lambda row: row["lead_count"], reverse=True)
+    return {"total": total, "calendars": calendars}
+
+
 def format_date_short(iso_date: str) -> str:
     d = date.fromisoformat(iso_date)
     return f"{d.strftime('%b')} {d.day}"
@@ -290,6 +333,18 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         # a broken/blank slide in the deck).
         else ""
     )
+
+    l24_calendar = l24_calendar_leads(current["week_start"], current["week_end"])
+    l24_note = ""
+    if l24_calendar is not None:
+        calendar_list = ", ".join(
+            f'{escape(row["calendar"])} ({number(row["lead_count"])})' for row in l24_calendar["calendars"]
+        )
+        l24_note = (
+            '<div class="kpi-card"><div class="label">L24 leads via Atelier calendars</div>'
+            f'<div class="value">{number(l24_calendar["total"])}</div>'
+            f'<div class="note">Separate from PreSubs, not in the total. rrsda links{": " + calendar_list if calendar_list else ""}</div></div>'
+        )
 
     ads = [a for a in data.get("ads", []) if float(a.get("results") or 0) > 0]
     ads = sorted(ads, key=lambda a: float(a.get("results") or 0), reverse=True)[:4]
@@ -513,6 +568,7 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
         <div class="kpi-card"><div class="label">Meta (Facebook Ads)</div><div class="value">{number(paid_leads_total)}</div><div class="note">{pct(100 - organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
         <div class="kpi-card"><div class="label">Organic</div><div class="value">{number(organic_leads_total)}</div><div class="note">{pct(organic_pct_of_total) if organic_pct_of_total is not None else "—"} of total, CRM</div></div>
         <div class="kpi-card"><div class="label">Google Ads</div><div class="value">{number(google_ads_crm_leads)}</div><div class="note">CRM, channel = Google Ads/Adwords</div></div>
+        {l24_note}
       </div>
       <div class="chart-wrap" style="margin-top:18px">
         <h3>Leads by source (CRM)</h3>
@@ -520,7 +576,6 @@ def build_deck(data: dict[str, Any], previous_crm_gap: dict[str, Any], annotatio
       </div>
     </div>
   </section>
-
   <section class="slide" data-index="5">
     <p class="eyebrow">Daily trend</p>
     <h2 class="slide-title">Registrations per day</h2>
