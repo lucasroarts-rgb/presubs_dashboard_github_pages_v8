@@ -96,7 +96,8 @@ def prepare_git() -> None:
 
 
 def publish_docs(message: str) -> dict[str, object]:
-    run_git(["add", "docs", "weekly_reviews", "static/weekly-review.html", ".gitignore", "README.md"])
+    # only the encrypted docs/ goes to the public repo; review decks stay local (see scripts/public_encryption.py)
+    run_git(["add", "docs", ".gitignore", "README.md"])
     diff = run_git(["diff", "--cached", "--quiet"], check=False)
     if diff.returncode == 0:
         return {"changed": False, "pushed": False}

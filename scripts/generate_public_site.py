@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-import hashlib
 import json
 import math
 import shutil
@@ -16,6 +15,7 @@ DOCS_DIR = ROOT / "docs"
 
 sys.path.insert(0, str(ROOT))
 import app as dashboard_app  # noqa: E402
+from scripts import public_encryption  # noqa: E402
 
 
 def clean_json(value: Any) -> Any:
@@ -34,6 +34,7 @@ def build_public_index() -> str:
     html = html.replace('/static/dashboard.js?v=10.6.4.2', 'dashboard.js?v=10.6.4.2')
     html = html.replace('/static/student_profile_data.js?v=10.6.4.2', 'student_profile_data.js?v=10.6.4.2')
     html = html.replace('/static/assets/peasy-logo.png', 'assets/peasy-logo.png')
+    html = html.replace('/static/assets/motion-lite.js', 'assets/motion-lite.js')
     html = html.replace('/static/weekly-review.html', 'weekly-review.html')
     html = html.replace('/weekly-reviews/index.html', 'weekly-reviews/index.html')
     html = html.replace('/static/l24-review.html', 'l24-review.html')
@@ -51,85 +52,21 @@ def build_public_index() -> str:
     html = html.replace('<a class="btn" href="/admin">Edit goals</a>', '')
     html = html.replace('<a class="btn" href="/admin">Configure goals and events</a>', '')
 
-    password_hash = (
-        hashlib.sha256(dashboard_app.DASHBOARD_PASSWORD.encode("utf-8")).hexdigest()
-        if dashboard_app.DASHBOARD_PASSWORD
-        else ""
+    # Data files are encrypted (scripts/public_encryption.py); the gate decrypts them in the browser.
+    html = html.replace('<body data-active-view="auditOverview">',
+                        '<body data-active-view="auditOverview">\n' + public_encryption.LOCK_FORM, 1)
+    html = html.replace('  <script src="student_profile_data.js?v=10.6.4.2"></script>\n', '')
+    html = html.replace(
+        '<script src="dashboard.js?v=10.6.4.2"></script>',
+        public_encryption.dashboard_gate(
+            public_encryption.gate_salt(),
+            ["student_profile_data.enc", "data.enc"],
+            "dashboard.js?v=10.6.4.2",
+        ),
     )
-    if password_hash:
-        html = html.replace('<body data-active-view="auditOverview">', GATE_OVERLAY_HTML, 1)
-        html = html.replace(
-            '<script src="dashboard.js?v=10.6.4.2"></script>',
-            GATE_LOADER_SCRIPT.replace("__PASSWORD_HASH__", password_hash),
-        )
-    else:
-        html = html.replace(
-            '<script src="dashboard.js?v=10.6.4.2"></script>',
-            '<script src="data.js?v=10.6.4.2"></script>\n  <script src="dashboard.js?v=10.6.4.2"></script>',
-        )
+    if "student_profile_data.js" in html or 'src="data.js' in html:
+        raise RuntimeError("index.html still references a clear-text data file.")
     return html
-
-
-GATE_OVERLAY_HTML = """<body data-active-view="auditOverview">
-  <div id="dashLockOverlay" style="position:fixed;inset:0;z-index:99999;background:#0c0f1c;display:flex;align-items:center;justify-content:center;font-family:inherit">
-    <form id="dashLockForm" style="background:#161c30;border:1px solid #2a3350;border-radius:14px;padding:32px 28px;width:min(340px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.4)">
-      <div style="font-size:15px;font-weight:800;color:#f5f6fb;margin-bottom:6px">PreSubs Dashboard</div>
-      <div style="font-size:12px;color:#9aa3bd;margin-bottom:16px">Digite a senha para acessar.</div>
-      <input id="dashLockInput" type="password" placeholder="Senha" autocomplete="current-password" autofocus style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3350;background:#0c0f1c;color:#f5f6fb;font-size:14px;margin-bottom:12px" />
-      <button type="submit" style="width:100%;padding:10px 12px;border-radius:8px;border:none;background:#6a5cff;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Entrar</button>
-      <div id="dashLockError" style="display:none;margin-top:10px;font-size:12px;color:#ff6b6b">Senha incorreta.</div>
-    </form>
-  </div>"""
-
-GATE_LOADER_SCRIPT = """<script>
-(function(){
-  var EXPECTED_HASH="__PASSWORD_HASH__";
-  var STORAGE_KEY="presubs_dash_unlock_v1";
-  function sha256Hex(text){
-    var enc=new TextEncoder().encode(text);
-    return crypto.subtle.digest("SHA-256",enc).then(function(buf){
-      return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,"0")}).join("");
-    });
-  }
-  function removeOverlay(){
-    var overlay=document.getElementById("dashLockOverlay");
-    if(overlay)overlay.remove();
-  }
-  function loadScripts(){
-    removeOverlay();
-    var s1=document.createElement("script");
-    s1.src="data.js?v=10.6.4.2";
-    s1.onload=function(){
-      var s2=document.createElement("script");
-      s2.src="dashboard.js?v=10.6.4.2";
-      document.body.appendChild(s2);
-    };
-    document.body.appendChild(s1);
-  }
-  var stored=null;
-  try{stored=localStorage.getItem(STORAGE_KEY);}catch(e){}
-  if(stored===EXPECTED_HASH){
-    loadScripts();
-  }else{
-    var form=document.getElementById("dashLockForm");
-    var input=document.getElementById("dashLockInput");
-    var err=document.getElementById("dashLockError");
-    form.addEventListener("submit",function(ev){
-      ev.preventDefault();
-      sha256Hex(input.value).then(function(hash){
-        if(hash===EXPECTED_HASH){
-          try{localStorage.setItem(STORAGE_KEY,hash);}catch(e){}
-          loadScripts();
-        }else{
-          err.style.display="block";
-          input.value="";
-          input.focus();
-        }
-      });
-    });
-  }
-})();
-</script>"""
 
 
 def build_public_javascript() -> str:
@@ -354,10 +291,6 @@ def main() -> int:
         build_public_javascript(),
         encoding="utf-8",
     )
-    (DOCS_DIR / "student_profile_data.js").write_text(
-        (STATIC_DIR / "student_profile_data.js").read_text(encoding="utf-8"),
-        encoding="utf-8",
-    )
     if (STATIC_DIR / "weekly-review.html").exists():
         (DOCS_DIR / "weekly-review.html").write_text(
             (STATIC_DIR / "weekly-review.html").read_text(encoding="utf-8"),
@@ -383,9 +316,12 @@ def main() -> int:
         separators=(",", ":"),
         allow_nan=False,
     )
-    (DOCS_DIR / "data.js").write_text(
-        "window.PRESUBS_STATIC_DATA=" + json_text + ";\n",
-        encoding="utf-8",
+    locked = public_encryption.encrypt_docs(
+        DOCS_DIR,
+        {
+            "data.enc": "window.PRESUBS_STATIC_DATA=" + json_text + ";\n",
+            "student_profile_data.enc": (STATIC_DIR / "student_profile_data.js").read_text(encoding="utf-8"),
+        },
     )
     (DOCS_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
@@ -417,6 +353,7 @@ def main() -> int:
     print("Public site generated successfully.")
     print(f"Folder: {DOCS_DIR}")
     print(f"Reporting periods: {len(weeks)}")
+    print(f"Encrypted: data, student profile, {locked['pages']} pages, {locked['pdfs']} PDFs.")
     print("The public dashboard data was exported; the SQLite database and source spreadsheets remain local.")
     return 0
 

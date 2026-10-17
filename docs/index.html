@@ -8,15 +8,16 @@
   <link rel="stylesheet" href="styles.css?v=10.6.4.2" />
 </head>
 <body data-active-view="auditOverview">
-  <div id="dashLockOverlay" style="position:fixed;inset:0;z-index:99999;background:#0c0f1c;display:flex;align-items:center;justify-content:center;font-family:inherit">
-    <form id="dashLockForm" style="background:#161c30;border:1px solid #2a3350;border-radius:14px;padding:32px 28px;width:min(340px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.4)">
-      <div style="font-size:15px;font-weight:800;color:#f5f6fb;margin-bottom:6px">PreSubs Dashboard</div>
-      <div style="font-size:12px;color:#9aa3bd;margin-bottom:16px">Digite a senha para acessar.</div>
-      <input id="dashLockInput" type="password" placeholder="Senha" autocomplete="current-password" autofocus style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3350;background:#0c0f1c;color:#f5f6fb;font-size:14px;margin-bottom:12px" />
-      <button type="submit" style="width:100%;padding:10px 12px;border-radius:8px;border:none;background:#6a5cff;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Entrar</button>
-      <div id="dashLockError" style="display:none;margin-top:10px;font-size:12px;color:#ff6b6b">Senha incorreta.</div>
-    </form>
-  </div>
+<div id="dashLockOverlay" style="position:fixed;inset:0;z-index:99999;background:#0c0f1c;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif">
+  <form id="dashLockForm" style="background:#161c30;border:1px solid #2a3350;border-radius:14px;padding:32px 28px;width:min(340px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <div style="font-size:15px;font-weight:800;color:#f5f6fb;margin-bottom:6px">PreSubs Dashboard</div>
+    <div style="font-size:13px;color:#b4bbd1;margin-bottom:16px">Digite a senha para acessar.</div>
+    <label for="dashLockInput" style="position:absolute;left:-9999px">Senha</label>
+    <input id="dashLockInput" type="password" placeholder="Senha" autocomplete="current-password" autofocus style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3350;background:#0c0f1c;color:#f5f6fb;font-size:16px;margin-bottom:12px" />
+    <button id="dashLockBtn" type="submit" style="width:100%;padding:11px 12px;border-radius:8px;border:none;background:#6a5cff;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Entrar</button>
+    <div id="dashLockError" role="alert" style="display:none;margin-top:10px;font-size:13px;color:#ff8a8a">Senha incorreta.</div>
+  </form>
+</div>
 
   <aside class="app-sidebar" id="appSidebar" aria-label="Dashboard navigation">
     <div class="sidebar-brand">
@@ -1054,55 +1055,43 @@
 
     <div class="footer-note">Conversion pages are identified by tags such as [LP-A]. Ads without a page tag are treated as Main page. Meta landing-page views are used when available; otherwise conversion uses link clicks as a proxy.</div>
   </main>
-  <script src="student_profile_data.js?v=10.6.4.2"></script>
   <script>
 (function(){
-  var EXPECTED_HASH="146c2721ad6baa36400d7a2b3daa4762d33cff910cde634c0405a9d7ee25f7a3";
-  var STORAGE_KEY="presubs_dash_unlock_v1";
-  function sha256Hex(text){
-    var enc=new TextEncoder().encode(text);
-    return crypto.subtle.digest("SHA-256",enc).then(function(buf){
-      return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,"0")}).join("");
-    });
-  }
-  function removeOverlay(){
-    var overlay=document.getElementById("dashLockOverlay");
-    if(overlay)overlay.remove();
-  }
-  function loadScripts(){
-    removeOverlay();
-    var s1=document.createElement("script");
-    s1.src="data.js?v=10.6.4.2";
-    s1.onload=function(){
-      var s2=document.createElement("script");
-      s2.src="dashboard.js?v=10.6.4.2";
-      document.body.appendChild(s2);
-    };
-    document.body.appendChild(s1);
-  }
-  var stored=null;
-  try{stored=localStorage.getItem(STORAGE_KEY);}catch(e){}
-  if(stored===EXPECTED_HASH){
-    loadScripts();
-  }else{
-    var form=document.getElementById("dashLockForm");
-    var input=document.getElementById("dashLockInput");
-    var err=document.getElementById("dashLockError");
-    form.addEventListener("submit",function(ev){
-      ev.preventDefault();
-      sha256Hex(input.value).then(function(hash){
-        if(hash===EXPECTED_HASH){
-          try{localStorage.setItem(STORAGE_KEY,hash);}catch(e){}
-          loadScripts();
-        }else{
-          err.style.display="block";
-          input.value="";
-          input.focus();
-        }
-      });
-    });
-  }
+
+var LOCK={salt:"/vrMzIojft85AvcR/S6lyw==",iter:600000,store:"presubs_dash_key_v2"};
+function b64(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function deriveKey(pw){return crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]).then(function(base){
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(LOCK.salt),iterations:LOCK.iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},true,["decrypt"])})}
+function storedKey(){var raw=null;try{raw=JSON.parse(localStorage.getItem(LOCK.store)||"null")}catch(e){}
+  if(!raw||raw.salt!==LOCK.salt)return Promise.resolve(null);
+  return crypto.subtle.importKey("raw",b64(raw.k),{name:"AES-GCM"},true,["decrypt"])}
+function keepKey(key){return crypto.subtle.exportKey("raw",key).then(function(r){var s="",u=new Uint8Array(r);for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);
+  try{localStorage.setItem(LOCK.store,JSON.stringify({salt:LOCK.salt,k:btoa(s)}));localStorage.removeItem("presubs_dash_unlock_v1")}catch(e){}})}
+function decrypt(key,box){return crypto.subtle.decrypt({name:"AES-GCM",iv:b64(box.iv)},key,b64(box.ct))}
+
+function runLock(onKey){
+  var form=document.getElementById("dashLockForm"),input=document.getElementById("dashLockInput"),
+      err=document.getElementById("dashLockError"),btn=document.getElementById("dashLockBtn");
+  function open(key,remember){return onKey(key).then(function(){if(remember)keepKey(key);var o=document.getElementById("dashLockOverlay");if(o)o.remove()})}
+  form.addEventListener("submit",function(ev){ev.preventDefault();btn.disabled=true;btn.textContent="Abrindo...";err.style.display="none";
+    deriveKey(input.value).then(function(key){return open(key,true)}).catch(function(){err.style.display="block";input.value="";input.focus()})
+      .then(function(){btn.disabled=false;btn.textContent="Entrar"})});
+  storedKey().then(function(key){if(key)return open(key,false)}).catch(function(){try{localStorage.removeItem(LOCK.store)}catch(e){}})
+}
+
+var FILES=["student_profile_data.enc", "data.enc"];
+function runScript(text){return new Promise(function(ok,fail){var s=document.createElement("script");
+  s.src=URL.createObjectURL(new Blob([text],{type:"text/javascript"}));s.onload=ok;s.onerror=fail;document.body.appendChild(s)})}
+var started=false;
+runLock(function(key){
+  return Promise.all(FILES.map(function(f){return fetch(f,{cache:"no-cache"}).then(function(r){return r.json()})}))
+    .then(function(boxes){return Promise.all(boxes.map(function(b){return decrypt(key,b)}))})
+    .then(function(plain){if(started)return;started=true;var dec=new TextDecoder();
+      return plain.reduce(function(p,buf){return p.then(function(){return runScript(dec.decode(buf))})},Promise.resolve())
+        .then(function(){var s=document.createElement("script");s.src="dashboard.js?v=10.6.4.2";document.body.appendChild(s)})});
+});
 })();
 </script>
+  <script src="assets/motion-lite.js" defer data-values=".kpi-value" data-charts="svg.goal-svg,svg.audit-sparkline" data-hbars=".bar-fill"></script>
 </body>
 </html>

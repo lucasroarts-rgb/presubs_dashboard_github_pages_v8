@@ -18,3 +18,14 @@ logs/
 data/dashboard_config.json
 backups/
 google_gtm_service_account.json
+
+# key salt for the encrypted public site
+data/public_lock.json
+
+# clear-text copies of data; the public site publishes them encrypted from docs/ (2026-10-17)
+ghl_referral_backfill.json
+weekly_reviews/
+l24_reviews/
+static/weekly-review.html
+static/l24-review.html
+static/student_profile_data.js
